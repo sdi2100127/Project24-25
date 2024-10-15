@@ -1,4 +1,4 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void* fvecs_open(const char *filename);
+float** fvecs_open(const char *filename, int* num_vectors);
