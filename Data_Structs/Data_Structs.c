@@ -1,6 +1,6 @@
 #include "Data_Structs.h"
 
-Node Create(){
+Node create_list(){
     Node new;
     new = (Node)malloc(sizeof(struct List));
     new->nextNode = NULL;
@@ -8,7 +8,7 @@ Node Create(){
 }
 
 
-Node add(Node head, int value){
+Node add_to_list(Node head, int value){
     Node temp = Create();
     temp->data = value;
     if(head == NULL){

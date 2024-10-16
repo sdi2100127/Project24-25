@@ -6,20 +6,17 @@ typedef struct List
 {
     int data;
     struct List * nextNode;
-}list;
+}list;      // typo??
 
 typedef struct List  * Node;
 
-Node Create();
+Node create_list();
 
-Node add(Node head, int value);
-
-
+Node add_to_list(Node head, int value);
 
 
-typedef struct HashTable
-{
-    int data;
+// to implement the adjecency list we will be using a hashMap because of
+// the advantages it presents such as: being able to store large amounts of data
+// and being very fast and effective while performing simple operations
 
-}Hash;
-
+typedef struct map* Map;
