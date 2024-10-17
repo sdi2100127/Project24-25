@@ -6,17 +6,27 @@ typedef struct List
 {
     int data;
     struct List * nextNode;
-}list;      // typo??
+}list;
 
 typedef struct List  * Node;
 
-Node create_list();
+Node Create();
 
-Node add_to_list(Node head, int value);
+Node add(Node head, int value);
+
+void L_delete();
+
+typedef struct set_node * set_Node;
+
+set_Node node_create(int);
 
 
-// to implement the adjecency list we will be using a hashMap because of
-// the advantages it presents such as: being able to store large amounts of data
-// and being very fast and effective while performing simple operations
+int compare (int , int );
 
-typedef struct map* Map;
+set_Node node_insert(set_Node node, int value, int old_value);
+
+set_Node min_remove(set_Node node,set_Node *);
+
+set_Node S_remove(set_Node node, int value, int old_value);
+
+void S_destroy(Set);
