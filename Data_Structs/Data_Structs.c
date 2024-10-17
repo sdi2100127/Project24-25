@@ -50,28 +50,26 @@ set_Node node_create(int value) {
 
 
 set_Node node_insert(set_Node node, int value, int old_value) {
-	// Αν το υποδέντρο είναι κενό, δημιουργούμε νέο κόμβο ο οποίος γίνεται ρίζα του υποδέντρου
+	//If the tree is empty we create a node that is the root
 	if (node == NULL) {
 		return node_create(value);
 	}
 
-	// Το που θα γίνει η προσθήκη εξαρτάται από τη διάταξη της τιμής
-	// value σε σχέση με την τιμή του τρέχοντος κόμβου (node->value)
-	//
+	//The placement of the value is declared by its value 
 	if (compare(value, node->value) == 0) {
 		int *old_value = node->value;
 		node->value = value;
 
 	} else if (compare(value, node->value) < 0) {
-		// value < node->value, συνεχίζουμε αριστερά.
+		//If the value is bigger we go to the left
 		node->left = node_insert(node->left, value, old_value);
 
 	} else {
-		// value > node->value, συνεχίζουμε δεξιά
+		//If the value is smaller we got to the right
 		node->right = node_insert(node->right, value, old_value);
 	}
 
-	return node;	// η ρίζα του υποδέντρου δεν αλλάζει
+	return node;
 }
 
 
