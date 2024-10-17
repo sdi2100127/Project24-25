@@ -2,3 +2,5 @@
 #include <stdlib.h>
 
 float** fvecs_open(const char *filename, int* num_vectors);
+
+int** ivecs_open(const char *filename, int* num_vectors);
