@@ -1,36 +1,50 @@
 #include "Data_Structs.h"
-//Testing
-Node create_list(){
-    Node new;
-    new = (Node)malloc(sizeof(struct List));
-    new->nextNode = NULL;
+
+//Implementaion of the List struct and functions
+
+struct list{
+	list_node head;
+	int data;
+};
+
+struct List_Node{
+	list_node next_node;
+	int data;
+};
+
+list_node create_list(){
+    list_node new;
+    new = (list_node)malloc(sizeof(List));
+    new->next_node = NULL;
     return new;
 }
 
-
-Node add_to_list(Node head, int value){
-    Node temp = Create();
+void add(list_node head, int value){
+    list_node temp = Create();
     temp->data = value;
     if(head == NULL){
         head = temp;
     }else{
-        Node temp_head = head;
+        List temp_head = head;
         while(temp_head != NULL){
-            temp_head = temp_head->nextNode;
+            temp_head = temp_head->head->next_node;
         }
         temp_head = temp;
     }
     return head;
 }
 
+void remove(list_node, int value){
+
+}
+
+void list_destroy(List l){
+
+}
 
 
-
-
-
-//Set implementation
-
-struct Set{
+//Implementation of the Set struct and functions
+struct set{
 	set_Node root;				
 	int size;
 };
@@ -72,6 +86,32 @@ set_Node node_insert(set_Node node, int value, int old_value) {
 	return node;
 }
 
+//A simple function that creates our set and save some space in our memory
+Set set_Create(){
+	Set set = malloc(sizeof(Set));
+	set->root = NULL;
+	set->size = 0;
+
+	return set;
+}
+
+
+void set_insert(Set set, int value){
+	int *old_value;
+	set->root = node_insert(set->root,value,&old_value);
+	set->size++;
+}
+
+void set_remove(Set set,int value){
+	int *old_value;
+	set->root = S_node_remove(set->root,value,&old_value);
+	set->size--;
+}
+
+void set_destroy(Set set,int dvalue ){
+	S_node_destroy(set->root, dvalue);
+	free(set);
+}
 
 set_Node min_remove(set_Node node,set_Node *min){
     if(node->left == NULL){
@@ -140,6 +180,12 @@ set_Node S_remove(set_Node node, int value, int old_value) {
 }
 
 
-void S_destroy(set_Node node){
+void S_destroy(set_Node node,int dvalue){
+	if(node == NULL){
+		return;
+	}
+	S_destroy(node->left, dvalue);
+	S_destroy(node->right, dvalue);
 
+	free(node);
 }
