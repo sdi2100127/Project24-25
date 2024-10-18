@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-float** fvecs_open(const char *filename, int* num_vectors);
+float** fvecs_open(const char *filename, int* num_vectors, int* d);
 
-int** ivecs_open(const char *filename, int* num_vectors);
+int** ivecs_open(const char *filename, int* num_vectors, int* d);
