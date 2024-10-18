@@ -4,7 +4,8 @@
 
 struct list{
 	list_node head;
-	int data;
+	list_node tail;
+	int size;
 };
 
 struct List_Node{
@@ -12,34 +13,55 @@ struct List_Node{
 	int data;
 };
 
-list_node create_list(){
+List create_list(){
+	List l = malloc(sizeof(List));
+	l->size = 0;
+	
+
+
     list_node new;
-    new = (list_node)malloc(sizeof(List));
+    new = malloc(sizeof(list_node));
     new->next_node = NULL;
-    return new;
+	l->head = new;
+    return l;
 }
 
-void add(list_node head, int value){
+void add(List l, int value){
     list_node temp = Create();
     temp->data = value;
-    if(head == NULL){
-        head = temp;
+    if(l->head == NULL){
+        l->head = temp;
     }else{
-        List temp_head = head;
+        List temp_head = l->head;
         while(temp_head != NULL){
             temp_head = temp_head->head->next_node;
         }
         temp_head = temp;
     }
-    return head;
+	l->size++;
 }
 
-void remove(list_node, int value){
-
+void remove(List l ,list_node node , int value){
+	if(node == NULL)
+		return;
+	list_node temp = node;
+	if(node->next_node != NULL)
+		node->next_node = temp->next_node->next_node;
+	free(temp);
+	l->size --;
+	if(l->tail == NULL){
+		l->tail = node->next_node;
+	}
 }
 
 void list_destroy(List l){
-
+	list_node temp = l->head;
+	while (temp != NULL){
+		list_node next = temp->next_node;
+		free(temp);
+		temp = next;
+	}
+	free(l);
 }
 
 
@@ -188,4 +210,24 @@ void S_destroy(set_Node node,int dvalue){
 	S_destroy(node->right, dvalue);
 
 	free(node);
+}
+
+
+
+
+
+//A main to test the functoins and make sure that they work correctly 
+
+int main(){
+	List l = Create();
+	add(l,2);
+	add(l,2);
+	add(l,2);
+	add(l,2);
+	add(l,2);
+	add(l,2);
+	add(l,2);
+	add(l,2);
+	add(l,2);
+
 }

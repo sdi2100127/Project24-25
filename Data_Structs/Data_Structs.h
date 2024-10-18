@@ -10,13 +10,13 @@ typedef struct list * List;
 typedef struct List_Node * list_node;
 
 //Creation of the list
-list_node Create();
+List  Create();
 
 //Addition of a list node to the list
-void add(list_node , int);
+void add(List, int);
 
 //Removal of a list node from the list
-void remove(list_node, int);
+void remove(List, list_node, int);
 
 void destroy(List);
 
