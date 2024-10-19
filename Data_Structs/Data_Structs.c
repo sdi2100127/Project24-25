@@ -3,61 +3,67 @@
 //Implementaion of the List struct and functions
 
 struct list{
-	list_node head;
-	list_node tail;
-	int size;
+	list_Node head;
+	list_Node tail;
+	pointer size;
 };
 
 struct List_Node{
-	list_node next_node;
-	int data;
+	list_Node next_node;
+	pointer data;
 };
 
 List create_list(){
-	List l = malloc(sizeof(List));
+	List l = malloc(sizeof(*l));
+	if(l == NULL){
+		return NULL;
+	}
+
 	l->size = 0;
-	
+	l->head = malloc(sizeof(*l->head));
+	l->head->next_node = NULL;
+	l->head->data = 0;
+	l->tail = NULL;
 
-
-    list_node new;
-    new = malloc(sizeof(list_node));
-    new->next_node = NULL;
-	l->head = new;
     return l;
 }
 
-void add(List l, int value){
-    list_node temp = Create();
+void l_add(List l, list_Node node, pointer value){
+    if(node == NULL){
+		node = l->head;
+	}
+
+	list_Node temp = malloc(sizeof(* temp));
     temp->data = value;
-    if(l->head == NULL){
-        l->head = temp;
-    }else{
-        List temp_head = l->head;
-        while(temp_head != NULL){
-            temp_head = temp_head->head->next_node;
-        }
-        temp_head = temp;
-    }
+    
+	temp->next_node = node->next_node;
+	node->next_node = temp;
+
+	if(l->tail == node){
+		l->tail = temp;
+	}
+		
 	l->size++;
 }
 
-void remove(List l ,list_node node , int value){
+void l_remove_next(List l ,list_Node node , pointer value){
 	if(node == NULL)
-		return;
-	list_node temp = node;
-	if(node->next_node != NULL)
-		node->next_node = temp->next_node->next_node;
+		node = l->head;
+	
+
+	list_Node temp = node->next_node;
+	node->next_node = temp->next_node;
+
 	free(temp);
 	l->size --;
-	if(l->tail == NULL){
-		l->tail = node->next_node;
-	}
+	if(l->tail == temp)
+		l->tail = node;
 }
 
 void list_destroy(List l){
-	list_node temp = l->head;
+	list_Node temp = l->head;
 	while (temp != NULL){
-		list_node next = temp->next_node;
+		list_Node next = temp->next_node;
 		free(temp);
 		temp = next;
 	}
@@ -85,7 +91,7 @@ set_Node node_create(int value) {
 }
 
 
-set_Node node_insert(set_Node node, int value, int old_value) {
+set_Node node_insert(set_Node node, int value, int * old_value) {
 	//If the tree is empty we create a node that is the root
 	if (node == NULL) {
 		return node_create(value);
@@ -93,7 +99,7 @@ set_Node node_insert(set_Node node, int value, int old_value) {
 
 	//The placement of the value is declared by its value 
 	if (compare(value, node->value) == 0) {
-		int *old_value = node->value;
+		int old_value = node->value;
 		node->value = value;
 
 	} else if (compare(value, node->value) < 0) {
@@ -119,19 +125,19 @@ Set set_Create(){
 
 
 void set_insert(Set set, int value){
-	int *old_value;
+	int old_value;
 	set->root = node_insert(set->root,value,&old_value);
 	set->size++;
 }
 
 void set_remove(Set set,int value){
-	int *old_value;
-	set->root = S_node_remove(set->root,value,&old_value);
+	int old_value;
+	set->root = S_remove(set->root,value,&old_value);
 	set->size--;
 }
 
 void set_destroy(Set set,int dvalue ){
-	S_node_destroy(set->root, dvalue);
+	S_destroy(set->root, dvalue);
 	free(set);
 }
 
@@ -157,7 +163,7 @@ int compare(int value , int cur_value){
         return 0;
 }
 
-set_Node S_remove(set_Node node, int value, int old_value) {
+set_Node S_remove(set_Node node, int value, int * old_value) {
     //A quick check to see if the subtree we have is empty or not
 	if (node == NULL) {
 		printf("The subtree is empty returning");
@@ -166,7 +172,7 @@ set_Node S_remove(set_Node node, int value, int old_value) {
 
 	if (compare(value, node->value) == 0) {
         //In this case , we have found the value we have been searching for so now we have to remove the node
-		old_value = node->value;
+		old_value = &(node->value);
 
 		if (node->left == NULL) {
 			//If there is no left child we can delete the node and keep the right child 
@@ -194,9 +200,9 @@ set_Node S_remove(set_Node node, int value, int old_value) {
 		}
 	}
 	if (compare(value,node->value) < 0)
-		node->left  = node_remove(node->left, value, old_value);
+		node->left  = S_remove(node->left, value, old_value);
 	else
-		node->right = node_remove(node->right, value, old_value);
+		node->right = S_remove(node->right, value, old_value);
 
 	return node;
 }
@@ -219,15 +225,26 @@ void S_destroy(set_Node node,int dvalue){
 //A main to test the functoins and make sure that they work correctly 
 
 int main(){
-	List l = Create();
-	add(l,2);
-	add(l,2);
-	add(l,2);
-	add(l,2);
-	add(l,2);
-	add(l,2);
-	add(l,2);
-	add(l,2);
-	add(l,2);
+	List l = create_list();
+	l_add(l,l->head, 2);
+	l_add(l,l->head,23);
+	l_add(l,l->head,25);
+	l_add(l,l->head,3);
+	l_add(l,l->head,32);
+	l_add(l,l->head,31);
 
+	
+	list_Node temp = l->head;
+	while(temp != NULL){
+		printf("%d \n", temp->data);
+		temp= temp->next_node;
+	}
+	l_remove_next(l,l->head,31);
+	l_remove_next(l,l->head,3);
+	temp = l->head;
+	while(temp != NULL){
+		printf("%d \n", temp->data);
+		temp= temp->next_node;
+	}
+	list_destroy(l);
 }
