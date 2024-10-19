@@ -1,6 +1,6 @@
 #include "algorithms.h"
 
-Set* greedySearch(int** G, int nn, int vecs, int s, int xq, int k, int L, Set* V) {
+Set greedySearch(int** G, int nn, int vecs, int s, int xq, int k, int L, Set V) {
     // initializing the knn set with the starting point s
     Set knn_set;
     set_insert(knn_set, s);
@@ -15,6 +15,21 @@ Set* greedySearch(int** G, int nn, int vecs, int s, int xq, int k, int L, Set* V
     int pos, min_pos;
 
     while (flag == 1) {
+        // we check the flag up front in case we do not have any unvisited nodes in the first iteration
+        flag = 0;
+
+        // each time check if all the nodes on the knn_set have been visited
+        for (set_Node node = set_first(knn_set); node != set_last(knn_set); node = set_next(knn_set, node)) {
+            node_value = *set_node_value(knn_set, node);
+            // if not the loop should continue
+            if (set_find_node(visited_nodes, &node_value) == SET_EOF) {
+                flag = 1;
+                break;
+            }
+        }
+
+        if (flag == 0) break;
+        
         // for every unvisited node in the knn_set
         for (set_Node node = set_first(knn_set); node != set_last(knn_set); node = set_next(knn_set, node)) {
             node_value = *set_node_value(knn_set, node);
@@ -38,7 +53,6 @@ Set* greedySearch(int** G, int nn, int vecs, int s, int xq, int k, int L, Set* V
         }
 
         // we need the outgoing neighbours of xp !!!!!!!!!!!
-
         for (int i=0; i<nn; i++) {
             // add all the neighbours of the node xp in the knn_set
             set_insert(knn_set, G[i][xp]);
@@ -54,26 +68,17 @@ Set* greedySearch(int** G, int nn, int vecs, int s, int xq, int k, int L, Set* V
             // create a new set (pruned_set) and fill it with the L closest to xq nodes that are also in knn_set
             for (int i=0; i<nn; i++) {
                 node_value = G[i][xq];
-                if (set_find_node(visited_nodes, &node_value) != SET_EOF) {
+                if (set_find_node(knn_set, &node_value) != SET_EOF) {
                     set_insert(pruned_set, node_value);
                     count++;
                     if (count == L) break;
                 }
             }
         }
+        knn_set = pruned_set;
+        V = visited_nodes;
 
-        *V = visited_nodes;
-
-        flag = 0;
-
-        // each time check if all the nodes on the knn_set have been visited
-        for (set_Node node = set_first(knn_set); node != set_last(knn_set); node = set_next(knn_set, node)) {
-            node_value = *set_node_value(knn_set, node);
-            // if not the loop should continue
-            if (set_find_node(visited_nodes, &node_value) == SET_EOF) flag = 1;
-        }
-
-        return pruned_set;
+        return knn_set;
 
     }
 
