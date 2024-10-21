@@ -52,6 +52,11 @@ typedef struct set_node * set_Node;
 //Creation of the set
 Set set_Create();
 
+//Finds the next set node
+set_Node set_next(Set , set_Node);
+
+set_Node find_next(set_Node , set_Node);
+
 //Insertion to the set
 void set_insert(Set, int);
 

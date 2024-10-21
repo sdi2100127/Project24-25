@@ -133,18 +133,35 @@ Set set_Create(){
 	return set;
 }
 
-set_Node S_node_next(set_Node node , set_Node target){
+set_Node find_min(set_Node node){
+	if(node != NULL && node->left != NULL)
+		return find_min(node->left);
+	else			
+		return node;		
+}
+
+set_Node find_max(set_Node node) {
+	if(node != NULL && node->right != NULL)
+		return find_max(node->right);
+	else
+	 	return node;		
+}
+
+set_Node find_next(set_Node node , set_Node target){
 	if (node == target){
-		return node->right;
+		return find_min(node->right);
 	}
-	else if(compare(node->value , target->value) > 0){
-		return S_node_next(node->right, target);
+	else if(compare(target->value , node->value) > 0){
+		return find_next(node->right, target);
 	}
-	else{
-		set_Node temp = S_node_next(node->left ,target);
-	if(temp != NULL)
-		return temp;
+	else if (compare(target->value , node->value) < 0){
+		set_Node temp = find_next(node->left ,target);
+		return temp != NULL ? temp : node;
 	}
+}
+
+set_Node set_next(Set set, set_Node node){
+	return find_next(set->root, node);
 }
 
 void set_insert(Set set, int value){
@@ -247,16 +264,22 @@ int main(){
 	set_insert(set,5);
 	set_insert(set,123);
 	set_insert(set,16);
+	set_insert(set,316);
+	set_insert(set,216);
 	set_insert(set,4);
 	set_insert(set,21);
 	set_insert(set,1);
 	set_insert(set,13);
 	set_insert(set,12);
 	set_insert(set,0);
+	set_Node node = set->root;
+	// while(node != node_find_max(set->root)){
+	// 	if(node != NULL)
+	// 		printf("%d", node->value);
+	// 	node = set_next(set, node);
+	// }
 
-
-	printf("%d \t", set->size);
-	printf("%d \t", set->root->value);
-	set_remove(set,1);	
-	printf("%d \t",set->size);
+	for (set_Node node = set->root; node != find_max(set->root); node = set_next(set, node)) {
+		printf("%d", node->value);
+	}
 }
