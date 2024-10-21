@@ -62,13 +62,13 @@ void set_remove(Set ,int );
 void set_destroy(Set,int);
 
 //Creation of a set node
-set_Node node_create(int);      
+set_Node S_node_create(int);      
 
 //Insertion of a set node
-set_Node node_insert(set_Node , int , int *);      
+set_Node S_node_insert(set_Node , int , int *);      
 
 //Removal of the min node of the tree
-set_Node min_remove(set_Node ,set_Node *);
+set_Node min_remove(set_Node ,set_Node );
 
 //Removal of a node from the set
 set_Node S_remove(set_Node , int , int* );

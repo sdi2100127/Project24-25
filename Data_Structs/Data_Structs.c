@@ -71,18 +71,28 @@ void list_destroy(List l){
 }
 
 
+
+
+
+
+
 //Implementation of the Set struct and functions
+
+
+
 struct set{
 	set_Node root;				
 	int size;
 };
+
 
 struct set_node{
     set_Node left,right;
     int value;
 };
 
-set_Node node_create(int value) {
+
+set_Node S_node_create(int value) {
 	set_Node node = malloc(sizeof(*node)) ;
 	node->left = NULL;
     node->right = NULL;
@@ -91,10 +101,10 @@ set_Node node_create(int value) {
 }
 
 
-set_Node node_insert(set_Node node, int value, int * old_value) {
+set_Node S_node_insert(set_Node node, int value, int * old_value) {
 	//If the tree is empty we create a node that is the root
 	if (node == NULL) {
-		return node_create(value);
+		return S_node_create(value);
 	}
 
 	//The placement of the value is declared by its value 
@@ -104,11 +114,11 @@ set_Node node_insert(set_Node node, int value, int * old_value) {
 
 	} else if (compare(value, node->value) < 0) {
 		//If the value is bigger we go to the left
-		node->left = node_insert(node->left, value, old_value);
+		node->left = S_node_insert(node->left, value, old_value);
 
 	} else {
 		//If the value is smaller we got to the right
-		node->right = node_insert(node->right, value, old_value);
+		node->right = S_node_insert(node->right, value, old_value);
 	}
 
 	return node;
@@ -116,17 +126,30 @@ set_Node node_insert(set_Node node, int value, int * old_value) {
 
 //A simple function that creates our set and save some space in our memory
 Set set_Create(){
-	Set set = malloc(sizeof(Set));
+	Set set = malloc(sizeof(* set));
 	set->root = NULL;
 	set->size = 0;
 
 	return set;
 }
 
+set_Node S_node_next(set_Node node , set_Node target){
+	if (node == target){
+		return node->right;
+	}
+	else if(compare(node->value , target->value) > 0){
+		return S_node_next(node->right, target);
+	}
+	else{
+		set_Node temp = S_node_next(node->left ,target);
+	if(temp != NULL)
+		return temp;
+	}
+}
 
 void set_insert(Set set, int value){
 	int old_value;
-	set->root = node_insert(set->root,value,&old_value);
+	set->root = S_node_insert(set->root,value,&old_value);
 	set->size++;
 }
 
@@ -141,10 +164,10 @@ void set_destroy(Set set,int dvalue ){
 	free(set);
 }
 
-set_Node min_remove(set_Node node,set_Node *min){
+set_Node min_remove(set_Node node,set_Node min){
     if(node->left == NULL){
         //In this case we have found the min and it is the node its self
-        *min = node;
+        min = node;
         return node->right; //So the new node is the right child
     }else{
         //Else, we have to left subtree and we have to continue searching in it for the min
@@ -154,13 +177,8 @@ set_Node min_remove(set_Node node,set_Node *min){
 }
 
 
-int compare(int value , int cur_value){
-    if(value > cur_value)
-        return -1;
-    else if (value < cur_value)
-        return 1;
-    else 
-        return 0;
+int compare(int value , int value1){
+    return value - value1;
 }
 
 set_Node S_remove(set_Node node, int value, int * old_value) {
@@ -225,26 +243,20 @@ void S_destroy(set_Node node,int dvalue){
 //A main to test the functoins and make sure that they work correctly 
 
 int main(){
-	List l = create_list();
-	l_add(l,l->head, 2);
-	l_add(l,l->head,23);
-	l_add(l,l->head,25);
-	l_add(l,l->head,3);
-	l_add(l,l->head,32);
-	l_add(l,l->head,31);
+	Set set = set_Create();
+	set_insert(set,5);
+	set_insert(set,123);
+	set_insert(set,16);
+	set_insert(set,4);
+	set_insert(set,21);
+	set_insert(set,1);
+	set_insert(set,13);
+	set_insert(set,12);
+	set_insert(set,0);
 
-	
-	list_Node temp = l->head;
-	while(temp != NULL){
-		printf("%d \n", temp->data);
-		temp= temp->next_node;
-	}
-	l_remove_next(l,l->head,31);
-	l_remove_next(l,l->head,3);
-	temp = l->head;
-	while(temp != NULL){
-		printf("%d \n", temp->data);
-		temp= temp->next_node;
-	}
-	list_destroy(l);
+
+	printf("%d \t", set->size);
+	printf("%d \t", set->root->value);
+	set_remove(set,1);	
+	printf("%d \t",set->size);
 }
