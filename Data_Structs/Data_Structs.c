@@ -80,16 +80,16 @@ void list_destroy(List l){
 
 
 
-struct set{
-	set_Node root;				
-	int size;
-};
+// struct set{
+// 	set_Node root;				
+// 	int size;
+// };
 
 
-struct set_node{
-    set_Node left,right;
-    int value;
-};
+// struct set_node{
+//     set_Node left,right;
+//     int value;
+// };
 
 
 set_Node S_node_create(int value) {
@@ -253,8 +253,15 @@ void S_destroy(set_Node node,int dvalue){
 	free(node);
 }
 
-
-
+set_Node S_find_equal(set_Node node, int value) {
+	if (node == NULL) return NULL;
+	if (compare(value, node->value) == 0)
+		return node;
+	else if (compare(value, node->value) < 0)
+		return S_find_equal(node->left, value);
+	else 
+		return S_find_equal(node->right, value);
+}
 
 
 //A main to test the functoins and make sure that they work correctly 
@@ -279,7 +286,15 @@ int main(){
 	// 	node = set_next(set, node);
 	// }
 
-	for (set_Node node = set->root; node != find_max(set->root); node = set_next(set, node)) {
-		printf("%d", node->value);
+	// for (set_Node node = set->root; node != find_max(set->root); node = set_next(set, node)) {
+	// 	printf("%d ", node->value);
+	// }
+
+	for (set_Node node = find_min(set->root); node != SET_EOF; node = set_next(set, node)) {
+		printf("%d ", node->value);
 	}
+
+	int x = 4;
+	set_Node n = S_find_equal(set->root, x);
+	printf("%d ", n->value);
 }

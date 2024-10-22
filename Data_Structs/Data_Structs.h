@@ -41,12 +41,24 @@ void destroy(List);
 
 //Decleration of struct Set and its funtions
 
-
-//Decleration of a pointer to the Set
-typedef struct set * Set;
+#define SET_BOF (set_Node)0
+#define SET_EOF (set_Node)0
 
 //Decleration of a pointer to the set nodes
-typedef struct set_node * set_Node;     
+typedef struct set_node * set_Node;
+
+struct set_node{
+    set_Node left,right;
+    int value;
+};
+
+struct set{
+	set_Node root;				
+	int size;
+};
+
+//Decleration of a pointer to the Set
+typedef struct set * Set;     
 
 
 //Creation of the set
@@ -82,6 +94,12 @@ set_Node S_remove(set_Node , int , int* );
 void S_destroy(set_Node , int );
 
 //Other functions that will be very helpfull
+
+set_Node find_min(set_Node);
+
+set_Node find_max(set_Node);
+
+set_Node S_find_equal(set_Node, int);
 
 
 //A function that compares 2 numbers that returns -1 if the second one is bigger 1 if the first is bigger and 0 if the numbers are equal
