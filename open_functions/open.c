@@ -18,12 +18,12 @@ float** fvecs_open(const char* filename, int* num_vectors, int* d) {
     // read the dimention off of the first 4 bytes of the file
     int dim;
     fread(&dim, sizeof(int), 1, fp);
-    printf("dimention: %d\n", dim);
+    printf("dimention: %d ", dim);
     *d = dim;
     
     // the size of the vectors is given by: 4(sizeof(int))+dim*4(sizeof(float))
     int vec_size = sizeof(int) + dim * sizeof(float);
-    printf("vector size: %d\n", vec_size);
+    printf("vector size: %d ", vec_size);
     
     // now we move the pointer to the end of the file
     fseek(fp, 0, SEEK_END);
@@ -33,7 +33,7 @@ float** fvecs_open(const char* filename, int* num_vectors, int* d) {
 
     // now that we know the size of the file we can calculate the number of vectors included
     int vecs = file_size / vec_size;
-    printf("total num of vectors: %d\n", vecs);
+    printf("total num of vectors: %d ", vecs);
     *num_vectors = vecs;
 
     // allocate memory for the matrix of vectors and fill it
@@ -79,12 +79,12 @@ int** ivecs_open(const char* filename, int* num_vectors, int* d) {
     // int this case the dimention is the number k of the nearest neighbours
     int k;
     fread(&k, sizeof(int), 1, fp);
-    printf("k: %d\n", k);
+    printf("k: %d ", k);
     *d = k;
     
     // the size of the vectors is given by: 4(sizeof(int))+dim*4(sizeof(int))
     int vec_size = sizeof(int) + k * sizeof(int);
-    printf("vector size: %d\n", vec_size);
+    printf("vector size: %d ", vec_size);
     
     // now we move the pointer to the end of the file
     fseek(fp, 0, SEEK_END);
@@ -94,7 +94,7 @@ int** ivecs_open(const char* filename, int* num_vectors, int* d) {
 
     // now that we know the size of the file we can calculate the number of query vectors included
     int vecs = file_size / vec_size;
-    printf("total num of vectors: %d\n", vecs);
+    printf("total num of vectors: %d", vecs);
     *num_vectors = vecs;
 
     // allocate memory for the matrix of vectors and fill it
@@ -139,50 +139,4 @@ void free_matrix_ivecs(int** matrix, int d) {
         free(matrix[i]);
     }
     free(matrix);
-}
-
-// int main() {
-//     const char* filename = "siftsmall_base.fvecs"; // Specify your fvecs file
-//     int num_vectors, d;
-//     float** vectors = fvecs_open(filename, &num_vectors, &d);
-    
-//     if (vectors == NULL) {
-//         return 1; // Exit if the file reading failed
-//     }
-    
-//     // Print the number of vectors and the first few for verification
-//     for (int j = 0; j<num_vectors && j < 20; j++) {
-//         printf("Vector %d: ", j);
-//         for (int i = 0; i<d && i < 5; i++) {
-//             printf("%f ", vectors[i][j]);
-//         }
-//         printf("\n");
-//     }
-
-//     // Free the allocated memory
-//     free_matrix_fvecs(vectors, d);
-//     return 0;
-// }
-
-int main() {
-    const char* filename = "siftsmall_groundtruth.ivecs"; // Specify your fvecs file
-    int num_vectors, k_dim;
-    int** vectors = ivecs_open(filename, &num_vectors, &k_dim);
-    
-    if (vectors == NULL) {
-        return 1; // Exit if the file reading failed
-    }
-    
-    // Print the number of vectors and the first few for verification
-    for (int j = 0; j<num_vectors && j < 20; j++) {
-        printf("Vector %d: ", j);
-        for (int i = 0; i<k_dim && i < 5; i++) {
-            printf("%d ", vectors[i][j]);
-        }
-        printf("\n");
-    }
-
-    // Free the allocated memory
-    free_matrix_ivecs(vectors, k_dim);
-    return 0;
 }
