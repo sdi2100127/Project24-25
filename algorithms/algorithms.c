@@ -20,22 +20,12 @@ Set greedySearch(int** G, int nn, int vecs, int s, int xq, int k, int L, Set V) 
         // we check the flag up front in case we do not have any unvisited nodes in the first iteration
         flag = 0;
 
-        // each time check if all the nodes on the knn_set have been visited
-        for (set_Node node = find_min(knn_set->root); node != SET_EOF; node = set_next(knn_set, node)) {
-            node_value = node->value;
-            // if not the loop should continue
-            if (S_find_equal(visited_nodes->root, node_value) == SET_EOF) {
-                flag = 1;
-                break;
-            }
-        }
-
-        if (flag == 0) break;
-        
-        // for every unvisited node in the knn_set
+        // check for all the unvisited nodes on the knn_set
         for (set_Node node = find_min(knn_set->root); node != SET_EOF; node = set_next(knn_set, node)) {
             node_value = node->value;
             if (S_find_equal(visited_nodes->root, node_value) == SET_EOF) {
+                flag = 1;   // unvisited nodes where indeed found
+                
                 // refer to the groundtruth graph to find the position of the unvisited node (node_value) in the column of the query node (xq)
                 // the smaller the position the smallest the euclidean distance between the unvisited node (node_value) and the query node (xq) 
                 for (int i=0; i<nn; i++) {
@@ -50,13 +40,17 @@ Set greedySearch(int** G, int nn, int vecs, int s, int xq, int k, int L, Set V) 
                 if (xp == -1 || pos <= min_pos) {
                     xp = node_value;
                     min_pos = pos;
-                }   
+                }
             }
         }
 
-        // we need the outgoing neighbours of xp !!!!!!!!!!!
+        // if there where no more unvisited nodes found there is no point in continuing with the loop
+        if (flag == 0) break; 
+
+        // now we add all the outgoing neighbours of the node xp in the knn_set
+        // the outgoing neighbours of a node are the one that are included in said node's column
+        // the incoming neighbours are the other node's columns that the node is part of
         for (int i=0; i<nn; i++) {
-            // add all the neighbours of the node xp in the knn_set
             set_insert(knn_set, G[i][xp]);
         }
 
@@ -74,6 +68,20 @@ Set greedySearch(int** G, int nn, int vecs, int s, int xq, int k, int L, Set V) 
                     set_insert(pruned_set, node_value);
                     count++;
                     if (count == L) break;
+                }
+            }
+        }
+
+        // now we have to prone the set again to only keep xq's k nearest neighbours
+        knn_set = pruned_set;
+        if (knn_set->size > k) {
+            // create a new set (pruned_set) and fill it with the L closest to xq nodes that are also in knn_set
+            for (int i=0; i<nn; i++) {
+                node_value = G[i][xq];
+                if (S_find_equal(knn_set->root, node_value) != SET_EOF) {
+                    set_insert(pruned_set, node_value);
+                    count++;
+                    if (count == k) break;
                 }
             }
         }
