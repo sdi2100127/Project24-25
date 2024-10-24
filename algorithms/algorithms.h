@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "Data_Structs/Data_Structs.h"
+#include "../Data_Structs/Data_Structs.h"
 
 // greedysearch is an algorithm that takes as input 
 // G --> the groundtruth graph

@@ -8,8 +8,8 @@ Data_Structs.o: Data_Structs/Data_Structs.c Data_Structs/Data_Structs.h
 algorithms.o: algorithms/algorithms.c Data_Structs/Data_Structs.h algorithms/algorithms.h
 	gcc -c algorithms/algorithms.c -o algorithms.o
 
-main.o: main.c open_functions/open.h algorithms/algorithms.h
-	gcc -c main.c -o main.o
+main.o: src/main.c open_functions/open.h algorithms/algorithms.h
+	gcc -c src/main.c -o main.o
 
 # Executable
 app: main.o open.o algorithms.o

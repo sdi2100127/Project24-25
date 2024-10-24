@@ -2,8 +2,8 @@
 #include <stdlib.h>
 #include <time.h>
 
-#include "algorithms/algorithms.h"
-#include "open_functions/open.h"
+#include "../algorithms/algorithms.h"
+#include "../open_functions/open.h"
 
 int main() {
   srand((unsigned int)time(NULL));
