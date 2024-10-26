@@ -4,7 +4,7 @@
 #include "../open_functions/open.h"
 #include "../algorithms/algorithms.h"
 
-// compile example: cc testing.c ../open_functions/open.c -o testing
+// compile example: cc testing.c ../open_functions/open.c ../Data_Structs/Data_Structs.c ../algorithms/algorithms.c -o testing -lm
 // run: ./testing
 
 // https://github.com/mity/acutest/blob/master/README.md
@@ -164,16 +164,19 @@ void test_euclidean_distance(void) {
 
    // float a = 10.0;
    // printf("\n");
-   for (int i = 0; i < dim; i++) {
-   //    vec1[i] = ((float)rand()/(float)(RAND_MAX)) * a;
-   //    vec2[i] = ((float)rand()/(float)(RAND_MAX)) * a;
-       printf(" %f    %f\n", vec1[i], vec2[i]);
-   }
+   // for (int i = 0; i < dim; i++) {
+   // //    vec1[i] = ((float)rand()/(float)(RAND_MAX)) * a;
+   // //    vec2[i] = ((float)rand()/(float)(RAND_MAX)) * a;
+   //     printf(" %f    %f\n", vec1[i], vec2[i]);
+   // }
    // printf("\n");
 
+   // Define a small tolerance value
+   float tolerance = 0.000001;
+
    float dist = euclidean_distance(vec1, vec2, dim);
-   printf("distance %f", dist);
-   //TEST_ASSERT(dist == 8.544003);
+   // printf("distance %f", dist);
+   TEST_ASSERT(fabs(dist - 8.544003) < tolerance);
 
 }
 
@@ -186,18 +189,30 @@ void test_greedySearch(void) {
       vectors[i] = (float*)malloc(vecs * sizeof(float));
    }
 
+   float* xq = (float*)malloc(dim * sizeof(float*));
+
    srand((unsigned int)time(NULL));
 
-   float a = 10.0;
+   // float a = 10.0;
+   int a = 10;
    printf("\n");
    for (int j = 0; j < vecs; j++) {
       printf("vector %d:", j);
       for (int i = 0; i < dim; i++) {
-         vectors[i][j] = ((float)rand()/(float)(RAND_MAX)) * a;
+         // vectors[i][j] = ((float)rand()/(float)(RAND_MAX)) * a;
+         vectors[i][j] = (float)(rand() % a);
          printf(" %f", vectors[i][j]);
       }
       printf("\n");
    }
+
+   printf("vector xq:");
+   for (int i = 0; i < dim; i++) {
+      // vectors[i][j] = ((float)rand()/(float)(RAND_MAX)) * a;
+      xq[i] = (float)(rand() % a);
+      printf(" %f", xq[i]);
+   }
+   printf("\n");
 
    int R = 3;
    int** random = (int**)malloc(R * sizeof(int*));
@@ -230,7 +245,10 @@ void test_greedySearch(void) {
       printf("\n");
    }
 
-
+   int s = rand() % (vecs-1), L = 4, k = 3;
+   printf("s: %d\n", s);
+   Set V;
+   Set knn = greedySearch(random, R, dim, vecs, vectors, s, xq, L, k, V);
 
 }
 
