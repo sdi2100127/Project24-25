@@ -181,10 +181,10 @@ void set_destroy(Set set,int dvalue ){
 	free(set);
 }
 
-set_Node min_remove(set_Node node,set_Node min){
+set_Node min_remove(set_Node node,set_Node * min){
     if(node->left == NULL){
         //In this case we have found the min and it is the node its self
-        min = node;
+        *min = node;
         return node->right; //So the new node is the right child
     }else{
         //Else, we have to left subtree and we have to continue searching in it for the min
@@ -224,7 +224,7 @@ set_Node S_remove(set_Node node, int value, int * old_value) {
 		} else {
 			//If our subtree has 2 children we have to find the minimum of its right child to replace its place
 			set_Node temp;
-			node->right = min_remove(node->right, temp);
+			node->right = min_remove(node->right, &temp);
 
 			// Σύνδεση του min_right στη θέση του node
 			temp->left = node->left;
@@ -266,35 +266,45 @@ set_Node S_find_equal(set_Node node, int value) {
 
 //A main to test the functoins and make sure that they work correctly 
 
-// int main(){
-// 	Set set = set_Create();
-// 	set_insert(set,5);
-// 	set_insert(set,123);
-// 	set_insert(set,16);
-// 	set_insert(set,316);
-// 	set_insert(set,216);
-// 	set_insert(set,4);
-// 	set_insert(set,21);
-// 	set_insert(set,1);
-// 	set_insert(set,13);
-// 	set_insert(set,12);
-// 	set_insert(set,0);
-// 	set_Node node = set->root;
-// 	// while(node != node_find_max(set->root)){
-// 	// 	if(node != NULL)
-// 	// 		printf("%d", node->value);
-// 	// 	node = set_next(set, node);
-// 	// }
+int main(){
+	Set set = set_Create();
+	set_insert(set,5);
+	set_insert(set,123);
+	set_insert(set,16);
+	set_insert(set,316);
+	set_insert(set,216);
+	set_insert(set,4);
+	set_insert(set,21);
+	set_insert(set,1);
+	set_insert(set,13);
+	set_insert(set,12);
+	set_insert(set,0);
+	set_Node node = set->root;
+	// while(node != node_find_max(set->root)){
+	// 	if(node != NULL)
+	// 		printf("%d", node->value);
+	// 	node = set_next(set, node);
+	// }
 
-// 	// for (set_Node node = set->root; node != find_max(set->root); node = set_next(set, node)) {
-// 	// 	printf("%d ", node->value);
-// 	// }
+	// for (set_Node node = set->root; node != find_max(set->root); node = set_next(set, node)) {
+	// 	printf("%d ", node->value);
+	// }
 
-// 	for (set_Node node = find_min(set->root); node != SET_EOF; node = set_next(set, node)) {
-// 		printf("%d ", node->value);
-// 	}
+	for (set_Node node = find_min(set->root); node != SET_EOF; node = set_next(set, node)) {
+		printf("%d ", node->value);
+	}
 
-// 	int x = 4;
-// 	set_Node n = S_find_equal(set->root, x);
-// 	printf("%d ", n->value);
-// }
+
+	printf("\n");
+
+
+	set_remove(set, 12);
+
+	for (set_Node node = find_min(set->root); node != SET_EOF; node = set_next(set, node)) {
+		printf("%d ", node->value);
+	}
+
+	int x = 4;
+	set_Node n = S_find_equal(set->root, x);
+	printf(" %d \n ", n->value);
+}

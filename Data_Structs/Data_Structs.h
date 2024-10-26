@@ -85,7 +85,7 @@ set_Node S_node_create(int);
 set_Node S_node_insert(set_Node , int , int *);      
 
 //Removal of the min node of the tree
-set_Node min_remove(set_Node ,set_Node );
+set_Node min_remove(set_Node ,set_Node * );
 
 //Removal of a node from the set
 set_Node S_remove(set_Node , int , int* );
