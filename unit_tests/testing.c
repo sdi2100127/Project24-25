@@ -180,6 +180,78 @@ void test_euclidean_distance(void) {
 
 }
 
+// void test_greedySearch(void) {
+//    // run the test for a vector matrix of 5 vectors with 3 components each
+//    int dim = 3;
+//    int vecs = 5;
+//    float** vectors = (float**)malloc(dim * sizeof(float*));
+//    for (int i = 0; i < dim; i++) {
+//       vectors[i] = (float*)malloc(vecs * sizeof(float));
+//    }
+
+//    float* xq = (float*)malloc(dim * sizeof(float*));
+
+//    srand((unsigned int)time(NULL));
+
+//    // float a = 10.0;
+//    int a = 10;
+//    printf("\n");
+//    for (int j = 0; j < vecs; j++) {
+//       printf("vector %d:", j);
+//       for (int i = 0; i < dim; i++) {
+//          // vectors[i][j] = ((float)rand()/(float)(RAND_MAX)) * a;
+//          vectors[i][j] = (float)(rand() % a);
+//          printf(" %f", vectors[i][j]);
+//       }
+//       printf("\n");
+//    }
+
+//    printf("vector xq:");
+//    for (int i = 0; i < dim; i++) {
+//       // vectors[i][j] = ((float)rand()/(float)(RAND_MAX)) * a;
+//       xq[i] = (float)(rand() % a);
+//       printf(" %f", xq[i]);
+//    }
+//    printf("\n");
+
+//    int R = 3;
+//    int** random = (int**)malloc(R * sizeof(int*));
+//    for (int i = 0; i < R; i++) {
+//       random[i] = (int*)malloc(vecs * sizeof(int));
+//    }
+
+//    printf("neighbours\n");
+//    int x;
+//    int r = 4;
+//    for (int j = 0; j < vecs; j++) {
+//       printf("vector %d:", j);
+//       for (int i = 0; i < R; i++) {
+
+//          int stop = 1;
+//          while (stop == 1) {
+//             x = rand() % r;
+//             stop = 0;
+//             for (int z = 0; z < i; z++) {
+//                if (x == random[z][j] || x == j) {
+//                   stop = 1;
+//                   break;
+//                }
+//             }    
+//          }
+//          random[i][j] = x;
+//          printf(" %d", random[i][j]);
+         
+//       }
+//       printf("\n");
+//    }
+
+//    int s = rand() % (vecs-1), L = 4, k = 3;
+//    printf("s: %d\n", s);
+//    Set V;
+//    Set knn = greedySearch(random, R, dim, vecs, vectors, s, xq, L, k, V);
+
+// }
+
 void test_greedySearch(void) {
    // run the test for a vector matrix of 5 vectors with 3 components each
    int dim = 3;
@@ -191,16 +263,16 @@ void test_greedySearch(void) {
 
    float* xq = (float*)malloc(dim * sizeof(float*));
 
-   srand((unsigned int)time(NULL));
+   vectors[0][0] = 4.0; vectors[1][0] = 6.0; vectors[2][0] = 9.0;
+   vectors[0][1] = 4.0; vectors[1][1] = 5.0; vectors[2][1] = 4.0;
+   vectors[0][2] = 2.0; vectors[1][2] = 8.0; vectors[2][2] = 4.0;
+   vectors[0][3] = 1.0; vectors[1][3] = 5.0; vectors[2][3] = 8.0;
+   vectors[0][4] = 2.0; vectors[1][4] = 5.0; vectors[2][4] = 0.0;
+   xq[0] = 9.0; xq[1] = 4.0; xq[2] = 9.0;
 
-   // float a = 10.0;
-   int a = 10;
-   printf("\n");
    for (int j = 0; j < vecs; j++) {
       printf("vector %d:", j);
       for (int i = 0; i < dim; i++) {
-         // vectors[i][j] = ((float)rand()/(float)(RAND_MAX)) * a;
-         vectors[i][j] = (float)(rand() % a);
          printf(" %f", vectors[i][j]);
       }
       printf("\n");
@@ -208,8 +280,6 @@ void test_greedySearch(void) {
 
    printf("vector xq:");
    for (int i = 0; i < dim; i++) {
-      // vectors[i][j] = ((float)rand()/(float)(RAND_MAX)) * a;
-      xq[i] = (float)(rand() % a);
       printf(" %f", xq[i]);
    }
    printf("\n");
@@ -220,25 +290,18 @@ void test_greedySearch(void) {
       random[i] = (int*)malloc(vecs * sizeof(int));
    }
 
+   random[0][0] = 1; random[1][0] = 2; random[2][0] = 3;
+   random[0][1] = 2; random[1][1] = 3; random[2][1] = 0;
+   random[0][2] = 3; random[1][2] = 4; random[2][2] = 1;
+   random[0][3] = 1; random[1][3] = 4; random[2][3] = 2;
+   random[0][4] = 2; random[1][4] = 3; random[2][4] = 0;
+
    printf("neighbours\n");
    int x;
    int r = 4;
    for (int j = 0; j < vecs; j++) {
       printf("vector %d:", j);
       for (int i = 0; i < R; i++) {
-
-         int stop = 1;
-         while (stop == 1) {
-            x = rand() % r;
-            stop = 0;
-            for (int z = 0; z < i; z++) {
-               if (x == random[z][j]) {
-                  stop = 1;
-                  break;
-               }
-            }    
-         }
-         random[i][j] = x;
          printf(" %d", random[i][j]);
          
       }

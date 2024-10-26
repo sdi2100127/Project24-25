@@ -101,26 +101,27 @@ set_Node S_node_create(int value) {
 }
 
 
-set_Node S_node_insert(set_Node node, int value, int * old_value) {
+set_Node S_node_insert(set_Node node,int * flag ,int value, int * old_value) {
 	//If the tree is empty we create a node that is the root
 	if (node == NULL) {
+		* flag = 1;
 		return S_node_create(value);
 	}
-
+	
 	//The placement of the value is declared by its value 
 	if (compare(value, node->value) == 0) {
 		int old_value = node->value;
 		node->value = value;
+		return node;
 
 	} else if (compare(value, node->value) < 0) {
 		//If the value is bigger we go to the left
-		node->left = S_node_insert(node->left, value, old_value);
+		node->left = S_node_insert(node->left,flag, value, old_value);
 
 	} else {
 		//If the value is smaller we got to the right
-		node->right = S_node_insert(node->right, value, old_value);
+		node->right = S_node_insert(node->right,flag, value, old_value);
 	}
-
 	return node;
 }
 
@@ -166,8 +167,10 @@ set_Node set_next(Set set, set_Node node){
 
 void set_insert(Set set, int value){
 	int old_value;
-	set->root = S_node_insert(set->root,value,&old_value);
-	set->size++;
+	int flag = 0;
+	set->root = S_node_insert(set->root,&flag,value,&old_value);
+	if(flag == 1)
+		set->size++;
 }
 
 void set_remove(Set set,int value){
@@ -266,45 +269,40 @@ set_Node S_find_equal(set_Node node, int value) {
 
 //A main to test the functoins and make sure that they work correctly 
 
-int main(){
-	Set set = set_Create();
-	set_insert(set,5);
-	set_insert(set,123);
-	set_insert(set,16);
-	set_insert(set,316);
-	set_insert(set,216);
-	set_insert(set,4);
-	set_insert(set,21);
-	set_insert(set,1);
-	set_insert(set,13);
-	set_insert(set,12);
-	set_insert(set,0);
-	set_Node node = set->root;
-	// while(node != node_find_max(set->root)){
-	// 	if(node != NULL)
-	// 		printf("%d", node->value);
-	// 	node = set_next(set, node);
-	// }
+// int main(){
+// 	Set set = set_Create();
+// 	set_insert(set,5);
+// 	set_insert(set,123);
+// 	set_insert(set,16);
+// 	set_insert(set,316);
+// 	set_insert(set,216);
+// 	set_insert(set,4);
+// 	set_insert(set,21);
+// 	set_insert(set,1);
+// 	set_insert(set,13);
+// 	set_insert(set,12);
+// 	set_insert(set,12);
+// 	set_insert(set,13);
+// 	set_insert(set,0);
+// 	set_insert(set,0);
+// 	printf("size: %d\n", set->size);
 
-	// for (set_Node node = set->root; node != find_max(set->root); node = set_next(set, node)) {
-	// 	printf("%d ", node->value);
-	// }
-
-	for (set_Node node = find_min(set->root); node != SET_EOF; node = set_next(set, node)) {
-		printf("%d ", node->value);
-	}
+// 	for (set_Node node = find_min(set->root); node != SET_EOF; node = set_next(set, node)) {
+// 		printf("%d ", node->value);
+// 	}
 
 
-	printf("\n");
+// 	printf("\n");
 
 
-	set_remove(set, 12);
+// 	set_remove(set, 12);
 
-	for (set_Node node = find_min(set->root); node != SET_EOF; node = set_next(set, node)) {
-		printf("%d ", node->value);
-	}
+// 	for (set_Node node = find_min(set->root); node != SET_EOF; node = set_next(set, node)) {
+// 		printf("%d ", node->value);
+// 	}
+// 	printf("size: %d\n", set->size);
 
-	int x = 4;
-	set_Node n = S_find_equal(set->root, x);
-	printf(" %d \n ", n->value);
-}
+// 	int x = 4;
+// 	set_Node n = S_find_equal(set->root, x);
+// 	printf(" %d \n ", n->value);
+// }

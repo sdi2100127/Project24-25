@@ -27,28 +27,26 @@ Set greedySearch(int** G, int R, int dim, int vecs, float** vectors, int s, floa
       dist_matrix[i] = -1.0;
     }
     float* vec_p = (float*)malloc(dim * sizeof(float));
-    printf("going in the loop!\n");
     while (flag == 1) {
         // we check the flag up front in case we do not have any unvisited nodes in the first iteration
         flag = 0;
-
         // check for all the unvisited nodes on the knn_set
         for (set_Node node = find_min(knn_set->root); node != SET_EOF; node = set_next(knn_set, node)) {
             node_value = node->value;
-            printf("node value %d\n", node_value);
             if (S_find_equal(visited_nodes->root, node_value) == SET_EOF) {
                 flag = 1;   // unvisited nodes where indeed found
 
                 // find the correspoding vector of the index node_value and store it temporarilly in vec_p
                 for (int i=0; i<dim; i++) {
                     vec_p[i] = vectors[i][node_value];
+                    printf("%f ", vec_p[i]);
                 }
+                printf("\n");
 
                 // compute its distance to the query vector
                 float dist = euclidean_distance(vec_p, xq, dim);
                 // and add it to the distance matrix
-                dist_matrix[node_value] = dist;
-                
+                dist_matrix[node_value] = dist;                
 
                 // if the next node xp is not initialized yet initialize it with the first unvisited node you encounter
                 // otherwise check if its position is smaller than the current min_pos
@@ -58,6 +56,7 @@ Set greedySearch(int** G, int R, int dim, int vecs, float** vectors, int s, floa
                 }
             }
         }
+        printf("min_dist: %f, xp: %d\n", min_dist, xp);
 
         // if there where no more unvisited nodes found there is no point in continuing with the loop
         if (flag == 0) break; 
@@ -69,13 +68,33 @@ Set greedySearch(int** G, int R, int dim, int vecs, float** vectors, int s, floa
             set_insert(knn_set, G[i][xp]);
         }
 
+        printf("knn_set: ");
+        for (set_Node node = find_min(knn_set->root); node != SET_EOF; node = set_next(knn_set, node)) { 
+            printf("%d ", node->value);
+        }
+        printf("\n");
+
         // add node xp to te visited_nodes set
         set_insert(visited_nodes, xp);
 
+        printf("visited_set: ");
+        for (set_Node node = find_min(visited_nodes->root); node != SET_EOF; node = set_next(visited_nodes, node)) { 
+            printf("%d ", node->value);
+        }
+        printf("\n");
+
+        printf("dist_matrix\n");
+        for (int i=0; i<vecs; i++) {
+            printf("%f ", dist_matrix[i]);
+        }
+        printf("\n");
+
         // if the knn_set is bigger than L
         if (knn_set->size > L) {
+            printf("knn_set->size > L\n");
             // remove the most distant neighbours of xq from knn_set until its equal or smaller than L
             while(knn_set->size > L) {
+                printf("size: %d\n", knn_set->size);
                 float max_dist = 0.0;
                 int max_pos = -1;
                 for (int i=0; i<vecs; i++) {
@@ -85,35 +104,38 @@ Set greedySearch(int** G, int R, int dim, int vecs, float** vectors, int s, floa
                         dist_matrix[i] = -1.0;
                     }
                 }
+                printf("max_dist: %f, max_pos: %d\n", max_dist, max_pos);
                 set_Node node = S_find_equal(knn_set->root, max_pos);
                 if (node != SET_EOF) {
                     set_remove(knn_set, max_pos);
                 }
             }
         }
-
-        // now we have to prune the set again to only keep xq's k nearest neighbours
-        if (knn_set->size > k) {
-            // remove the most distant neighbours of xq from knn_set until its equal or smaller than L
-            while(knn_set->size > k) {
-                float max_dist = 0.0;
-                int max_pos = -1;
-                for (int i=0; i<vecs; i++) {
-                    if (dist_matrix[i] >= max_dist) {
-                        max_dist = dist_matrix[i];
-                        max_pos = i;
-                        dist_matrix[i] = -1.0;
-                    }
-                }
-                set_Node node = S_find_equal(knn_set->root, max_pos);
-                if (node != SET_EOF) {
-                    set_remove(knn_set, max_pos);
-                }
-            }
-        }
-        V = visited_nodes;
         
     }
+    
+    // now we have to prune the set again to only keep xq's k nearest neighbours
+    if (knn_set->size > k) {
+        // remove the most distant neighbours of xq from knn_set until its equal or smaller than L
+        while(knn_set->size > k) {
+            float max_dist = 0.0;
+            int max_pos = -1;
+            for (int i=0; i<vecs; i++) {
+                if (dist_matrix[i] >= max_dist) {
+                    max_dist = dist_matrix[i];
+                    max_pos = i;
+                    dist_matrix[i] = -1.0;
+                }
+            }
+            set_Node node = S_find_equal(knn_set->root, max_pos);
+            if (node != SET_EOF) {
+                set_remove(knn_set, max_pos);
+            }
+        }
+    }
+
+    V = visited_nodes;
+
     free(vec_p);
     free(dist_matrix);
 
