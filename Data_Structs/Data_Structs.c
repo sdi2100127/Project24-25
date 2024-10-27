@@ -175,8 +175,10 @@ void set_insert(Set set, int value){
 
 void set_remove(Set set,int value){
 	int old_value;
-	set->root = S_remove(set->root,value,&old_value);
-	set->size--;
+	int flag = 0;
+	set->root = S_remove(set->root,value, &flag, &old_value);
+	if(flag == 1)
+		set->size--;
 }
 
 void set_destroy(Set set,int dvalue ){
@@ -201,7 +203,7 @@ int compare(int value , int value1){
     return value - value1;
 }
 
-set_Node S_remove(set_Node node, int value, int * old_value) {
+set_Node S_remove(set_Node node, int value, int * flag, int * old_value) {
     //A quick check to see if the subtree we have is empty or not
 	if (node == NULL) {
 		printf("The subtree is empty returning");
@@ -210,6 +212,7 @@ set_Node S_remove(set_Node node, int value, int * old_value) {
 
 	if (compare(value, node->value) == 0) {
         //In this case , we have found the value we have been searching for so now we have to remove the node
+		*flag = 1;
 		old_value = &(node->value);
 
 		if (node->left == NULL) {
@@ -238,9 +241,9 @@ set_Node S_remove(set_Node node, int value, int * old_value) {
 		}
 	}
 	if (compare(value,node->value) < 0)
-		node->left  = S_remove(node->left, value, old_value);
+		node->left  = S_remove(node->left, value, flag, old_value);
 	else
-		node->right = S_remove(node->right, value, old_value);
+		node->right = S_remove(node->right, value, flag, old_value);
 
 	return node;
 }

@@ -157,6 +157,8 @@ Set greedySearch(int** G, int R, int dim, int vecs, float** vectors, int s, floa
     free(vec_p);
     free(dist_matrix);
 
+    //set_destroy()
+
     return knn_set;
 
 }

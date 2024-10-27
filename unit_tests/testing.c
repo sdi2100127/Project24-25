@@ -12,8 +12,194 @@
 // Therefore it should be used only if you understand the costs connected with such a brutal abortion of the test.
 // In general, TEST_CHECK should be preferred over TEST_ASSERT, unless you know exactly what you do and why you chose TEST_ASSERT in some particular situation.
 
+// SET TESTS 
+
+void test_set_Create(void) {
+   Set set = set_Create();
+
+   TEST_ASSERT(set->root == NULL);
+   TEST_ASSERT(set->size == 0);
+}
+
+void test_S_node_create(void) {
+   int x = 5;
+   set_Node node = S_node_create(x);
+
+   TEST_ASSERT(node->value == x);
+   TEST_ASSERT(node->left == NULL);
+   TEST_ASSERT(node->right == NULL);
+}
+
+void test_S_node_insert(void) {
+   Set set = set_Create();
+
+   int x = 5, y=3, z=8, old_value;
+
+   int flag = 0;
+   set->root = S_node_insert(set->root, &flag, x, &old_value);
+   if (flag == 1) set->size++;
+   TEST_ASSERT(flag == 1);
+
+   flag = 0;
+   set->root = S_node_insert(set->root, &flag, y, &old_value);
+   if (flag == 1) set->size++;
+   TEST_ASSERT(flag == 1);
+
+   flag = 0;
+   set->root = S_node_insert(set->root, &flag, z, &old_value);
+   if (flag == 1) set->size++;
+   TEST_ASSERT(flag == 1);
+
+   flag = 0;
+   set->root = S_node_insert(set->root, &flag, z, &old_value);
+   TEST_ASSERT(flag == 0);
+
+   TEST_ASSERT(set->root->value == x);
+   TEST_ASSERT(set->root->left->value == y);
+   TEST_ASSERT(set->root->right->value == z);
+
+}
+
+void test_set_insert(void) {
+   Set set = set_Create();
+   int x = 5, y=3, z=8;
+   set_insert(set, x);
+   set_insert(set, y);
+   set_insert(set, z);
+
+   TEST_ASSERT(set->root->value == x);
+   TEST_ASSERT(set->root->left->value == y);
+   TEST_ASSERT(set->root->right->value == z);
+   TEST_ASSERT(set->size == 3);
+
+   set_insert(set, y);
+   TEST_ASSERT(set->size == 3);
+}
+
+void test_find_min(void) {
+   Set set = set_Create();
+   int x = 5, y=3, z=8;
+   set_insert(set, x);
+   set_insert(set, y);
+   set_insert(set, z);
+
+   set_Node min_node = find_min(set->root);
+   TEST_ASSERT(min_node->value == 3);
+}
+
+void test_find_max(void) {
+   Set set = set_Create();
+   int x = 5, y=3, z=8;
+   set_insert(set, x);
+   set_insert(set, y);
+   set_insert(set, z);
+
+   set_Node max_node = find_max(set->root);
+   TEST_ASSERT(max_node->value == 8);
+}
+
+void test_find_next(void) {
+   Set set = set_Create();
+   int x = 5, y=3, z=8;
+   set_insert(set, x);
+   set_insert(set, y);
+   set_insert(set, z);
+
+   set_Node node = find_next(set->root, set->root);
+   TEST_ASSERT(node->value == z);
+
+   node = find_next(set->root, set->root->left);
+   TEST_ASSERT(node->value == x);
+
+   node = find_next(set->root, set->root->right);
+   TEST_ASSERT(node == SET_EOF);
+}
+
+void test_set_next(void) {
+   Set set = set_Create();
+   int x = 5, y=3, z=8;
+   set_insert(set, x);
+   set_insert(set, y);
+   set_insert(set, z);
+
+   set_Node node = set_next(set, set->root);
+   TEST_ASSERT(node->value == z);
+
+   node = set_next(set, set->root->left);
+   TEST_ASSERT(node->value == x);
+
+   node = set_next(set, set->root->right);
+   TEST_ASSERT(node == SET_EOF);
+}
+
+void test_min_remove(void) {
+   Set set = set_Create();
+   int x = 5, y=3, z=8;
+   set_insert(set, x);
+   set_insert(set, y);
+   set_insert(set, z);
+
+   set_Node min;
+   set_Node new_root = min_remove(set->root, &min);
+   TEST_ASSERT(min->value == y);
+   TEST_ASSERT(new_root->value == set->root->value);
+
+   set_insert(set, 6);
+   new_root = min_remove(set->root, &min);
+   TEST_ASSERT(min->value == 5);
+   TEST_ASSERT(new_root->value == 8);
+}
+
+void test_S_remove(void) {
+   Set set = set_Create();
+   int x = 5, y=3, z=8;
+   set_insert(set, x);
+   set_insert(set, y);
+   set_insert(set, z);
+
+   int old_value;
+   int flag = 0;
+   set->root = S_remove(set->root, x, &flag, &old_value);
+   TEST_ASSERT(flag == 1);
+   TEST_ASSERT(set->root->value == 8);
+
+   flag = 0;
+   set->root= S_remove(set->root, x, &flag, &old_value);
+   TEST_ASSERT(flag == 0);
+}
+
+void test_set_remove(void) {
+   Set set = set_Create();
+   int x = 5, y=3, z=8;
+   set_insert(set, x);
+   set_insert(set, y);
+   set_insert(set, z);
+
+   set_remove(set, x);
+   TEST_ASSERT(set->size == 2);
+   TEST_ASSERT(set->root->value == 8);
+
+   set_remove(set, x);
+   TEST_ASSERT(set->size == 2);
+}
+
+void test_S_find_equal(void) {
+   Set set = set_Create();
+   int x = 5, y=3, z=8;
+   set_insert(set, x);
+   set_insert(set, y);
+   set_insert(set, z);
+
+   set_Node node = S_find_equal(set->root, x);
+   TEST_ASSERT(node->value == x);
+
+   node = S_find_equal(set->root, 6);
+   TEST_ASSERT(node == SET_EOF);
+}
+
 // OPEN FUNCTION TESTS
 // mike path: /home/mike/Documents/Project24-25/open_functions/siftsmall
+
 
 void test_free_matrix_fvecs(void) {
    // run the test for a vector matrix of 5 vectors with 3 components each
@@ -329,9 +515,23 @@ void test_greedySearch(void) {
       TEST_ASSERT(S_find_equal(knn->root, node->value) != SET_EOF);
    }
 
+   // set_destroy()
+
 }
 
 TEST_LIST = {
+   { "set_Create", test_set_Create },
+   { "S_node_create", test_S_node_create },
+   { "S_node_insert", test_S_node_insert },
+   { "set_insert", test_set_insert },
+   { "find_min", test_find_min },
+   { "find_max", test_find_max },
+   { "find_next", test_find_next },
+   { "set_next", test_set_next },
+   { "min_remove", test_min_remove },
+   { "S_remove", test_S_remove },
+   { "set_remove", test_set_remove },
+   { "S_find_equal", test_S_find_equal },
    { "free_matrix_fvecs", test_free_matrix_fvecs },
    { "free_matrix_ivecs", test_free_matrix_ivecs },
    { "open_fvecs", test_open_fvecs },

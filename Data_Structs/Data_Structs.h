@@ -88,7 +88,7 @@ set_Node S_node_insert(set_Node,int * , int , int *);
 set_Node min_remove(set_Node ,set_Node * );
 
 //Removal of a node from the set
-set_Node S_remove(set_Node , int , int* );
+set_Node S_remove(set_Node , int, int* , int* );
 
 //Total deletion of a set node
 void S_destroy(set_Node , int );
