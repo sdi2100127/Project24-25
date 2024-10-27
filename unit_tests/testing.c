@@ -296,9 +296,8 @@ void test_greedySearch(void) {
    random[0][3] = 1; random[1][3] = 4; random[2][3] = 2;
    random[0][4] = 2; random[1][4] = 3; random[2][4] = 0;
 
+
    printf("neighbours\n");
-   int x;
-   int r = 4;
    for (int j = 0; j < vecs; j++) {
       printf("vector %d:", j);
       for (int i = 0; i < R; i++) {
@@ -311,7 +310,24 @@ void test_greedySearch(void) {
    int s = rand() % (vecs-1), L = 4, k = 3;
    printf("s: %d\n", s);
    Set V;
-   Set knn = greedySearch(random, R, dim, vecs, vectors, s, xq, L, k, V);
+   Set knn = greedySearch(random, R, dim, vecs, vectors, s, xq, L, k, &V);
+
+   TEST_ASSERT(V->size == 4);
+   TEST_ASSERT(knn->size == 3);
+
+   Set V_test = set_Create();
+   for (int i=0; i<4; i++) set_insert(V_test, i);
+   for (set_Node node = find_min(V_test->root); node != SET_EOF; node = set_next(V_test, node)) {
+      TEST_ASSERT(S_find_equal(V->root, node->value) != SET_EOF);
+   }
+
+   Set knn_test = set_Create();
+   set_insert(knn_test, 0);
+   set_insert(knn_test, 1);
+   set_insert(knn_test, 3);
+   for (set_Node node = find_min(knn_test->root); node != SET_EOF; node = set_next(knn_test, node)) {
+      TEST_ASSERT(S_find_equal(knn->root, node->value) != SET_EOF);
+   }
 
 }
 

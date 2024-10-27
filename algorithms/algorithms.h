@@ -15,4 +15,4 @@ float euclidean_distance(float* vec1, float* vec2, int comps);
 // xq --> the query vector
 // k --> the result size/number of desired nearest neighbours
 // L --> the maximum size of the result set
-Set greedySearch(int** G, int R, int dim, int vecs, float** vectors, int s, float* xq, int L, int k, Set V);
+Set greedySearch(int** G, int R, int dim, int vecs, float** vectors, int s, float* xq, int L, int k, Set* V);
