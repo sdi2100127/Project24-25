@@ -401,9 +401,9 @@ void test_euclidean_distance(void) {
 //    printf("\n");
 
 //    int R = 3;
-//    int** random = (int**)malloc(R * sizeof(int*));
+//    int** G = (int**)malloc(R * sizeof(int*));
 //    for (int i = 0; i < R; i++) {
-//       random[i] = (int*)malloc(vecs * sizeof(int));
+//       G[i] = (int*)malloc(vecs * sizeof(int));
 //    }
 
 //    printf("neighbours\n");
@@ -418,14 +418,14 @@ void test_euclidean_distance(void) {
 //             x = rand() % r;
 //             stop = 0;
 //             for (int z = 0; z < i; z++) {
-//                if (x == random[z][j] || x == j) {
+//                if (x == G[z][j] || x == j) {
 //                   stop = 1;
 //                   break;
 //                }
 //             }    
 //          }
-//          random[i][j] = x;
-//          printf(" %d", random[i][j]);
+//          G[i][j] = x;
+//          printf(" %d",  G[i][j]);
          
 //       }
 //       printf("\n");
@@ -434,7 +434,7 @@ void test_euclidean_distance(void) {
 //    int s = rand() % (vecs-1), L = 4, k = 3;
 //    printf("s: %d\n", s);
 //    Set V;
-//    Set knn = greedySearch(random, R, dim, vecs, vectors, s, xq, L, k, V);
+//    Set knn = greedySearch  G, R, dim, vecs, vectors, s, xq, L, k, V);
 
 // }
 
@@ -471,23 +471,23 @@ void test_greedySearch(void) {
    printf("\n");
 
    int R = 3;
-   int** random = (int**)malloc(R * sizeof(int*));
+   int** G = (int**)malloc(R * sizeof(int*));
    for (int i = 0; i < R; i++) {
-      random[i] = (int*)malloc(vecs * sizeof(int));
+      G[i] = (int*)malloc(vecs * sizeof(int));
    }
 
-   random[0][0] = 1; random[1][0] = 2; random[2][0] = 3;
-   random[0][1] = 2; random[1][1] = 3; random[2][1] = 0;
-   random[0][2] = 3; random[1][2] = 4; random[2][2] = 1;
-   random[0][3] = 1; random[1][3] = 4; random[2][3] = 2;
-   random[0][4] = 2; random[1][4] = 3; random[2][4] = 0;
+   G[0][0] = 1; G[1][0] = 2;  G[2][0] = 3;
+   G[0][1] = 2; G[1][1] = 3;  G[2][1] = 0;
+   G[0][2] = 3; G[1][2] = 4;  G[2][2] = 1;
+   G[0][3] = 1; G[1][3] = 4;  G[2][3] = 2;
+   G[0][4] = 2; G[1][4] = 3;  G[2][4] = 0;
 
 
    printf("neighbours\n");
    for (int j = 0; j < vecs; j++) {
       printf("vector %d:", j);
       for (int i = 0; i < R; i++) {
-         printf(" %d", random[i][j]);
+         printf(" %d",  G[i][j]);
          
       }
       printf("\n");
@@ -496,7 +496,7 @@ void test_greedySearch(void) {
    int s = rand() % (vecs-1), L = 4, k = 3;
    printf("s: %d\n", s);
    Set V;
-   Set knn = greedySearch(random, R, dim, vecs, vectors, s, xq, L, k, &V);
+   Set knn = greedySearch  (G, R, dim, vecs, vectors, s, xq, L, k, &V);
 
    TEST_ASSERT(V->size == 4);
    TEST_ASSERT(knn->size == 3);
@@ -540,3 +540,79 @@ TEST_LIST = {
    { "greedySearch", test_greedySearch },
    { NULL, NULL }     /* zeroed record marking the end of the list */
 };
+
+
+
+
+void test_RobustPrune(void){
+   // run the test for a vector matrix of 7 vectors with 3 components each
+   int dim = 3;
+   int vecs = 7;
+   float** vectors = (float**)malloc(dim * sizeof(float*));
+   for (int i = 0; i < dim; i++) {
+      vectors[i] = (float*)malloc(vecs * sizeof(float));
+   }
+
+   int p = 3;
+
+   vectors[0][0] = 4.0; vectors[1][0] = 6.0; vectors[2][0] = 9.0;
+   vectors[0][1] = 4.0; vectors[1][1] = 5.0; vectors[2][1] = 4.0;
+   vectors[0][2] = 2.0; vectors[1][2] = 8.0; vectors[2][2] = 4.0;
+   vectors[0][3] = 1.0; vectors[1][3] = 5.0; vectors[2][3] = 8.0;
+   vectors[0][4] = 2.0; vectors[1][4] = 5.0; vectors[2][4] = 0.0;
+
+
+   for (int j = 0; j < vecs; j++) {
+      printf("vector %d:", j);
+      for (int i = 0; i < dim; i++) {
+         printf(" %f", vectors[i][j]);
+      }
+      printf("\n");
+   }
+
+   int R = 3;
+   int** G = (int**)malloc(R * sizeof(int*));
+   for (int i = 0; i < R; i++) {
+      G[i] = (int*)malloc(vecs * sizeof(int));
+   }
+
+   G[0][0] = 1;   G[1][0] = 2;  G[2][0] = 3;
+   G[0][1] = 2;   G[1][1] = 3;  G[2][1] = 0;
+   G[0][2] = 3;   G[1][2] = 4;  G[2][2] = 1;
+   G[0][3] = 1;   G[1][3] = 4;  G[2][3] = 2;
+   G[0][4] = 2;   G[1][4] = 3;  G[2][4] = 0;
+
+
+   printf("neighbours\n");
+   for (int j = 0; j < vecs; j++) {
+      printf("vector %d:", j);
+      for (int i = 0; i < R; i++) {
+         printf(" %d",  G[i][j]);
+         
+      }
+      printf("\n");
+   }
+
+   int p = rand() % (vecs-1);
+   int s = rand() % (vecs-1),L = 4, k = 3;;
+   printf("s: %d\n", p);
+   Set V;
+   int neigh_count;
+   int a = 2;
+
+   float* xq = (float*)malloc(dim * sizeof(float*));
+   for(int i = 0; i < dim; i++ ){
+      xq[i] = vectors[i][p];
+   }
+
+   Set knn ;
+   knn = greedySearch(G ,R ,dim ,vecs ,vectors ,s ,xq ,L ,k ,&V);
+
+   RobustPrune(&G, p , &V,  a,  R , &neigh_count,  dim ,  vecs , vectors);
+   TEST_ASSERT(V->size == 0);
+
+
+
+   // set_destroy()
+
+}

@@ -163,3 +163,85 @@ Set greedySearch(int** G, int R, int dim, int vecs, float** vectors, int s, floa
 
 }
 
+//Implementation of Robust Prune function
+void RobustPrune(int *** G, int p ,Set * V, int a, int R , int * neigh_count ,int dim , int vecs , float **vectors){
+    
+    for (int i = 0; i <= R - 1 ;i++){           //Inserting our Nout(p) to our V set
+        set_insert(V, G[i][p]);
+    }
+
+    set_remove(V, p);                           //And checking if we have inserted our p so that we remove it
+
+    for (int i = 0; i <= R - 1 ;i++){           //Now we have to empty our Nout(p)
+        G[i][p] = -1;                           //And to do that we will set everything to -1 to know that it is supposed to be empty
+    }
+    Set temp = V;
+    int i_count = 0;
+
+    float* dist_matrix_2 = (float*)malloc(vecs * sizeof(float*));
+    float* vec_of_p_star = (float*)malloc(dim * sizeof(float));
+    float* vec_p = (float*)malloc(dim * sizeof(float));             //And to do that we create a distance matrix with the euclidean distance
+    float* vec_of_p = (float*)malloc(dim * sizeof(float));
+    float* dist_matrix = (float*)malloc(vecs * sizeof(float*));
+    
+    while(temp->size != 0){
+        
+        float min_dist;                         //Now we have to find minimum distance to each vector from our point p
+
+        for (int i=0; i<dim; i++) {
+            vec_of_p[i] = vectors[i][p];
+        }
+        
+        for (int j = 0; j < vecs; j++) {
+            for (int i=0; i<dim; i++) {
+            vec_p[i] = vectors[i][j];
+            }
+            dist_matrix[j] = euclidean_distance(vec_p, vec_of_p, dim);
+        }
+
+        int p_star;
+
+        for (set_Node node = find_min(temp->root); node != SET_EOF; node = set_next(temp, node)) {
+            int node_value = node->value;
+            float dist = dist_matrix[node_value];
+            if (p_star == -1 || dist_matrix[node_value] <= min_dist) {
+                p_star = node_value;
+                min_dist = dist;
+            }
+        }
+        G[i_count][p] = p_star;
+        i_count ++;
+
+        if(i_count == R)
+            break;
+        
+        for (int i=0; i<dim; i++) {
+            vec_of_p_star[i] = vectors[i][p_star];
+        }
+        for (int j = 0; j < vecs; j++) {
+            for (int i=0; i<dim; i++) {
+            vec_p[i] = vectors[i][j];
+            }
+            dist_matrix_2[j] = euclidean_distance(vec_p, vec_of_p_star, dim);
+        }
+
+        set_Node next = temp->root;
+        while(next != EOF){
+            int node_value = next->value;
+            if(a * dist_matrix_2[node_value] <= dist_matrix[node_value]){
+                set_remove(temp,node_value);
+                next = set_next(temp, next);
+            }
+        }
+        
+    }
+    *V = temp;
+    *neigh_count = i_count;
+
+    free(dist_matrix);
+    free(dist_matrix_2);
+    
+    free(vec_p);
+    free(vec_of_p);
+    free(vec_of_p_star);
+}
