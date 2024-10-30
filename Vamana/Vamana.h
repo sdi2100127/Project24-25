@@ -1,8 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <time.h>
 
-#include "../Data_Structs/Data_Structs.h"
+//#include "../Data_Structs/Data_Structs.h"
 #include "../algorithms/algorithms.h"
 
 // function to find the medoid of a dataset

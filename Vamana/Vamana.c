@@ -5,20 +5,24 @@ int medoid(float** dataset, int vecs, int comps) {
     float* vec_p1 = (float*)malloc(comps * sizeof(float));
     float* vec_p2 = (float*)malloc(comps * sizeof(float));
 
-    float min_sum = 1000000;
+    float min_sum = 1000000.0f;
     int min_p = -1;
-    int dist_sum;
+    float dist_sum;
 
     // for each vector in the dataset
     for (int j=0; j<vecs; j++) {
-        dist_sum = 0;
+
+        dist_sum = 0.0f;
         for (int i=0; i<comps; i++) {
             vec_p1[i] = dataset[i][j];
         }
+
+        
         // compute its distance to all other vectors
         for (int z=0; z<vecs; z++) {
+            
             for (int i=0; i<comps; i++) {
-                vec_p2[i] = dataset[i][j];
+                vec_p2[i] = dataset[i][z];
             }
 
             // and add it to the total sum
@@ -26,6 +30,7 @@ int medoid(float** dataset, int vecs, int comps) {
                 dist_sum = dist_sum + euclidean_distance(vec_p1, vec_p2, comps);
             }
         }
+        
         // then find which vector has the lowest total sum
         if (dist_sum <= min_sum) {
             min_sum = dist_sum;
@@ -33,11 +38,13 @@ int medoid(float** dataset, int vecs, int comps) {
         }
     }
 
+    printf("medoid sum: %f\n", min_sum);
     return min_p;
 }
 
 int** Vamana(float** dataset, int vecs, int comps, int L, int R, int a) {
-    // first we initialize G to a random R-regular directed graph
+    // first we have to initialize G to a random R-regular directed graph
+
     int** G = (int**)malloc(R * sizeof(int*));
     for (int i = 0; i < R; i++) {
         G[i] = (int*)malloc(vecs * sizeof(int));
@@ -72,22 +79,23 @@ int** Vamana(float** dataset, int vecs, int comps, int L, int R, int a) {
 
     // now we find the medoid of the dataset that will be our starting point s
     int s = medoid(dataset, vecs, comps);
+    printf("medoid: %d\n", s);
 
     // create a random permutation of 1...vecs (really from 0 to vecs-1) 
     // and store it in the array per
     int* per = (int*)malloc(vecs * sizeof(int*));
     for (int i=0; i<vecs; i++) {
-        per[i] = -1;
+        per[i] = i;
     }
-    for (int i=0; i<vecs; i++) {
-        int flag = 0;
-        while (flag == 0) {
-            int index = rand() % (vecs - 1);
-            if (per[index] == -1) {
-                per[index] = i;
-                flag = 1;
-            }
-        }  
+
+    srand((unsigned int)time(NULL));
+
+    for(int i=0; i<vecs; ++i){
+        int randIdx = rand() % (vecs - 1);
+        // swap per[i] with per[randIdx]
+        int t = per[i];
+        per[i] = per[randIdx];
+        per[randIdx] = t;
     }
 
     printf("random permutation:\n");
@@ -105,13 +113,19 @@ int** Vamana(float** dataset, int vecs, int comps, int L, int R, int a) {
         // find and store the query vector xq based on the point in the dataset indexed by per[i]
         int query_pos = per[i];
         float* xq = (float*)malloc(comps * sizeof(float));
+        printf("query vector %d: ", query_pos);
         for (int i=0; i<comps; i++) {
             xq[i] = dataset[i][query_pos];
+            printf("%f ", xq[i]);
         }
+        printf("\n");
         
         Set V;
         Set knn = greedySearch(G, R, comps, vecs, dataset, s, xq, L, 1, &V);
 
+        // TESTED SO FAR!!!!!!!!!
+        break;
+        
         int new_n_out;
         RobustPrune(&G, query_pos, &V, a, R, &new_n_out, comps, vecs, dataset);
         // after each point's neighbours get pruned we update the count in the outgoing neighbours array
@@ -139,4 +153,5 @@ int** Vamana(float** dataset, int vecs, int comps, int L, int R, int a) {
             }
         }
     }
+    return G;
 }

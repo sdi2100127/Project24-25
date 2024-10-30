@@ -2,9 +2,10 @@
 #include <time.h>
 
 #include "../open_functions/open.h"
-#include "../algorithms/algorithms.h"
+//#include "../algorithms/algorithms.h"
+#include "../Vamana/Vamana.h"
 
-// compile example: cc testing.c ../open_functions/open.c ../Data_Structs/Data_Structs.c ../algorithms/algorithms.c -o testing -lm
+// compile example: cc testing.c ../open_functions/open.c ../Data_Structs/Data_Structs.c ../algorithms/algorithms.c ../Vamana/Vamana.c -o testing -lm
 // run: ./testing
 
 // https://github.com/mity/acutest/blob/master/README.md
@@ -519,48 +520,22 @@ void test_greedySearch(void) {
 
 }
 
-TEST_LIST = {
-   { "set_Create", test_set_Create },
-   { "S_node_create", test_S_node_create },
-   { "S_node_insert", test_S_node_insert },
-   { "set_insert", test_set_insert },
-   { "find_min", test_find_min },
-   { "find_max", test_find_max },
-   { "find_next", test_find_next },
-   { "set_next", test_set_next },
-   { "min_remove", test_min_remove },
-   { "S_remove", test_S_remove },
-   { "set_remove", test_set_remove },
-   { "S_find_equal", test_S_find_equal },
-   { "free_matrix_fvecs", test_free_matrix_fvecs },
-   { "free_matrix_ivecs", test_free_matrix_ivecs },
-   { "open_fvecs", test_open_fvecs },
-   { "open_ivecs", test_open_ivecs },
-   { "euclidean_distance", test_euclidean_distance },
-   { "greedySearch", test_greedySearch },
-   { NULL, NULL }     /* zeroed record marking the end of the list */
-};
-
-
-
-
 void test_RobustPrune(void){
    // run the test for a vector matrix of 7 vectors with 3 components each
    int dim = 3;
-   int vecs = 7;
+   int vecs = 5;
    float** vectors = (float**)malloc(dim * sizeof(float*));
    for (int i = 0; i < dim; i++) {
       vectors[i] = (float*)malloc(vecs * sizeof(float));
    }
 
-   int p = 3;
+   //int p = 3;
 
    vectors[0][0] = 4.0; vectors[1][0] = 6.0; vectors[2][0] = 9.0;
    vectors[0][1] = 4.0; vectors[1][1] = 5.0; vectors[2][1] = 4.0;
    vectors[0][2] = 2.0; vectors[1][2] = 8.0; vectors[2][2] = 4.0;
    vectors[0][3] = 1.0; vectors[1][3] = 5.0; vectors[2][3] = 8.0;
    vectors[0][4] = 2.0; vectors[1][4] = 5.0; vectors[2][4] = 0.0;
-
 
    for (int j = 0; j < vecs; j++) {
       printf("vector %d:", j);
@@ -594,11 +569,12 @@ void test_RobustPrune(void){
    }
 
    int p = rand() % (vecs-1);
-   int s = rand() % (vecs-1),L = 4, k = 3;;
-   printf("s: %d\n", p);
+   int s = rand() % (vecs-1),L = 4, k = 3;
+   printf("s: %d\n", s);
+   printf("p: %d\n", p);
    Set V;
    int neigh_count;
-   int a = 2;
+   int a = 1;
 
    float* xq = (float*)malloc(dim * sizeof(float*));
    for(int i = 0; i < dim; i++ ){
@@ -607,6 +583,7 @@ void test_RobustPrune(void){
 
    Set knn ;
    knn = greedySearch(G ,R ,dim ,vecs ,vectors ,s ,xq ,L ,k ,&V);
+   printf("hi");
 
    RobustPrune(&G, p , &V,  a,  R , &neigh_count,  dim ,  vecs , vectors);
    TEST_ASSERT(V->size == 0);
@@ -616,3 +593,73 @@ void test_RobustPrune(void){
    // set_destroy()
 
 }
+
+void test_medoid(void) {
+   // run the test for a vector matrix of 5 vectors with 3 components each
+   int dim = 3;
+   int vecs = 5;
+   float** vectors = (float**)malloc(dim * sizeof(float*));
+   for (int i = 0; i < dim; i++) {
+      vectors[i] = (float*)malloc(vecs * sizeof(float));
+   }
+
+   vectors[0][0] = 4.0; vectors[1][0] = 6.0; vectors[2][0] = 9.0;
+   vectors[0][1] = 4.0; vectors[1][1] = 5.0; vectors[2][1] = 4.0;
+   vectors[0][2] = 2.0; vectors[1][2] = 8.0; vectors[2][2] = 4.0;
+   vectors[0][3] = 1.0; vectors[1][3] = 5.0; vectors[2][3] = 8.0;
+   vectors[0][4] = 2.0; vectors[1][4] = 5.0; vectors[2][4] = 0.0;
+
+   int med = medoid(vectors, vecs, dim);
+   TEST_ASSERT(med == 1);
+}
+
+void test_Vamana(void) {
+   // run the test for a vector matrix of 5 vectors with 3 components each
+   int dim = 3;
+   int vecs = 5;
+   float** vectors = (float**)malloc(dim * sizeof(float*));
+   for (int i = 0; i < dim; i++) {
+      vectors[i] = (float*)malloc(vecs * sizeof(float));
+   }
+
+   vectors[0][0] = 4.0; vectors[1][0] = 6.0; vectors[2][0] = 9.0;
+   vectors[0][1] = 4.0; vectors[1][1] = 5.0; vectors[2][1] = 4.0;
+   vectors[0][2] = 2.0; vectors[1][2] = 8.0; vectors[2][2] = 4.0;
+   vectors[0][3] = 1.0; vectors[1][3] = 5.0; vectors[2][3] = 8.0;
+   vectors[0][4] = 2.0; vectors[1][4] = 5.0; vectors[2][4] = 0.0;
+
+   int L = 4, R = 3, a = 1;
+
+   int** G = (int**)malloc(R * sizeof(int*));
+   for (int i = 0; i < R; i++) {
+      G[i] = (int*)malloc(vecs * sizeof(int));
+   }
+
+   G = Vamana(vectors, vecs, dim, L, R, a);
+
+}
+
+TEST_LIST = {
+   { "set_Create", test_set_Create },
+   { "S_node_create", test_S_node_create },
+   { "S_node_insert", test_S_node_insert },
+   { "set_insert", test_set_insert },
+   { "find_min", test_find_min },
+   { "find_max", test_find_max },
+   { "find_next", test_find_next },
+   { "set_next", test_set_next },
+   { "min_remove", test_min_remove },
+   { "S_remove", test_S_remove },
+   { "set_remove", test_set_remove },
+   { "S_find_equal", test_S_find_equal },
+   { "free_matrix_fvecs", test_free_matrix_fvecs },
+   { "free_matrix_ivecs", test_free_matrix_ivecs },
+   { "open_fvecs", test_open_fvecs },
+   { "open_ivecs", test_open_ivecs },
+   { "euclidean_distance", test_euclidean_distance },
+   { "greedySearch", test_greedySearch },
+   { "RobustPrune", test_RobustPrune },
+   //{ "medoid", test_medoid },
+   //{ "Vamana", test_Vamana },
+   { NULL, NULL }     /* zeroed record marking the end of the list */
+};

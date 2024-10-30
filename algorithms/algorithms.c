@@ -1,7 +1,7 @@
 #include "algorithms.h"
 
 float euclidean_distance(float* vec1, float* vec2, int comps) {
-    float res;
+    float res = 0.0f;
     for (int i = 0; i < comps; i++) {
         res = res + pow(vec1[i] - vec2[i], 2);
     }
@@ -152,30 +152,35 @@ Set greedySearch(int** G, int R, int dim, int vecs, float** vectors, int s, floa
     }
     printf("\n");
 
+    
     *V = visited_nodes;
-
+    printf("hi");
     free(vec_p);
     free(dist_matrix);
 
     //set_destroy()
-
+    printf("hi");
     return knn_set;
 
 }
 
 //Implementation of Robust Prune function
 void RobustPrune(int *** G, int p ,Set * V, int a, int R , int * neigh_count ,int dim , int vecs , float **vectors){
-    
     for (int i = 0; i <= R - 1 ;i++){           //Inserting our Nout(p) to our V set
-        set_insert(V, G[i][p]);
+        set_insert(*V, *G[i][p]);
     }
 
-    set_remove(V, p);                           //And checking if we have inserted our p so that we remove it
+    set_remove(*V, p);                           //And checking if we have inserted our p so that we remove it
 
     for (int i = 0; i <= R - 1 ;i++){           //Now we have to empty our Nout(p)
-        G[i][p] = -1;                           //And to do that we will set everything to -1 to know that it is supposed to be empty
+        *G[i][p] = -1;                           //And to do that we will set everything to -1 to know that it is supposed to be empty
     }
-    Set temp = V;
+    
+    Set temp = *V;
+    // printf("V: ");
+    // for (set_Node node = find_min(temp->root); node != SET_EOF; node = set_next(temp, node)) 
+    //         printf("%d ", node->value);
+    // printf("\n");
     int i_count = 0;
 
     float* dist_matrix_2 = (float*)malloc(vecs * sizeof(float*));
@@ -183,25 +188,24 @@ void RobustPrune(int *** G, int p ,Set * V, int a, int R , int * neigh_count ,in
     float* vec_p = (float*)malloc(dim * sizeof(float));             //And to do that we create a distance matrix with the euclidean distance
     float* vec_of_p = (float*)malloc(dim * sizeof(float));
     float* dist_matrix = (float*)malloc(vecs * sizeof(float*));
+
+    // μπορει να βγει απεξω γιατι το p και οι αποστασεις δεν αλλαζουν
+    for (int i=0; i<dim; i++) {
+        vec_of_p[i] = vectors[i][p];
+    }
+    
+    for (int j = 0; j < vecs; j++) {
+        for (int i=0; i<dim; i++) {
+        vec_p[i] = vectors[i][j];
+        }
+        dist_matrix[j] = euclidean_distance(vec_p, vec_of_p, dim);
+    }
+    // ως εδω...lob u <3
     
     while(temp->size != 0){
         
-        float min_dist;                         //Now we have to find minimum distance to each vector from our point p
-
-        // μπορει να βγει απεξω γιατι το p και οι αποστασεις δεν αλλαζουν
-        for (int i=0; i<dim; i++) {
-            vec_of_p[i] = vectors[i][p];
-        }
-        
-        for (int j = 0; j < vecs; j++) {
-            for (int i=0; i<dim; i++) {
-            vec_p[i] = vectors[i][j];
-            }
-            dist_matrix[j] = euclidean_distance(vec_p, vec_of_p, dim);
-        }
-        // ως εδω...lob u <3
-
-        int p_star;
+        float min_dist;         //Now we have to find minimum distance to each vector from our point p
+        int p_star = -1;
 
         for (set_Node node = find_min(temp->root); node != SET_EOF; node = set_next(temp, node)) {
             int node_value = node->value;
@@ -211,7 +215,7 @@ void RobustPrune(int *** G, int p ,Set * V, int a, int R , int * neigh_count ,in
                 min_dist = dist;
             }
         }
-        G[i_count][p] = p_star;
+        *G[i_count][p] = p_star;
         i_count ++;
 
         if(i_count == R)
@@ -228,7 +232,7 @@ void RobustPrune(int *** G, int p ,Set * V, int a, int R , int * neigh_count ,in
         }
 
         set_Node next = temp->root;
-        while(next != EOF){
+        while(next != SET_EOF){
             int node_value = next->value;
             if(a * dist_matrix_2[node_value] <= dist_matrix[node_value]){
                 set_remove(temp,node_value);
