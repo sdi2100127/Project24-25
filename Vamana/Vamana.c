@@ -113,7 +113,7 @@ int** Vamana(float** dataset, int vecs, int comps, int L, int R, int a) {
         Set knn = greedySearch(G, R, comps, vecs, dataset, s, xq, L, 1, &V);
 
         int new_n_out;
-        RobustPrune(&G, query_pos, &V, a, R, &new_n_out);
+        RobustPrune(&G, query_pos, &V, a, R, &new_n_out, comps, vecs, dataset);
         // after each point's neighbours get pruned we update the count in the outgoing neighbours array
         out_n_count[query_pos] = new_n_out;
 
@@ -125,7 +125,17 @@ int** Vamana(float** dataset, int vecs, int comps, int L, int R, int a) {
 
             // if we cannot
             if (out_n_count[point] == R) {
-                RobustPrune(&G, point, &V, a, R, &new_n_out);
+
+                // we create a set Nout_j with the outgoing neighbours of j as well as the current query point
+                Set Nout_j = set_Create();
+                for (int n=0; n<R; n++) set_insert(Nout_j, G[n][point]);
+                set_insert(Nout_j, query_pos);
+                RobustPrune(&G, point, &Nout_j, a, R, &new_n_out, comps, vecs, dataset);
+                //set_destroy(Nout_j)
+
+            } else {    // if the query point fits
+                // add it to the neighbours of j
+                G[out_n_count[point] + 1][point] = query_pos;
             }
         }
     }
