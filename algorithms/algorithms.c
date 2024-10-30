@@ -188,6 +188,7 @@ void RobustPrune(int *** G, int p ,Set * V, int a, int R , int * neigh_count ,in
         
         float min_dist;                         //Now we have to find minimum distance to each vector from our point p
 
+        // μπορει να βγει απεξω γιατι το p και οι αποστασεις δεν αλλαζουν
         for (int i=0; i<dim; i++) {
             vec_of_p[i] = vectors[i][p];
         }
@@ -198,6 +199,7 @@ void RobustPrune(int *** G, int p ,Set * V, int a, int R , int * neigh_count ,in
             }
             dist_matrix[j] = euclidean_distance(vec_p, vec_of_p, dim);
         }
+        // ως εδω...lob u <3
 
         int p_star;
 

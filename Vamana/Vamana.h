@@ -5,4 +5,8 @@
 #include "../Data_Structs/Data_Structs.h"
 #include "../algorithms/algorithms.h"
 
-int** Vamana(float** dataset, int vecs, int comps, int R);
+// function to find the medoid of a dataset
+int medoid(float** dataset, int vecs, int comps);
+
+// Vamana algorithm
+int** Vamana(float** dataset, int vecs, int comps, int L, int R, int a);
