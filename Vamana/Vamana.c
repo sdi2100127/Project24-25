@@ -124,7 +124,7 @@ int** Vamana(float** dataset, int vecs, int comps, int L, int R, int a) {
         Set knn = greedySearch(G, R, comps, vecs, dataset, s, xq, L, 1, &V);
 
         // TESTED SO FAR!!!!!!!!!
-        break;
+        //break;
         
         int new_n_out;
         RobustPrune(&G, query_pos, &V, a, R, &new_n_out, comps, vecs, dataset);

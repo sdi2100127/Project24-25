@@ -154,33 +154,44 @@ Set greedySearch(int** G, int R, int dim, int vecs, float** vectors, int s, floa
 
     
     *V = visited_nodes;
-    printf("hi");
+    
     free(vec_p);
     free(dist_matrix);
 
     //set_destroy()
-    printf("hi");
     return knn_set;
 
 }
 
 //Implementation of Robust Prune function
 void RobustPrune(int *** G, int p ,Set * V, int a, int R , int * neigh_count ,int dim , int vecs , float **vectors){
-    for (int i = 0; i <= R - 1 ;i++){           //Inserting our Nout(p) to our V set
-        set_insert(*V, *G[i][p]);
-    }
-
-    set_remove(*V, p);                           //And checking if we have inserted our p so that we remove it
-
-    for (int i = 0; i <= R - 1 ;i++){           //Now we have to empty our Nout(p)
-        *G[i][p] = -1;                           //And to do that we will set everything to -1 to know that it is supposed to be empty
-    }
+    printf("ROBUST PRUNE\n");
     
     Set temp = *V;
+    int ** temp_G = *G;
+    for (int i = 0; i <= R - 1 ;i++){           //Inserting our Nout(p) to our V set
+        set_insert(temp, temp_G[i][p]);
+    }
+
+    set_remove(temp, p);                           //And checking if we have inserted our p so that we remove it
+
+    printf("Nout(%d)", p);
+    for (int i=0; i<dim; i++) {
+        printf("%d ", temp_G[i][p]);
+    }
+    printf("\n");
+
+    for (int i = 0; i <= R - 1 ;i++){           //Now we have to empty our Nout(p)
+        temp_G[i][p] = -1;                           //And to do that we will set everything to -1 to know that it is supposed to be empty
+
+    }
+    
+    
     // printf("V: ");
     // for (set_Node node = find_min(temp->root); node != SET_EOF; node = set_next(temp, node)) 
     //         printf("%d ", node->value);
     // printf("\n");
+
     int i_count = 0;
 
     float* dist_matrix_2 = (float*)malloc(vecs * sizeof(float*));
@@ -189,18 +200,22 @@ void RobustPrune(int *** G, int p ,Set * V, int a, int R , int * neigh_count ,in
     float* vec_of_p = (float*)malloc(dim * sizeof(float));
     float* dist_matrix = (float*)malloc(vecs * sizeof(float*));
 
-    // μπορει να βγει απεξω γιατι το p και οι αποστασεις δεν αλλαζουν
     for (int i=0; i<dim; i++) {
         vec_of_p[i] = vectors[i][p];
     }
-    
+
     for (int j = 0; j < vecs; j++) {
         for (int i=0; i<dim; i++) {
         vec_p[i] = vectors[i][j];
         }
         dist_matrix[j] = euclidean_distance(vec_p, vec_of_p, dim);
     }
-    // ως εδω...lob u <3
+
+    printf("dist_matrix\n");
+    for (int i=0; i<vecs; i++) {
+        printf("%f ", dist_matrix[i]);
+    }
+    printf("\n");
     
     while(temp->size != 0){
         
@@ -215,33 +230,55 @@ void RobustPrune(int *** G, int p ,Set * V, int a, int R , int * neigh_count ,in
                 min_dist = dist;
             }
         }
-        *G[i_count][p] = p_star;
+        printf("p*: %d\n", p_star);
+        temp_G[i_count][p] = p_star;
         i_count ++;
 
         if(i_count == R)
             break;
-        
+
+        printf("vec p*: ");
         for (int i=0; i<dim; i++) {
             vec_of_p_star[i] = vectors[i][p_star];
+            printf("%f ", vec_of_p_star[i]);
         }
+        printf("\n");
+
         for (int j = 0; j < vecs; j++) {
             for (int i=0; i<dim; i++) {
-            vec_p[i] = vectors[i][j];
+                vec_p[i] = vectors[i][j];
             }
             dist_matrix_2[j] = euclidean_distance(vec_p, vec_of_p_star, dim);
         }
 
-        set_Node next = temp->root;
+        printf("dist_matrix2\n");
+        for (int i=0; i<vecs; i++) {
+            printf("%f ", dist_matrix_2[i]);
+        }
+        printf("\n");
+
+        set_Node next = find_min(temp->root);
         while(next != SET_EOF){
             int node_value = next->value;
             if(a * dist_matrix_2[node_value] <= dist_matrix[node_value]){
+                next = set_next(temp, next);
+                printf("remove %d\n", node_value);
                 set_remove(temp,node_value);
+            } else {
                 next = set_next(temp, next);
             }
         }
-        
+
     }
+
+    printf("Nout(%d): ", p);
+    for (int i=0; i<dim; i++) {
+        printf("%d ", temp_G[i][p]);
+    }
+    printf("\n");
+
     *V = temp;
+    *G = temp_G;
     *neigh_count = i_count;
 
     free(dist_matrix);

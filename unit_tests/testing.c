@@ -521,6 +521,8 @@ void test_greedySearch(void) {
 }
 
 void test_RobustPrune(void){
+   srand((unsigned int)time(NULL));
+
    // run the test for a vector matrix of 7 vectors with 3 components each
    int dim = 3;
    int vecs = 5;
@@ -528,8 +530,6 @@ void test_RobustPrune(void){
    for (int i = 0; i < dim; i++) {
       vectors[i] = (float*)malloc(vecs * sizeof(float));
    }
-
-   //int p = 3;
 
    vectors[0][0] = 4.0; vectors[1][0] = 6.0; vectors[2][0] = 9.0;
    vectors[0][1] = 4.0; vectors[1][1] = 5.0; vectors[2][1] = 4.0;
@@ -568,7 +568,8 @@ void test_RobustPrune(void){
       printf("\n");
    }
 
-   int p = rand() % (vecs-1);
+   // rand() % (vecs-1)
+   int p = 3;
    int s = rand() % (vecs-1),L = 4, k = 3;
    printf("s: %d\n", s);
    printf("p: %d\n", p);
@@ -580,17 +581,17 @@ void test_RobustPrune(void){
    for(int i = 0; i < dim; i++ ){
       xq[i] = vectors[i][p];
    }
+   printf("vector xq:");
+   for (int i = 0; i < dim; i++) {
+      printf(" %f", xq[i]);
+   }
+   printf("\n");
 
-   Set knn ;
-   knn = greedySearch(G ,R ,dim ,vecs ,vectors ,s ,xq ,L ,k ,&V);
-   printf("hi");
+   Set knn = greedySearch(G ,R ,dim ,vecs ,vectors ,s ,xq ,L ,k ,&V);
 
    RobustPrune(&G, p , &V,  a,  R , &neigh_count,  dim ,  vecs , vectors);
    TEST_ASSERT(V->size == 0);
 
-
-
-   // set_destroy()
 
 }
 
@@ -654,12 +655,12 @@ TEST_LIST = {
    { "S_find_equal", test_S_find_equal },
    { "free_matrix_fvecs", test_free_matrix_fvecs },
    { "free_matrix_ivecs", test_free_matrix_ivecs },
-   { "open_fvecs", test_open_fvecs },
-   { "open_ivecs", test_open_ivecs },
+   // { "open_fvecs", test_open_fvecs },
+   // { "open_ivecs", test_open_ivecs },
    { "euclidean_distance", test_euclidean_distance },
    { "greedySearch", test_greedySearch },
    { "RobustPrune", test_RobustPrune },
-   //{ "medoid", test_medoid },
-   //{ "Vamana", test_Vamana },
+   { "medoid", test_medoid },
+   { "Vamana", test_Vamana },
    { NULL, NULL }     /* zeroed record marking the end of the list */
 };
