@@ -142,7 +142,12 @@ int** Vamana(float** dataset, int vecs, int comps, int L, int R, int a) {
 
                 // we create a set Nout_j with the outgoing neighbours of j as well as the current query point
                 Set Nout_j = set_Create();
-                for (int n=0; n<R; n++) set_insert(Nout_j, G[n][point]);
+                for (int n=0; n<R; n++) {
+                    if (G[n][point] == -1) {
+                        break;
+                    }
+                    set_insert(Nout_j, G[n][point]);
+                }
                 set_insert(Nout_j, query_pos);
                 RobustPrune(&G, point, &Nout_j, a, R, &new_n_out, comps, vecs, dataset);
                 //set_destroy(Nout_j)

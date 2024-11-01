@@ -367,78 +367,6 @@ void test_euclidean_distance(void) {
 
 }
 
-// void test_greedySearch(void) {
-//    // run the test for a vector matrix of 5 vectors with 3 components each
-//    int dim = 3;
-//    int vecs = 5;
-//    float** vectors = (float**)malloc(dim * sizeof(float*));
-//    for (int i = 0; i < dim; i++) {
-//       vectors[i] = (float*)malloc(vecs * sizeof(float));
-//    }
-
-//    float* xq = (float*)malloc(dim * sizeof(float*));
-
-//    srand((unsigned int)time(NULL));
-
-//    // float a = 10.0;
-//    int a = 10;
-//    printf("\n");
-//    for (int j = 0; j < vecs; j++) {
-//       printf("vector %d:", j);
-//       for (int i = 0; i < dim; i++) {
-//          // vectors[i][j] = ((float)rand()/(float)(RAND_MAX)) * a;
-//          vectors[i][j] = (float)(rand() % a);
-//          printf(" %f", vectors[i][j]);
-//       }
-//       printf("\n");
-//    }
-
-//    printf("vector xq:");
-//    for (int i = 0; i < dim; i++) {
-//       // vectors[i][j] = ((float)rand()/(float)(RAND_MAX)) * a;
-//       xq[i] = (float)(rand() % a);
-//       printf(" %f", xq[i]);
-//    }
-//    printf("\n");
-
-//    int R = 3;
-//    int** G = (int**)malloc(R * sizeof(int*));
-//    for (int i = 0; i < R; i++) {
-//       G[i] = (int*)malloc(vecs * sizeof(int));
-//    }
-
-//    printf("neighbours\n");
-//    int x;
-//    int r = 4;
-//    for (int j = 0; j < vecs; j++) {
-//       printf("vector %d:", j);
-//       for (int i = 0; i < R; i++) {
-
-//          int stop = 1;
-//          while (stop == 1) {
-//             x = rand() % r;
-//             stop = 0;
-//             for (int z = 0; z < i; z++) {
-//                if (x == G[z][j] || x == j) {
-//                   stop = 1;
-//                   break;
-//                }
-//             }    
-//          }
-//          G[i][j] = x;
-//          printf(" %d",  G[i][j]);
-         
-//       }
-//       printf("\n");
-//    }
-
-//    int s = rand() % (vecs-1), L = 4, k = 3;
-//    printf("s: %d\n", s);
-//    Set V;
-//    Set knn = greedySearch  G, R, dim, vecs, vectors, s, xq, L, k, V);
-
-// }
-
 void test_greedySearch(void) {
    // run the test for a vector matrix of 5 vectors with 3 components each
    int dim = 3;
@@ -655,8 +583,8 @@ TEST_LIST = {
    { "S_find_equal", test_S_find_equal },
    { "free_matrix_fvecs", test_free_matrix_fvecs },
    { "free_matrix_ivecs", test_free_matrix_ivecs },
-   // { "open_fvecs", test_open_fvecs },
-   // { "open_ivecs", test_open_ivecs },
+   { "open_fvecs", test_open_fvecs },
+   { "open_ivecs", test_open_ivecs },
    { "euclidean_distance", test_euclidean_distance },
    { "greedySearch", test_greedySearch },
    { "RobustPrune", test_RobustPrune },

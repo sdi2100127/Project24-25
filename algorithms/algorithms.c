@@ -10,6 +10,8 @@ float euclidean_distance(float* vec1, float* vec2, int comps) {
 }
 
 Set greedySearch(int** G, int R, int dim, int vecs, float** vectors, int s, float* xq, int L, int k, Set* V) {
+    printf("GREEDY SEARCH\n");
+
     // initializing the knn set with the starting point s
     Set knn_set = set_Create();
     set_insert(knn_set, s);
@@ -168,6 +170,10 @@ void RobustPrune(int *** G, int p ,Set * V, int a, int R , int * neigh_count ,in
     printf("ROBUST PRUNE\n");
     
     Set temp = *V;
+    // printf("V: ");
+    // for (set_Node node = find_min(temp->root); node != SET_EOF; node = set_next(temp, node)) 
+    //         printf("%d ", node->value);
+    // printf("\n");
     int ** temp_G = *G;
     for (int i = 0; i <= R - 1 ;i++){           //Inserting our Nout(p) to our V set
         set_insert(temp, temp_G[i][p]);
@@ -175,7 +181,7 @@ void RobustPrune(int *** G, int p ,Set * V, int a, int R , int * neigh_count ,in
 
     set_remove(temp, p);                           //And checking if we have inserted our p so that we remove it
 
-    printf("Nout(%d)", p);
+    printf("Nout(%d): ", p);
     for (int i=0; i<dim; i++) {
         printf("%d ", temp_G[i][p]);
     }
@@ -211,11 +217,11 @@ void RobustPrune(int *** G, int p ,Set * V, int a, int R , int * neigh_count ,in
         dist_matrix[j] = euclidean_distance(vec_p, vec_of_p, dim);
     }
 
-    printf("dist_matrix\n");
-    for (int i=0; i<vecs; i++) {
-        printf("%f ", dist_matrix[i]);
-    }
-    printf("\n");
+    // printf("dist_matrix\n");
+    // for (int i=0; i<vecs; i++) {
+    //     printf("%f ", dist_matrix[i]);
+    // }
+    // printf("\n");
     
     while(temp->size != 0){
         
@@ -251,18 +257,18 @@ void RobustPrune(int *** G, int p ,Set * V, int a, int R , int * neigh_count ,in
             dist_matrix_2[j] = euclidean_distance(vec_p, vec_of_p_star, dim);
         }
 
-        printf("dist_matrix2\n");
-        for (int i=0; i<vecs; i++) {
-            printf("%f ", dist_matrix_2[i]);
-        }
-        printf("\n");
+        // printf("dist_matrix2\n");
+        // for (int i=0; i<vecs; i++) {
+        //     printf("%f ", dist_matrix_2[i]);
+        // }
+        // printf("\n");
 
         set_Node next = find_min(temp->root);
         while(next != SET_EOF){
             int node_value = next->value;
             if(a * dist_matrix_2[node_value] <= dist_matrix[node_value]){
                 next = set_next(temp, next);
-                printf("remove %d\n", node_value);
+                //printf("remove %d\n", node_value);
                 set_remove(temp,node_value);
             } else {
                 next = set_next(temp, next);
