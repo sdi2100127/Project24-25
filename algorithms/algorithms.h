@@ -6,6 +6,8 @@
 
 float euclidean_distance(float* vec1, float* vec2, int comps);
 
+float squared_euclidean_distance(float* vec1, float* vec2, int comps);
+
 // greedysearch is an algorithm that takes as input 
 // G --> the search graph (a random R-regular directed graph)
 // R --> the random number of neighbours correspondeing to each vector

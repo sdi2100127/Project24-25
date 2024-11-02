@@ -94,7 +94,7 @@ int** ivecs_open(const char* filename, int* num_vectors, int* d) {
 
     // now that we know the size of the file we can calculate the number of query vectors included
     int vecs = file_size / vec_size;
-    printf("total num of vectors: %d", vecs);
+    printf("total num of vectors: %d ", vecs);
     *num_vectors = vecs;
 
     // allocate memory for the matrix of vectors and fill it

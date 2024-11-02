@@ -1,16 +1,28 @@
 #include "algorithms.h"
+#include <float.h>
 
 float euclidean_distance(float* vec1, float* vec2, int comps) {
     float res = 0.0f;
     for (int i = 0; i < comps; i++) {
-        res = res + pow(vec1[i] - vec2[i], 2);
+        float diff = vec1[i] - vec2[i];
+        res += diff*diff;
     }
     res = sqrt(res);
     return res;
 }
 
+float squared_euclidean_distance(float* vec1, float* vec2, int comps) {
+    float res = 0.0f;
+    for (int i = 0; i < comps; i++) {
+        float diff = vec1[i] - vec2[i];
+        res += diff*diff;
+    }
+    
+    return res;
+}
+
 Set greedySearch(int** G, int R, int dim, int vecs, float** vectors, int s, float* xq, int L, int k, Set* V) {
-    printf("GREEDY SEARCH\n");
+    //printf("GREEDY SEARCH\n");
 
     // initializing the knn set with the starting point s
     Set knn_set = set_Create();
@@ -35,11 +47,6 @@ Set greedySearch(int** G, int R, int dim, int vecs, float** vectors, int s, floa
         }
         dist_matrix[j] = euclidean_distance(vec_p, xq, dim);
     }
-    printf("dist_matrix\n");
-    for (int i=0; i<vecs; i++) {
-        printf("%f ", dist_matrix[i]);
-    }
-    printf("\n");
 
     float prev_max; 
     int prev_max_pos;
@@ -78,20 +85,8 @@ Set greedySearch(int** G, int R, int dim, int vecs, float** vectors, int s, floa
             set_insert(knn_set, G[i][xp]);
         }
 
-        // printf("knn_set: ");
-        // for (set_Node node = find_min(knn_set->root); node != SET_EOF; node = set_next(knn_set, node)) { 
-        //     printf("%d ", node->value);
-        // }
-        // printf("\n");
-
         // add node xp to te visited_nodes set
         set_insert(visited_nodes, xp);
-
-        // printf("visited_set: ");
-        // for (set_Node node = find_min(visited_nodes->root); node != SET_EOF; node = set_next(visited_nodes, node)) { 
-        //     printf("%d ", node->value);
-        // }
-        // printf("\n");
 
         // if the knn_set is bigger than L
         if (knn_set->size > L) {
@@ -109,7 +104,6 @@ Set greedySearch(int** G, int R, int dim, int vecs, float** vectors, int s, floa
                         }
                     } 
                 }
-                //printf("max_dist: %f, max_pos: %d\n", max_dist, max_pos);
                 set_Node node = S_find_equal(knn_set->root, max_pos);
                 if (node != SET_EOF) {
                     set_remove(knn_set, max_pos);
@@ -134,7 +128,6 @@ Set greedySearch(int** G, int R, int dim, int vecs, float** vectors, int s, floa
                     }
                 } 
             }
-            //printf("max_dist: %f, max_pos: %d\n", max_dist, max_pos);
             set_Node node = S_find_equal(knn_set->root, max_pos);
             if (node != SET_EOF) {
                 set_remove(knn_set, max_pos);
@@ -144,17 +137,17 @@ Set greedySearch(int** G, int R, int dim, int vecs, float** vectors, int s, floa
         }
     }
 
-    printf("knn_set: ");
-    for (set_Node node = find_min(knn_set->root); node != SET_EOF; node = set_next(knn_set, node)) { 
-        printf("%d ", node->value);
-    }
-    printf("\n");
+    // printf("knn_set: ");
+    // for (set_Node node = find_min(knn_set->root); node != SET_EOF; node = set_next(knn_set, node)) { 
+    //     printf("%d ", node->value);
+    // }
+    // printf("\n");
 
-    printf("visited_set: ");
-    for (set_Node node = find_min(visited_nodes->root); node != SET_EOF; node = set_next(visited_nodes, node)) { 
-        printf("%d ", node->value);
-    }
-    printf("\n");
+    // printf("visited_set: ");
+    // for (set_Node node = find_min(visited_nodes->root); node != SET_EOF; node = set_next(visited_nodes, node)) { 
+    //     printf("%d ", node->value);
+    // }
+    // printf("\n");
 
     
     *V = visited_nodes;
@@ -169,13 +162,10 @@ Set greedySearch(int** G, int R, int dim, int vecs, float** vectors, int s, floa
 
 //Implementation of Robust Prune function
 void RobustPrune(int *** G, int p ,Set * V, int a, int R , int * neigh_count ,int dim , int vecs , float **vectors){
-    printf("ROBUST PRUNE\n");
+    //printf("ROBUST PRUNE\n");
     
     Set temp = *V;
-    // printf("V: ");
-    // for (set_Node node = find_min(temp->root); node != SET_EOF; node = set_next(temp, node)) 
-    //         printf("%d ", node->value);
-    // printf("\n");
+    
     int ** temp_G = *G;
     for (int i = 0; i <= R - 1 ;i++){           //Inserting our Nout(p) to our V set
         set_insert(temp, temp_G[i][p]);
@@ -183,22 +173,10 @@ void RobustPrune(int *** G, int p ,Set * V, int a, int R , int * neigh_count ,in
 
     set_remove(temp, p);                           //And checking if we have inserted our p so that we remove it
 
-    printf("Nout(%d): ", p);
-    for (int i=0; i<dim; i++) {
-        printf("%d ", temp_G[i][p]);
-    }
-    printf("\n");
-
     for (int i = 0; i <= R - 1 ;i++){           //Now we have to empty our Nout(p)
         temp_G[i][p] = -1;                           //And to do that we will set everything to -1 to know that it is supposed to be empty
 
     }
-    
-    
-    // printf("V: ");
-    // for (set_Node node = find_min(temp->root); node != SET_EOF; node = set_next(temp, node)) 
-    //         printf("%d ", node->value);
-    // printf("\n");
 
     int i_count = 0;
 
@@ -218,12 +196,6 @@ void RobustPrune(int *** G, int p ,Set * V, int a, int R , int * neigh_count ,in
         }
         dist_matrix[j] = euclidean_distance(vec_p, vec_of_p, dim);
     }
-
-    // printf("dist_matrix\n");
-    // for (int i=0; i<vecs; i++) {
-    //     printf("%f ", dist_matrix[i]);
-    // }
-    // printf("\n");
     
     while(temp->size != 0){
         
@@ -238,19 +210,15 @@ void RobustPrune(int *** G, int p ,Set * V, int a, int R , int * neigh_count ,in
                 min_dist = dist;
             }
         }
-        printf("p*: %d\n", p_star);
         temp_G[i_count][p] = p_star;
         i_count ++;
 
         if(i_count == R)
             break;
 
-        printf("vec p*: ");
         for (int i=0; i<dim; i++) {
             vec_of_p_star[i] = vectors[i][p_star];
-            printf("%f ", vec_of_p_star[i]);
         }
-        printf("\n");
 
         for (int j = 0; j < vecs; j++) {
             for (int i=0; i<dim; i++) {
@@ -259,18 +227,11 @@ void RobustPrune(int *** G, int p ,Set * V, int a, int R , int * neigh_count ,in
             dist_matrix_2[j] = euclidean_distance(vec_p, vec_of_p_star, dim);
         }
 
-        // printf("dist_matrix2\n");
-        // for (int i=0; i<vecs; i++) {
-        //     printf("%f ", dist_matrix_2[i]);
-        // }
-        // printf("\n");
-
         set_Node next = find_min(temp->root);
         while(next != SET_EOF){
             int node_value = next->value;
             if(a * dist_matrix_2[node_value] <= dist_matrix[node_value]){
                 next = set_next(temp, next);
-                //printf("remove %d\n", node_value);
                 set_remove(temp,node_value);
             } else {
                 next = set_next(temp, next);
@@ -279,11 +240,11 @@ void RobustPrune(int *** G, int p ,Set * V, int a, int R , int * neigh_count ,in
 
     }
 
-    printf("Nout(%d): ", p);
-    for (int i=0; i<dim; i++) {
-        printf("%d ", temp_G[i][p]);
-    }
-    printf("\n");
+    // printf("Nout(%d): ", p);
+    // for (int i=0; i<dim; i++) {
+    //     printf("%d ", temp_G[i][p]);
+    // }
+    // printf("\n");
 
     *V = temp;
     *G = temp_G;
@@ -295,6 +256,10 @@ void RobustPrune(int *** G, int p ,Set * V, int a, int R , int * neigh_count ,in
     free(vec_p);
     free(vec_of_p);
     free(vec_of_p_star);
+
+    //printf("\n");
+
+    return;
 }
 
 int medoid(float** dataset, int vecs, int comps) {
@@ -302,7 +267,7 @@ int medoid(float** dataset, int vecs, int comps) {
     float* vec_p1 = (float*)malloc(comps * sizeof(float));
     float* vec_p2 = (float*)malloc(comps * sizeof(float));
 
-    float min_sum = 1000000.0f;
+    float min_sum = FLT_MAX;
     int min_p = -1;
     float dist_sum;
 
@@ -324,7 +289,7 @@ int medoid(float** dataset, int vecs, int comps) {
 
             // and add it to the total sum
             if (j != z) {
-                dist_sum = dist_sum + euclidean_distance(vec_p1, vec_p2, comps);
+                dist_sum = dist_sum + squared_euclidean_distance(vec_p1, vec_p2, comps);
             }
         }
         
@@ -334,6 +299,9 @@ int medoid(float** dataset, int vecs, int comps) {
             min_p = j;
         }
     }
+
+    free(vec_p1);
+    free(vec_p2);
 
     printf("medoid sum: %f\n", min_sum);
     return min_p;
@@ -347,38 +315,38 @@ int** Vamana(float** dataset, int vecs, int comps, int L, int R, int a) {
         G[i] = (int*)malloc(vecs * sizeof(int));
     }
 
-    // printf("neighbours\n");
-    // int x;
-    // // for every vector in the dataset
-    // for (int j = 0; j < vecs; j++) {
-    //     printf("vector %d:", j);
-    //     // for every one of its R neighbours
-    //     for (int i = 0; i < R; i++) {
+    printf("neighbours\n");
+    int x;
+    // for every vector in the dataset
+    for (int j = 0; j < vecs; j++) {
+        printf("vector %d:", j);
+        // for every one of its R neighbours
+        for (int i = 0; i < R; i++) {
 
-    //         int stop = 1;
-    //         while (stop == 1) {
-    //             x = rand() % (vecs - 1);    // pick another vector randomly
-    //             stop = 0;
-    //             for (int z = 0; z < i; z++) {
-    //                 // as long as that vector is not a neighbour already and it is not the same as our current vector
-    //                 if (x == G[z][j] || x == j) {   
-    //                     stop = 1;
-    //                     break;
-    //                 }
-    //             }    
-    //         }
-    //         G[i][j] = x;
-    //         printf(" %d", G[i][j]);
+            int stop = 1;
+            while (stop == 1) {
+                x = rand() % (vecs - 1);    // pick another vector randomly
+                stop = 0;
+                for (int z = 0; z < i; z++) {
+                    // as long as that vector is not a neighbour already and it is not the same as our current vector
+                    if (x == G[z][j] || x == j) {   
+                        stop = 1;
+                        break;
+                    }
+                }    
+            }
+            G[i][j] = x;
+            printf(" %d", G[i][j]);
             
-    //     }
-    //     printf("\n");
-    // }
+        }
+        printf("\n");
+    }
 
-    G[0][0] = 3; G[1][0] = 2;  G[2][0] = 1;
-    G[0][1] = 3; G[1][1] = 2;  G[2][1] = 0;
-    G[0][2] = 1; G[1][2] = 3;  G[2][2] = 0;
-    G[0][3] = 2; G[1][3] = 0;  G[2][3] = 1;
-    G[0][4] = 2; G[1][4] = 3;  G[2][4] = 1;
+    // G[0][0] = 3; G[1][0] = 2;  G[2][0] = 1;
+    // G[0][1] = 3; G[1][1] = 2;  G[2][1] = 0;
+    // G[0][2] = 1; G[1][2] = 3;  G[2][2] = 0;
+    // G[0][3] = 2; G[1][3] = 0;  G[2][3] = 1;
+    // G[0][4] = 2; G[1][4] = 3;  G[2][4] = 1;
 
     // now we find the medoid of the dataset that will be our starting point s
     int s = medoid(dataset, vecs, comps);
@@ -393,15 +361,15 @@ int** Vamana(float** dataset, int vecs, int comps, int L, int R, int a) {
 
     srand((unsigned int)time(NULL));
 
-    // for(int i=0; i<vecs; ++i){
-    //     int randIdx = rand() % (vecs - 1);
-    //     // swap per[i] with per[randIdx]
-    //     int t = per[i];
-    //     per[i] = per[randIdx];
-    //     per[randIdx] = t;
-    // }
+    for(int i=0; i<vecs; ++i){
+        int randIdx = rand() % (vecs - 1);
+        // swap per[i] with per[randIdx]
+        int t = per[i];
+        per[i] = per[randIdx];
+        per[randIdx] = t;
+    }
 
-    per[0] = 0; per[1] = 3; per[2] = 2; per[3] = 4; per[4] = 1;
+    //per[0] = 0; per[1] = 3; per[2] = 2; per[3] = 4; per[4] = 1;
 
     printf("random permutation:\n");
     for (int i=0; i<vecs; i++) {
@@ -418,12 +386,12 @@ int** Vamana(float** dataset, int vecs, int comps, int L, int R, int a) {
         // find and store the query vector xq based on the point in the dataset indexed by per[i]
         int query_pos = per[i];
         float* xq = (float*)malloc(comps * sizeof(float));
-        printf("query vector %d: ", query_pos);
+        //printf("query vector %d: ", query_pos);
         for (int i=0; i<comps; i++) {
             xq[i] = dataset[i][query_pos];
-            printf("%f ", xq[i]);
+            //printf("%f ", xq[i]);
         }
-        printf("\n");
+        //printf("\n");
         
         Set V;
         Set knn = greedySearch(G, R, comps, vecs, dataset, s, xq, L, 1, &V);
@@ -435,13 +403,14 @@ int** Vamana(float** dataset, int vecs, int comps, int L, int R, int a) {
         RobustPrune(&G, query_pos, &V, a, R, &new_n_out, comps, vecs, dataset);
         // after each point's neighbours get pruned we update the count in the outgoing neighbours array
         out_n_count[query_pos] = new_n_out;
-        printf("vec %d has now %d neighbours\n", query_pos, new_n_out);
+        //printf("vec %d has now %d neighbours\n", query_pos, new_n_out);
 
         for (int j=0; j<new_n_out; j++) {
             
             // for each point j that is an outgoing neighbour of the query point
             int point = G[j][query_pos];
-            printf("Neighbour %d\n", point);
+            if (point == -1) continue;
+            //printf("Neighbour %d has %d neighbours\n", point, out_n_count[point]);
 
             // check if it has less outgoing neighbours than R 
             // so that we can also add the query point as a neighbour
@@ -459,11 +428,27 @@ int** Vamana(float** dataset, int vecs, int comps, int L, int R, int a) {
                 }
                 set_insert(Nout_j, query_pos);
                 RobustPrune(&G, point, &Nout_j, a, R, &new_n_out, comps, vecs, dataset);
+                //printf("vec %d has now %d neighbours\n", point, new_n_out);
+
                 //set_destroy(Nout_j)
 
-            } else {    // if the query point fits
+            } else {    // if the query point fits and is not already included
                 // add it to the neighbours of j
-                G[out_n_count[point] + 1][point] = query_pos;
+                int flag = 1;
+                for (int n=0; n<R; n++) {
+                    if (G[n][point] == -1) {
+                        break;
+                    } else if (G[n][point] == query_pos) {
+                        flag = 0; break;
+                    }
+                }
+                if (flag == 1) G[out_n_count[point]][point] = query_pos;
+
+                // printf("Nout(%d): ", point);
+                // for (int i=0; i<R; i++) {
+                //     printf("%d ", G[i][point]);
+                // }
+                // printf("\n");
             }
         }
     }

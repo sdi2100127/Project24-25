@@ -5,7 +5,7 @@
 #include "../algorithms/algorithms.h"
 //#include "../Vamana/Vamana.h"
 
-// compile example: cc testing.c ../open_functions/open.c ../Data_Structs/Data_Structs.c ../algorithms/algorithms.c ../Vamana/Vamana.c -o testing -lm
+// compile example: cc testing.c ../open_functions/open.c ../Data_Structs/Data_Structs.c ../algorithms/algorithms.c -o testing -lm
 // run: ./testing
 
 // https://github.com/mity/acutest/blob/master/README.md
@@ -479,12 +479,11 @@ void test_RobustPrune(void){
       G[i] = (int*)malloc(vecs * sizeof(int));
    }
 
-   G[0][0] = 1;   G[1][0] = 2;  G[2][0] = 3;
-   G[0][1] = 2;   G[1][1] = 3;  G[2][1] = 0;
-   G[0][2] = 3;   G[1][2] = 4;  G[2][2] = 1;
-   G[0][3] = 1;   G[1][3] = 4;  G[2][3] = 2;
-   G[0][4] = 2;   G[1][4] = 3;  G[2][4] = 0;
-
+   G[0][0] = 3; G[1][0] = 2;  G[2][0] = 1;
+   G[0][1] = 3; G[1][1] = 2;  G[2][1] = 0;
+   G[0][2] = 1; G[1][2] = 3;  G[2][2] = 0;
+   G[0][3] = 2; G[1][3] = 0;  G[2][3] = 1;
+   G[0][4] = 2; G[1][4] = 3;  G[2][4] = 1;
 
    printf("neighbours\n");
    for (int j = 0; j < vecs; j++) {
@@ -497,8 +496,8 @@ void test_RobustPrune(void){
    }
 
    // rand() % (vecs-1)
-   int p = 3;
-   int s = rand() % (vecs-1),L = 4, k = 3;
+   int p = 0;
+   int s = 1, L = 4, k = 3;
    printf("s: %d\n", s);
    printf("p: %d\n", p);
    Set V;
@@ -520,7 +519,12 @@ void test_RobustPrune(void){
    RobustPrune(&G, p , &V,  a,  R , &neigh_count,  dim ,  vecs , vectors);
    TEST_ASSERT(V->size == 0);
 
+   int* test_N_out = (int*)malloc(R * sizeof(int*));
+   test_N_out[0] = 3; test_N_out[1] = -1; test_N_out[2] = -1;
 
+   for (int i=0; i<R; i++) {
+      TEST_ASSERT(test_N_out[i] ==  G[i][p]);
+   }
 }
 
 void test_medoid(void) {
@@ -565,6 +569,23 @@ void test_Vamana(void) {
    }
 
    G = Vamana(vectors, vecs, dim, L, R, a);
+
+   int** G_test = (int**)malloc(R * sizeof(int*));
+   for (int i = 0; i < R; i++) {
+      G_test[i] = (int*)malloc(vecs * sizeof(int));
+   }
+
+   G_test[0][0] = 3; G_test[1][0] = -1;  G_test[2][0] = -1;
+   G_test[0][1] = 2; G_test[1][1] = 4;  G_test[2][1] = 3;
+   G_test[0][2] = 1; G_test[1][2] = -1;  G_test[2][2] = -1;
+   G_test[0][3] = 0; G_test[1][3] = 1;  G_test[2][3] = -1;
+   G_test[0][4] = 1; G_test[1][4] = -1;  G_test[2][4] = -1;
+
+   for (int j=0; j<vecs; j++) {
+      for (int i=0; i<R; i++) {
+         TEST_ASSERT(G[i][j] == G_test[i][j]);
+      }
+   }
 
 }
 

@@ -206,7 +206,7 @@ int compare(int value , int value1){
 set_Node S_remove(set_Node node, int value, int * flag, int * old_value) {
     //A quick check to see if the subtree we have is empty or not
 	if (node == NULL) {
-		printf("The subtree is empty returning");
+		//printf("The subtree is empty returning");
 		return NULL;
 	}
 
@@ -268,44 +268,3 @@ set_Node S_find_equal(set_Node node, int value) {
 	else 
 		return S_find_equal(node->right, value);
 }
-
-
-//A main to test the functoins and make sure that they work correctly 
-
-// int main(){
-// 	Set set = set_Create();
-// 	set_insert(set,5);
-// 	set_insert(set,123);
-// 	set_insert(set,16);
-// 	set_insert(set,316);
-// 	set_insert(set,216);
-// 	set_insert(set,4);
-// 	set_insert(set,21);
-// 	set_insert(set,1);
-// 	set_insert(set,13);
-// 	set_insert(set,12);
-// 	set_insert(set,12);
-// 	set_insert(set,13);
-// 	set_insert(set,0);
-// 	set_insert(set,0);
-// 	printf("size: %d\n", set->size);
-
-// 	for (set_Node node = find_min(set->root); node != SET_EOF; node = set_next(set, node)) {
-// 		printf("%d ", node->value);
-// 	}
-
-
-// 	printf("\n");
-
-
-// 	set_remove(set, 12);
-
-// 	for (set_Node node = find_min(set->root); node != SET_EOF; node = set_next(set, node)) {
-// 		printf("%d ", node->value);
-// 	}
-// 	printf("size: %d\n", set->size);
-
-// 	int x = 4;
-// 	set_Node n = S_find_equal(set->root, x);
-// 	printf(" %d \n ", n->value);
-// }
