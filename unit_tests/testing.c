@@ -2,8 +2,8 @@
 #include <time.h>
 
 #include "../open_functions/open.h"
-//#include "../algorithms/algorithms.h"
-#include "../Vamana/Vamana.h"
+#include "../algorithms/algorithms.h"
+//#include "../Vamana/Vamana.h"
 
 // compile example: cc testing.c ../open_functions/open.c ../Data_Structs/Data_Structs.c ../algorithms/algorithms.c ../Vamana/Vamana.c -o testing -lm
 // run: ./testing

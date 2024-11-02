@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <time.h>
 #include "../Data_Structs/Data_Structs.h"
 
 float euclidean_distance(float* vec1, float* vec2, int comps);
@@ -25,3 +26,9 @@ Set greedySearch(int** G, int R, int dim, int vecs, float** vectors, int s, floa
 //R --> the the degree bound for our selection
 //neigh_count --> a count that we have to keep how many neighboors we have added tg p
 void RobustPrune(int*** G, int p ,Set* V, int a, int R , int* neigh_count, int dim , int vecs , float** vectors);
+
+// function to find the medoid of a dataset
+int medoid(float** dataset, int vecs, int comps);
+
+// Vamana algorithm
+int** Vamana(float** dataset, int vecs, int comps, int L, int R, int a);
