@@ -305,7 +305,7 @@ void vec_remove(Vector vec) {
         return;
 
 	
-    vector_set_destroy_value(vec, vec->array[vec->size - 1].value);
+    //vec_set_destroy_value(vec, vec->array[vec->size - 1].value);
 	vec->size--;
 
 	if (vec->capacity > vec->size * 4 && vec->capacity > 10) {
@@ -315,19 +315,27 @@ void vec_remove(Vector vec) {
 }
 
 
-int vec_find(Vector vec, int value) {
+VecNode vec_find_node(Vector vec, int value) {
 	for (int i = 0; i < vec->size; i++)
 		if (compare(vec->array[i].value, value) == 0)
-			return vec->array[i].value;
+			return &vec->array[i];		
 
-	return NULL;
+	return VECTOR_EOF;
 }
 
-void vec_set_destroy_value(Vector vec, int value) {
-	int old = vec->array[vec->size].value;
-	int destroy_value = value;
-	return old;
+int vec_find_pos(Vector vec, int value) {
+	for (int i = 0; i < vec->size; i++)
+		if (compare(vec->array[i].value, value) == 0)
+			return i;		
+
+	return -1;
 }
+
+// void vec_set_destroy_value(Vector vec, int value) {
+// 	int old = vec->array[vec->size].value;
+// 	int destroy_value = value;
+// 	return old;
+// }
 
 void vec_destroy(Vector vec) {
 	free(vec->array);
@@ -369,11 +377,11 @@ VecNode vec_previous(Vector vec, VecNode node) {
 // PRIORITY QUEUE
 
 void node_swap(PQueue pqueue, int node1, int node2) {
-	int* value1 = vec_get_at(pqueue->vector, node1);
-	int* value2 = vec_get_at(pqueue->vector, node2);
+	int value1 = vec_get_at(pqueue->vector, node1);
+	int value2 = vec_get_at(pqueue->vector, node2);
 
-	vector_set_at(pqueue->vector, node1 - 1, value2);
-	vector_set_at(pqueue->vector, node2 - 1, value1);
+	vec_set_at(pqueue->vector, node1 - 1, value2);
+	vec_set_at(pqueue->vector, node2 - 1, value1);
 }
 
 void bubble_up(PQueue pqueue, int node) {
@@ -414,19 +422,19 @@ void naive_heapify(PQueue pqueue, Vector values) {
 	// insert the vector's values one by one to the queue
 	int size = values->size;
 	for (int i = 0; i < size; i++)
-		pqueue_insert(pqueue, vector_get_at(values, i));
+		pqueue_insert(pqueue, vec_get_at(values, i));
 }
 
 PQueue pqueue_create(Vector values) {
 	PQueue pqueue = malloc(sizeof(*pqueue));
 
-	pqueue->vector = vector_create(0);
+	pqueue->vector = vec_Create(0);
 	if (values != NULL ) naive_heapify(pqueue, values);
 
 	return pqueue;
 }
 
-void pqueue_insert(PQueue pqueue, int* value) {
+void pqueue_insert(PQueue pqueue, int value) {
 	// first we insert the value at the very end of the vector
 	vec_insert(pqueue->vector, value);
 

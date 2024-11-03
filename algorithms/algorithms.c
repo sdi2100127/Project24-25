@@ -315,38 +315,38 @@ int** Vamana(float** dataset, int vecs, int comps, int L, int R, int a) {
         G[i] = (int*)malloc(vecs * sizeof(int));
     }
 
-    printf("neighbours\n");
-    int x;
-    // for every vector in the dataset
-    for (int j = 0; j < vecs; j++) {
-        printf("vector %d:", j);
-        // for every one of its R neighbours
-        for (int i = 0; i < R; i++) {
+    // printf("neighbours\n");
+    // int x;
+    // // for every vector in the dataset
+    // for (int j = 0; j < vecs; j++) {
+    //     printf("vector %d:", j);
+    //     // for every one of its R neighbours
+    //     for (int i = 0; i < R; i++) {
 
-            int stop = 1;
-            while (stop == 1) {
-                x = rand() % (vecs - 1);    // pick another vector randomly
-                stop = 0;
-                for (int z = 0; z < i; z++) {
-                    // as long as that vector is not a neighbour already and it is not the same as our current vector
-                    if (x == G[z][j] || x == j) {   
-                        stop = 1;
-                        break;
-                    }
-                }    
-            }
-            G[i][j] = x;
-            printf(" %d", G[i][j]);
+    //         int stop = 1;
+    //         while (stop == 1) {
+    //             x = rand() % (vecs - 1);    // pick another vector randomly
+    //             stop = 0;
+    //             for (int z = 0; z < i; z++) {
+    //                 // as long as that vector is not a neighbour already and it is not the same as our current vector
+    //                 if (x == G[z][j] || x == j) {   
+    //                     stop = 1;
+    //                     break;
+    //                 }
+    //             }    
+    //         }
+    //         G[i][j] = x;
+    //         printf(" %d", G[i][j]);
             
-        }
-        printf("\n");
-    }
+    //     }
+    //     printf("\n");
+    // }
 
-    // G[0][0] = 3; G[1][0] = 2;  G[2][0] = 1;
-    // G[0][1] = 3; G[1][1] = 2;  G[2][1] = 0;
-    // G[0][2] = 1; G[1][2] = 3;  G[2][2] = 0;
-    // G[0][3] = 2; G[1][3] = 0;  G[2][3] = 1;
-    // G[0][4] = 2; G[1][4] = 3;  G[2][4] = 1;
+    G[0][0] = 3; G[1][0] = 2;  G[2][0] = 1;
+    G[0][1] = 3; G[1][1] = 2;  G[2][1] = 0;
+    G[0][2] = 1; G[1][2] = 3;  G[2][2] = 0;
+    G[0][3] = 2; G[1][3] = 0;  G[2][3] = 1;
+    G[0][4] = 2; G[1][4] = 3;  G[2][4] = 1;
 
     // now we find the medoid of the dataset that will be our starting point s
     int s = medoid(dataset, vecs, comps);
@@ -361,15 +361,15 @@ int** Vamana(float** dataset, int vecs, int comps, int L, int R, int a) {
 
     srand((unsigned int)time(NULL));
 
-    for(int i=0; i<vecs; ++i){
-        int randIdx = rand() % (vecs - 1);
-        // swap per[i] with per[randIdx]
-        int t = per[i];
-        per[i] = per[randIdx];
-        per[randIdx] = t;
-    }
+    // for(int i=0; i<vecs; ++i){
+    //     int randIdx = rand() % (vecs - 1);
+    //     // swap per[i] with per[randIdx]
+    //     int t = per[i];
+    //     per[i] = per[randIdx];
+    //     per[randIdx] = t;
+    // }
 
-    //per[0] = 0; per[1] = 3; per[2] = 2; per[3] = 4; per[4] = 1;
+    per[0] = 0; per[1] = 3; per[2] = 2; per[3] = 4; per[4] = 1;
 
     printf("random permutation:\n");
     for (int i=0; i<vecs; i++) {

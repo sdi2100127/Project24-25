@@ -138,8 +138,11 @@ int vec_get_at(Vector , int );
 //Changes the position of a value 
 void vec_set_at(Vector vec, int pos, int value);
 
+//Finds the node of a value
+VecNode vec_find_node(Vector , int );
+
 //Finds the position of a value
-int vec_find(Vector , int );
+int vec_find_pos(Vector , int );
 
 // 
 void vec_set_destroy_value(Vector ,int );
@@ -172,7 +175,7 @@ void naive_heapify(PQueue pqueue, Vector values);
 
 PQueue pqueue_create(Vector values);
 
-void pqueue_insert(PQueue pqueue, int* value);
+void pqueue_insert(PQueue pqueue, int value);
 
 void pqueue_remove(PQueue pqueue);
 

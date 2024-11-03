@@ -3,7 +3,7 @@
 
 #include "../open_functions/open.h"
 #include "../algorithms/algorithms.h"
-#include "../Data_Structs/temp.h"
+
 //#include "../Vamana/Vamana.h"
 
 // compile example: cc testing.c ../open_functions/open.c ../Data_Structs/Data_Structs.c ../algorithms/algorithms.c -o testing -lm
@@ -200,6 +200,7 @@ void test_S_find_equal(void) {
 }
 
 //VECTOR FUNCTIONS TESTS
+
 void test_vec_Create(void) {
    Vector vec = vec_Create(5);
 
@@ -208,7 +209,7 @@ void test_vec_Create(void) {
 }
 
 void test_vec_insert(void) {
-	Vector vec = vec_Create(0);
+	Vector vec = vec_Create(0); 
    vec_insert(vec, 10);
    vec_insert(vec, 20);
    vec_insert(vec, 310);
@@ -218,8 +219,8 @@ void test_vec_insert(void) {
    vec_insert(vec, 5610);
    vec_insert(vec, 610);
 
-   TEST_ASSERT(vec->size == 9);
-   TEST_ASSERT(vec->array[vec->size].value == 610);
+   TEST_ASSERT(vec->size == 8);
+   TEST_ASSERT(vec->array[(vec->size)-1].value == 610);
 }
 
 void test_vec_remove(void){
@@ -231,20 +232,102 @@ void test_vec_remove(void){
    vec_insert(vec, 1210);
 
    vec_remove(vec);
-   TEST_ASSERT(vec->array[vec->size].value == 510);
+   TEST_ASSERT(vec->size == 4);
+   TEST_ASSERT(vec->array[vec->size-1].value == 510);
 
    vec_remove(vec);
-   TEST_ASSERT(vec->array[vec->size].value == 310);
+   TEST_ASSERT(vec->size == 3);
+   TEST_ASSERT(vec->array[vec->size-1].value == 310);
 }
-
-
-
 
 void test_vec_get_at(void){
-   Vector vec = vec_Create(5);
+   Vector vec = vec_Create(0);
+   vec_insert(vec, 10);
+   vec_insert(vec, 20);
+   vec_insert(vec, 310);
+   vec_insert(vec, 510);
+   vec_insert(vec, 1210);
 
+   TEST_ASSERT(vec->array[2].value == 310);
+   TEST_ASSERT(vec->array[1].value == 20);
+   TEST_ASSERT(vec->array[vec->size-1].value == 1210);
 }
 
+void test_vec_set_at(void) {
+   Vector vec = vec_Create(0);
+   vec_insert(vec, 10);
+   vec_insert(vec, 20);
+   vec_insert(vec, 310);
+   vec_insert(vec, 510);
+   vec_insert(vec, 1210);
+
+   vec_set_at(vec, 2, 250);
+   TEST_ASSERT(vec->array[2].value == 250);
+   vec_set_at(vec, vec->size-1, 35);
+   TEST_ASSERT(vec->array[vec->size-1].value == 35);
+}
+
+void test_vec_find_node(void) {
+   Vector vec = vec_Create(0);
+   vec_insert(vec, 10);
+   vec_insert(vec, 20);
+   vec_insert(vec, 310);
+   vec_insert(vec, 510);
+   vec_insert(vec, 1210);
+
+   TEST_ASSERT(vec_find_node(vec, 510)->value == 510);
+   TEST_ASSERT(vec_find_node(vec, 1210)->value == 1210);
+   TEST_ASSERT(vec_find_node(vec, 3) == VECTOR_EOF);
+}
+
+void test_vec_find_pos(void) {
+   Vector vec = vec_Create(0);
+   vec_insert(vec, 10);
+   vec_insert(vec, 20);
+   vec_insert(vec, 310);
+   vec_insert(vec, 510);
+   vec_insert(vec, 1210);
+
+   TEST_ASSERT(vec_find_pos(vec, 510) == 3);
+   TEST_ASSERT(vec_find_pos(vec, 1210) == 4);
+   TEST_ASSERT(vec_find_pos(vec, 3) == -1);
+}
+
+void test_vec_first(void) {
+   Vector vec = vec_Create(0);
+   vec_insert(vec, 10);
+   vec_insert(vec, 20);
+   vec_insert(vec, 310);
+   vec_insert(vec, 510);
+   vec_insert(vec, 1210);
+
+   TEST_ASSERT(vec_first(vec)->value == 10);
+}
+
+void test_vec_last(void) {
+   Vector vec = vec_Create(0);
+   vec_insert(vec, 10);
+   vec_insert(vec, 20);
+   vec_insert(vec, 310);
+   vec_insert(vec, 510);
+   vec_insert(vec, 1210);
+
+   TEST_ASSERT(vec_last(vec)->value == 1210);
+}
+
+void test_vec_next(void) {
+   Vector vec = vec_Create(0);
+   vec_insert(vec, 10);
+   vec_insert(vec, 20);
+   vec_insert(vec, 310);
+   vec_insert(vec, 510);
+   vec_insert(vec, 1210);
+
+   TEST_ASSERT(vec_next(vec, &vec->array[0])->value == 20);
+   TEST_ASSERT(vec_next(vec, &vec->array[1])->value == 310);
+}
+
+// PRIORITY QUEUE TESTS
 
 
 
@@ -652,6 +735,16 @@ TEST_LIST = {
    { "S_remove", test_S_remove },
    { "set_remove", test_set_remove },
    { "S_find_equal", test_S_find_equal },
+   { "vec_Create", test_vec_Create },
+   { "vec_insert", test_vec_insert },
+   { "vec_remove", test_vec_remove },
+   { "vec_get_at", test_vec_get_at },
+   { "vec_set_at", test_vec_set_at },
+   { "vec_find_node", test_vec_find_node },
+   { "vec_find_pos", test_vec_find_pos },
+   { "vec_first", test_vec_first },
+   { "vec_last", test_vec_last },
+   { "vec_next", test_vec_next },
    { "free_matrix_fvecs", test_free_matrix_fvecs },
    { "free_matrix_ivecs", test_free_matrix_ivecs },
    { "open_fvecs", test_open_fvecs },
