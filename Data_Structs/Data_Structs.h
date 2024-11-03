@@ -170,6 +170,10 @@ typedef struct priority_queue* PQueue;
 
 float compare_dist(float dist1, float dist2);
 
+int v_node_value(PQueue pqueue, int node);
+
+float v_node_dist(PQueue pqueue, int node);
+
 void node_swap(PQueue pqueue, int node1, int node2);
 
 void bubble_up(PQueue pqueue, int node);
@@ -185,3 +189,7 @@ void pqueue_insert(PQueue pqueue, int value, float dist);
 void pqueue_remove(PQueue pqueue);
 
 void pqueue_destroy(PQueue pqueue);
+
+void heapify(PQueue pq, int node);
+
+void build_heap(PQueue pq);

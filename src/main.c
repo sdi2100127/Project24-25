@@ -13,7 +13,7 @@ int main() {
   int num_vectors, d_base;
   float** dataset = fvecs_open(base_file, &num_vectors, &d_base);
 
-  int vecs = 1000;
+  int vecs = 100;
   float** vectors = (float**)malloc(d_base * sizeof(float*));
   for (int i = 0; i < d_base; i++) {
     vectors[i] = (float*)malloc(vecs * sizeof(float));

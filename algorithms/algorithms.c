@@ -41,16 +41,16 @@ PQueue greedySearch(Vector* G, int R, int dim, int vecs, float** vectors, int s,
     int node_value, xp = -1;
     float min_dist;
 
-    // float* vec_p = (float*)malloc(dim * sizeof(float));
+    float* vec_p = (float*)malloc(dim * sizeof(float));
 
-    // create a distance matrix with the euclidean distance of each vector to xq
-    // float* dist_matrix = (float*)malloc(vecs * sizeof(float*));
-    // for (int j = 0; j < vecs; j++) {
-    //     for (int i=0; i<dim; i++) {
-    //         vec_p[i] = vectors[i][j];
-    //     }
-    //     dist_matrix[j] = euclidean_distance(vec_p, xq, dim);
-    // }
+    //create a distance matrix with the euclidean distance of each vector to xq
+    float* dist_matrix = (float*)malloc(vecs * sizeof(float*));
+    for (int j = 0; j < vecs; j++) {
+        for (int i=0; i<dim; i++) {
+            vec_p[i] = vectors[i][j];
+        }
+        dist_matrix[j] = euclidean_distance(vec_p, xq, dim);
+    }
 
     float prev_max; 
     int prev_max_pos;
@@ -64,21 +64,22 @@ PQueue greedySearch(Vector* G, int R, int dim, int vecs, float** vectors, int s,
         Vector knn_vec = knn->vector;
         for (VecNode node = vec_first(knn_vec); node != VECTOR_EOF; node = vec_next(knn_vec, node)) {
             node_value = node->value;
+            printf("node_value: %d\n", node_value);
             //if (node_value == -1) continue;
             if (S_find_equal(visited_nodes->root, node_value) == SET_EOF) {
                 flag = 1;   // unvisited nodes where indeed found              
 
                 // if the next node xp is not initialized yet initialize it with the first unvisited node you encounter
                 // otherwise check if its position is smaller than the current min_pos
-                //float dist = dist_matrix[node_value];
-                float dist = node->dist;
+                float dist = dist_matrix[node_value];
+                //float dist = node->dist;
                 if (xp == -1 || dist <= min_dist) {
                     xp = node_value;
                     min_dist = dist;
                 }
             }
         }
-        //printf("min_dist: %f, xp: %d\n", min_dist, xp);
+        printf("min_dist: %f, xp: %d\n", min_dist, xp);
 
         // if there where no more unvisited nodes found there is no point in continuing with the loop
         if (flag == 0) break; 
@@ -86,9 +87,12 @@ PQueue greedySearch(Vector* G, int R, int dim, int vecs, float** vectors, int s,
         // now we add all the outgoing neighbours of the node xp in the knn_set
         // the outgoing neighbours of a node are the one that are included in said node's column
         // the incoming neighbours are the other node's columns that the node is part of
+        printf("inserting: ");
         for (int i=0; i<G[xp]->size; i++) {
+            printf("%d ", vec_get_at(G[xp], i));
             pqueue_insert(knn, vec_get_at(G[xp], i), vec_get_dist(G[xp], i));
         }
+        printf("\n");
 
         // add node xp to te visited_nodes set
         set_insert(visited_nodes, xp);
@@ -98,7 +102,9 @@ PQueue greedySearch(Vector* G, int R, int dim, int vecs, float** vectors, int s,
             // remove the most distant neighbours of xq from knn_set until its equal to L
             // prev_max = 0.0;
             // prev_max_pos = -1;
+            printf("removing ");
             while(knn->vector->size > L) {
+                printf("%d ", vec_get_at(knn->vector, 0));
                 pqueue_remove(knn);
                 // float max_dist = 0.0;
                 // int max_pos = -1;
@@ -117,6 +123,7 @@ PQueue greedySearch(Vector* G, int R, int dim, int vecs, float** vectors, int s,
                 // prev_max = max_dist;
                 // prev_max_pos = max_pos;
             }
+            printf("\n");
         }
     }
     
@@ -144,22 +151,24 @@ PQueue greedySearch(Vector* G, int R, int dim, int vecs, float** vectors, int s,
         }
     }
 
-    // printf("knn_set: ");
-    // for (set_Node node = find_min(knn_set->root); node != SET_EOF; node = set_next(knn_set, node)) { 
-    //     printf("%d ", node->value);
-    // }
-    // printf("\n");
+    printf("knn_set: ");
+    for (VecNode node = vec_first(knn->vector); node != VECTOR_EOF; node = vec_next(knn->vector, node)) { 
+        printf("%d ", node->value);
+    }
+    printf("\n");
 
-    // printf("visited_set: ");
-    // for (set_Node node = find_min(visited_nodes->root); node != SET_EOF; node = set_next(visited_nodes, node)) { 
-    //     printf("%d ", node->value);
-    // }
-    // printf("\n");
+    printf("visited_set: ");
+    for (set_Node node = find_min(visited_nodes->root); node != SET_EOF; node = set_next(visited_nodes, node)) { 
+        printf("%d ", node->value);
+    }
+    printf("\n");
 
     
     *V = visited_nodes;
     
     free(vec_s);
+    free(dist_matrix);
+    free(vec_p);
 
     //Not sure
     free(visited_nodes);

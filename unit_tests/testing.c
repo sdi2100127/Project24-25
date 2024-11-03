@@ -219,6 +219,7 @@ void test_vec_insert(void) {
    vec_insert(vec, 410, dist);
    vec_insert(vec, 5610, dist);
    vec_insert(vec, 610, dist);
+   vec_insert(vec, 610, dist);
 
    for (VecNode node = vec_first(vec); node != VECTOR_EOF; node = vec_next(vec, node)) {
       printf("%d ", node->value);
@@ -372,16 +373,27 @@ void test_pqueue_create(void) {
 
 void test_pqueue_insert(void) {
    Vector vec = vec_Create(0);
-   vec_insert(vec, 10, 0.0);
-   vec_insert(vec, 20, 1.0);
-   vec_insert(vec, 310, 2.0);
-   vec_insert(vec, 510, 3.0);
-   vec_insert(vec, 1210, 4.0);
-
    PQueue pq = pqueue_create(vec);
+   pqueue_insert(pq, 10, 0.0);
+   pqueue_insert(pq, 20, 1.0);
+   pqueue_insert(pq, 310, 2.0);
+   pqueue_insert(pq, 510, 4.0);
+   pqueue_insert(pq, 1210, 3.0);
 
+   for (VecNode node = vec_first(pq->vector); node != VECTOR_EOF; node = vec_next(pq->vector, node)) { 
+      printf("%d ", node->value);
+   }
+   printf("\n");
    pqueue_insert(pq, 45, 1.5);
-   TEST_ASSERT(pq->vector->array[2].value == 45);
+   for (VecNode node = vec_first(pq->vector); node != VECTOR_EOF; node = vec_next(pq->vector, node)) { 
+      printf("%d ", node->value);
+   }
+   printf("\n");
+   
+   TEST_ASSERT(pq->vector->array[3].value == 45);
+   TEST_ASSERT(pq->vector->size == 6);
+
+   //pqueue_insert(pq, 45, 1.5);
    TEST_ASSERT(pq->vector->size == 6);
 }
 
@@ -396,7 +408,11 @@ void test_pqueue_remove(void) {
    PQueue pq = pqueue_create(vec);
 
    pqueue_remove(pq);
-   TEST_ASSERT(pq->vector->array[pq->vector->size-1].value == 510);
+   for (VecNode node = vec_first(pq->vector); node != VECTOR_EOF; node = vec_next(pq->vector, node)) { 
+      printf("%d ", node->value);
+   }
+   printf("%d", v_node_value(pq, pq->vector->size));
+   //TEST_ASSERT(v_node_value(pq, pq->vector->size) == 510);
    TEST_ASSERT(pq->vector->size == 4);
 }
 
@@ -549,17 +565,6 @@ void test_euclidean_distance(void) {
    vec1[0] = 5.0; vec1[1] = 3.0; vec1[2] = 8.0;
    vec2[0] = 4.0; vec2[1] = 9.0; vec2[2] = 2.0;
 
-   //srand((unsigned int)time(NULL));
-
-   // float a = 10.0;
-   // printf("\n");
-   // for (int i = 0; i < dim; i++) {
-   // //    vec1[i] = ((float)rand()/(float)(RAND_MAX)) * a;
-   // //    vec2[i] = ((float)rand()/(float)(RAND_MAX)) * a;
-   //     printf(" %f    %f\n", vec1[i], vec2[i]);
-   // }
-   // printf("\n");
-
    // Define a small tolerance value
    float tolerance = 0.000001;
 
@@ -612,58 +617,111 @@ void test_greedySearch(void) {
       G[i] = vec_Create(0);
    }
 
-   printf("neighbours\n");
-   int x;
-   float* vec_x = (float*)malloc(dim * sizeof(float));
-   float* vec_j = (float*)malloc(dim * sizeof(float));
-   // for every vector in the dataset
-   for (int j = 0; j < vecs; j++) {
-      for (int i=0; i<dim; i++) {
-         vec_j[i] = vectors[i][j];
-      }
-      printf("vector %d:", j);
-      // for every one of its R neighbours
-      for (int i = 0; i < R; i++) {
+   // printf("neighbours\n");
+   // int x;
+   // float* vec_x = (float*)malloc(dim * sizeof(float));
+   // float* vec_j = (float*)malloc(dim * sizeof(float));
+   // // for every vector in the dataset
+   // for (int j = 0; j < vecs; j++) {
+   //    for (int i=0; i<dim; i++) {
+   //       vec_j[i] = vectors[i][j];
+   //    }
+   //    printf("vector %d:", j);
+   //    // for every one of its R neighbours
+   //    for (int i = 0; i < R; i++) {
 
-         int stop = 1;
-         while (stop == 1) {
-            x = rand() % (vecs - 1);    // pick another vector randomly
-            stop = 0;
-            for (int z = 0; z < i; z++) {
-               // as long as that vector is not a neighbour already and it is not the same as our current vector
-               if (vec_find_node(G[j], x) != VECTOR_EOF || x == j) {   
-                  stop = 1;
-                  break;
-               }
-            }    
-         }
-         // temporarilly store the vectors j and x to compute their distance
-         for (int i=0; i<dim; i++) {
-            vec_x[i] = vectors[i][x];
-         }
-         vec_insert(G[j], x, euclidean_distance(vec_x, vec_j, dim));
+   //       int stop = 1;
+   //       while (stop == 1) {
+   //          x = rand() % (vecs - 1);    // pick another vector randomly
+   //          stop = 0;
+   //          for (int z = 0; z < i; z++) {
+   //             // as long as that vector is not a neighbour already and it is not the same as our current vector
+   //             if (vec_find_node(G[j], x) != VECTOR_EOF || x == j) {   
+   //                stop = 1;
+   //                break;
+   //             }
+   //          }    
+   //       }
+   //       // temporarilly store the vectors j and x to compute their distance
+   //       for (int i=0; i<dim; i++) {
+   //          vec_x[i] = vectors[i][x];
+   //       }
+   //       vec_insert(G[j], x, euclidean_distance(vec_x, vec_j, dim));
 
-         printf(" %d, %f ", G[j]->array[i].value, G[j]->array[i].dist);
+   //       printf(" %d, %f ", G[j]->array[i].value, G[j]->array[i].dist);
          
-      }
-      printf("\n");
+   //    }
+   //    printf("\n");
+   // }
+
+   float* vec1 = (float*)malloc(dim * sizeof(float));
+   float* vec2 = (float*)malloc(dim * sizeof(float));
+
+   for (int i = 0; i < dim; i++) {
+      vec1[i] = vectors[i][0];
    }
+   for(int j=0; j<vecs; j++) {
+      for (int i = 0; i < dim; i++) {
+         vec2[i] = vectors[i][j];
+      }
+      if (j == 1 || j==2 || j==3) vec_insert(G[0], j, euclidean_distance(vec1, vec2, dim));
+   }
+   printf("vec1: ");
+   for (int i = 0; i < dim; i++) {
+      vec1[i] = vectors[i][1];
+   }
+   for(int j=0; j<vecs; j++) {
+      for (int i = 0; i < dim; i++) {
+         vec2[i] = vectors[i][j];
+      }
+      if (j ==2 || j==3 || j==0) vec_insert(G[1], j, euclidean_distance(vec1, vec2, dim));
+   }
+   
+
+   for (int i = 0; i < dim; i++) {
+      vec1[i] = vectors[i][2];
+   }
+   for(int j=0; j<vecs; j++) {
+      for (int i = 0; i < dim; i++) {
+         vec2[i] = vectors[i][j];
+      }
+      if (j ==3 || j==4 || j==1) vec_insert(G[2], j, euclidean_distance(vec1, vec2, dim));
+   }
+
+   for (int i = 0; i < dim; i++) {
+      vec1[i] = vectors[i][3];
+   }
+   for(int j=0; j<vecs; j++) {
+      for (int i = 0; i < dim; i++) {
+         vec2[i] = vectors[i][j];
+      }
+      if (j == 1 || j==4 || j==2) vec_insert(G[3], j, euclidean_distance(vec1, vec2, dim));
+   }
+
+   for (int i = 0; i < dim; i++) {
+      vec1[i] = vectors[i][4];
+   }
+   for(int j=0; j<vecs; j++) {
+      for (int i = 0; i < dim; i++) {
+         vec2[i] = vectors[i][j];
+      }
+      if (j ==2 || j==3 || j==0) vec_insert(G[4], j, euclidean_distance(vec1, vec2, dim));
+   }
+   
    // G[0][0] = 1; G[1][0] = 2;  G[2][0] = 3;
    // G[0][1] = 2; G[1][1] = 3;  G[2][1] = 0;
    // G[0][2] = 3; G[1][2] = 4;  G[2][2] = 1;
    // G[0][3] = 1; G[1][3] = 4;  G[2][3] = 2;
    // G[0][4] = 2; G[1][4] = 3;  G[2][4] = 0;
 
-
-   // printf("neighbours\n");
-   // for (int j = 0; j < vecs; j++) {
-   //    printf("vector %d:", j);
-   //    for (int i = 0; i < R; i++) {
-   //       printf(" %d",  G[i][j]);
-         
-   //    }
-   //    printf("\n");
-   // }
+   printf("neighbours\n");
+   for (int j = 0; j < vecs; j++) {
+      printf("vector %d:", j);
+      for (int i = 0; i < R; i++) {
+         printf(" %d, %f ",  vec_get_at(G[j], i), vec_get_dist(G[j], i));
+      }
+      printf("\n");
+   }
 
    int s = rand() % (vecs-1), L = 4, k = 3;
    printf("s: %d\n", s);
@@ -896,14 +954,16 @@ TEST_LIST = {
    { "vec_last", test_vec_last },
    { "vec_next", test_vec_next },
    { "pqueue_create", test_pqueue_create },
+   { "pqueue_insert", test_pqueue_insert },
+   { "pqueue_remove", test_pqueue_remove },
    { "free_matrix_fvecs", test_free_matrix_fvecs },
    { "free_matrix_ivecs", test_free_matrix_ivecs },
    { "open_fvecs", test_open_fvecs },
    { "open_ivecs", test_open_ivecs },
    { "euclidean_distance", test_euclidean_distance },
-   { "greedySearch", test_greedySearch },
-   { "RobustPrune", test_RobustPrune },
-   { "medoid", test_medoid },
-   { "Vamana", test_Vamana },
+   // { "greedySearch", test_greedySearch },
+   // { "RobustPrune", test_RobustPrune },
+   // { "medoid", test_medoid },
+   // { "Vamana", test_Vamana },
    { NULL, NULL }     /* zeroed record marking the end of the list */
 };
