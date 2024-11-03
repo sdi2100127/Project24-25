@@ -34,13 +34,13 @@ void vec_set_at(Vector vec, int pos, int value);
 int vec_find(Vector , int );
 
 // 
-void vec_set_destroy_value(Vector );
+void vec_set_destroy_value(Vector ,int );
 
-void vec_destroy(Vector);
+void vec_destroy(Vector ,int);
 
 
 
-VecNode vector_first(Vector vec);
-VecNode vector_last(Vector vec);
-VecNode vector_next(Vector vec, VecNode node);
-VecNode vector_previous(Vector vec, VecNode node);
+VecNode vec_first(Vector vec);
+VecNode vec_last(Vector vec);
+VecNode vec_next(Vector vec, VecNode node);
+VecNode vec_previous(Vector vec, VecNode node);

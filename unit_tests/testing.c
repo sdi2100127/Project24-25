@@ -3,6 +3,7 @@
 
 #include "../open_functions/open.h"
 #include "../algorithms/algorithms.h"
+#include "../Data_Structs/temp.h"
 //#include "../Vamana/Vamana.h"
 
 // compile example: cc testing.c ../open_functions/open.c ../Data_Structs/Data_Structs.c ../algorithms/algorithms.c -o testing -lm
@@ -197,6 +198,55 @@ void test_S_find_equal(void) {
    node = S_find_equal(set->root, 6);
    TEST_ASSERT(node == SET_EOF);
 }
+
+//VECTOR FUNCTIONS TESTS
+void test_vec_Create(void) {
+   Vector vec = vec_Create(5);
+
+   TEST_ASSERT(vec->size == 5);
+   TEST_ASSERT(vec->capacity == 5);
+}
+
+void test_vec_insert(void) {
+	Vector vec = vec_Create(0);
+   vec_insert(vec, 10);
+   vec_insert(vec, 20);
+   vec_insert(vec, 310);
+   vec_insert(vec, 510);
+   vec_insert(vec, 1210);
+   vec_insert(vec, 410);
+   vec_insert(vec, 5610);
+   vec_insert(vec, 610);
+
+   TEST_ASSERT(vec->size == 9);
+   TEST_ASSERT(vec->array[vec->size].value == 610);
+}
+
+void test_vec_remove(void){
+   Vector vec = vec_Create(0);
+   vec_insert(vec, 10);
+   vec_insert(vec, 20);
+   vec_insert(vec, 310);
+   vec_insert(vec, 510);
+   vec_insert(vec, 1210);
+
+   vec_remove(vec);
+   TEST_ASSERT(vec->array[vec->size].value == 510);
+
+   vec_remove(vec);
+   TEST_ASSERT(vec->array[vec->size].value == 310);
+}
+
+
+
+
+void test_vec_get_at(void){
+   Vector vec = vec_Create(5);
+
+}
+
+
+
 
 // OPEN FUNCTION TESTS
 // mike path: /home/mike/Documents/Project24-25/open_functions/siftsmall
