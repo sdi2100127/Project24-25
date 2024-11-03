@@ -43,6 +43,7 @@ int main() {
   int med = medoid(vectors, vecs, d_base);
   printf("medoid: %d\n", med);
 
+  // allocate memory for the graph G produced by the vamana algorithm
   int R = 60;
   int** G = (int**)malloc(R * sizeof(int*));
   for (int i = 0; i < R; i++) {
@@ -62,24 +63,24 @@ int main() {
     printf("\n");
   }
 
-  // used for output
-  // Set V;
-  // Set knn_set = greedySearch(G, d, num_vectors, s, xq, k, L, V);
+  // randomly select a query vector
+  int xq_pos = rand() % (query_vectors - 1);
+  float* xq = (float*)malloc(d_queries * sizeof(float));
+  for (int i=0; i<d_queries; i++) {
+    xq[i] = posible_queries[i][xq_pos];
+  }
 
-  // printf("k-nearest neighbours of %d according to the groundtruth\n", xq);
-  // for (int i=0; i<k || i<20; i++) {
-  //   printf("%d ", G[i][xq]);
-  // }
-  // printf("\n");
+  // run the greedysearch algorithm to find its k nearest neighbours based on G
+  int k = 25;
+  Set V;
+  Set knn = greedySearch(G, R, d_base, num_vectors, vectors, med, xq, L, k, &V);
 
-  // printf("k-nearest neighbours of %d according to greedy search\n", xq);
-  // int count = 0;
-  // for (set_Node node = find_min(knn_set->root); node != SET_EOF; node = set_next(knn_set, node)) {
-  //   printf("%d ", node->value);
-  //   count++;
-  //   if (count >= 20) break;
-  // }
-  // printf("\n");
+  // print the set knn
+  printf("knn_set: ");
+  for (set_Node node = find_min(knn->root); node != SET_EOF; node = set_next(knn, node)) { 
+      printf("%d ", node->value);
+  }
+  printf("\n");
 
   return 0;
 

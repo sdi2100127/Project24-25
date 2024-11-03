@@ -103,4 +103,9 @@ set_Node S_find_equal(set_Node, int);
 
 
 //A function that compares 2 numbers that returns -1 if the second one is bigger 1 if the first is bigger and 0 if the numbers are equal
-int compare (int , int );       
+int compare (int , int );
+
+
+// VECTORS
+
+typedef struct vector* Vector;
