@@ -159,8 +159,10 @@ PQueue greedySearch(Vector* G, int R, int dim, int vecs, float** vectors, int s,
     
     *V = visited_nodes;
     
-    // free(vec_p);
-    // free(dist_matrix);
+    free(vec_s);
+
+    //Not sure
+    free(visited_nodes);
 
     //set_destroy()
     return knn;
@@ -263,6 +265,11 @@ void RobustPrune(Vector** G, int p ,Set * V, int a, int R , int * neigh_count ,i
     free(vec_of_p);
     free(vec_of_p_star);
 
+
+    //not sure
+    free(temp);
+    free(temp_G);
+
     //printf("\n");
 
     return;
@@ -331,6 +338,7 @@ Vector* Vamana(float** dataset, int vecs, int comps, int L, int R, int a) {
    int x;
    float* vec_x = (float*)malloc(comps * sizeof(float));
    float* vec_j = (float*)malloc(comps * sizeof(float));
+
    // for every vector in the dataset
    for (int j = 0; j < vecs; j++) {
       for (int i=0; i<comps; i++) {
@@ -404,10 +412,12 @@ Vector* Vamana(float** dataset, int vecs, int comps, int L, int R, int a) {
     // int* out_n_count = (int*)malloc(vecs * sizeof(int));
     // for (int i=0; i<vecs; i++) out_n_count[i] = R;
 
+    float* xq = (float*)malloc(comps * sizeof(float));
+    float* point_vec = (float*)malloc(comps * sizeof(float));
+
     for (int i=0; i<vecs; i++) {
         // find and store the query vector xq based on the point in the dataset indexed by per[i]
         int query_pos = per[i];
-        float* xq = (float*)malloc(comps * sizeof(float));
         //printf("query vector %d: ", query_pos);
         for (int i=0; i<comps; i++) {
             xq[i] = dataset[i][query_pos];
@@ -466,13 +476,12 @@ Vector* Vamana(float** dataset, int vecs, int comps, int L, int R, int a) {
                     if (vec_get_at(G[point], n) == query_pos) {flag = 0; break;}
                 }
 
-                float* point_vec = (float*)malloc(comps * sizeof(float));
                 for (int i=0; i<comps; i++) {
                     point_vec[i] = dataset[i][point];
                 }
 
                 if (flag == 1) vec_insert(G[point], query_pos, euclidean_distance(xq, point_vec, comps));
-
+                
                 // printf("Nout(%d): ", point);
                 // for (int i=0; i<R; i++) {
                 //     printf("%d ", G[i][point]);
@@ -481,5 +490,10 @@ Vector* Vamana(float** dataset, int vecs, int comps, int L, int R, int a) {
             }
         }
     }
+
+    free(vec_x);
+    free(vec_j);
+    free(xq);
+    free(point_vec);
     return G;
 }
