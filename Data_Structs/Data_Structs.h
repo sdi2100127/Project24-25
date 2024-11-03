@@ -1,8 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "temp.h"
-
 //Decleration of a pointer to store our abstract values in our data structures
 typedef void * pointer;
 
@@ -107,6 +105,53 @@ set_Node S_find_equal(set_Node, int);
 //A function that compares 2 numbers that returns -1 if the second one is bigger 1 if the first is bigger and 0 if the numbers are equal
 int compare (int , int );
 
+// VECTOR
+typedef struct vector* Vector;
+typedef struct vector_node* VecNode;
+
+#define VECTOR_BOF (VecNode)0
+#define VECTOR_EOF (VecNode)0
+
+struct vector_node {
+	int value;
+};
+
+struct vector {
+	VecNode array;			
+	int size;					
+	int capacity;
+};
+
+//Creation of a vector. Needs an int for the size and returns a pointer to a vector sturct.
+Vector vec_Create(int );
+
+//Inserts a new value to the end of the vector and the size expands by 1
+void vec_insert(Vector , int);
+
+//
+void vec_remove(Vector );
+
+
+//Takes you to the value of the posiotion you given it
+int vec_get_at(Vector , int );
+
+//Changes the position of a value 
+void vec_set_at(Vector vec, int pos, int value);
+
+//Finds the position of a value
+int vec_find(Vector , int );
+
+// 
+void vec_set_destroy_value(Vector ,int );
+
+void vec_destroy(Vector);
+
+
+
+VecNode vec_first(Vector vec);
+VecNode vec_last(Vector vec);
+VecNode vec_next(Vector vec, VecNode node);
+VecNode vec_previous(Vector vec, VecNode node);
 
 // PRIORITY QUEUE 
 
