@@ -81,3 +81,19 @@ VecNode vector_last(Vector vec) {
 	else
 		return &vec->array[vec->size-1];
 }
+
+
+VecNode vector_next(Vector vec, VecNode node) {
+	if (node == &vec->array[vec->size-1])
+		return VECTOR_EOF;
+	else
+		return node + 1;
+}
+
+
+VecNode vector_previous(Vector vec, VecNode node) {
+	if (node == &vec->array[0])
+		return VECTOR_EOF;
+	else
+		return node - 1;
+}
