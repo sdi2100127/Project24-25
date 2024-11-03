@@ -21,12 +21,12 @@ float squared_euclidean_distance(float* vec1, float* vec2, int comps) {
     return res;
 }
 
-Set greedySearch(int** G, int R, int dim, int vecs, float** vectors, int s, float* xq, int L, int k, Set* V) {
+PQueue greedySearch(int** G, int R, int dim, int vecs, float** vectors, int s, float* xq, int L, int k, Set* V) {
     //printf("GREEDY SEARCH\n");
 
     // initializing the knn set with the starting point s
-    Set knn_set = set_Create();
-    set_insert(knn_set, s);
+    PQueue knn = pqueue_create(NULL);
+    pqueue_insert(knn, s, );
 
     // initializing the empty set for visited nodes
     Set visited_nodes = set_Create();
@@ -57,7 +57,8 @@ Set greedySearch(int** G, int R, int dim, int vecs, float** vectors, int s, floa
         // for every iteration we have to reinitiallize the minimum
         xp = -1;
         // check for all the unvisited nodes on the knn_set
-        for (set_Node node = find_min(knn_set->root); node != SET_EOF; node = set_next(knn_set, node)) {
+        Vector knn_vec = knn->vector;
+        for (VecNode node = vec_first(knn_vec); node != VECTOR_EOF; node = vec_next(knn_vec, node)) {
             node_value = node->value;
             //if (node_value == -1) continue;
             if (S_find_equal(visited_nodes->root, node_value) == SET_EOF) {
@@ -82,58 +83,60 @@ Set greedySearch(int** G, int R, int dim, int vecs, float** vectors, int s, floa
         // the incoming neighbours are the other node's columns that the node is part of
         for (int i=0; i<R; i++) {
             if (G[i][xp] == -1) break;
-            set_insert(knn_set, G[i][xp]);
+            pqueue_insert(knn, G[i][xp]);
         }
 
         // add node xp to te visited_nodes set
         set_insert(visited_nodes, xp);
 
         // if the knn_set is bigger than L
-        if (knn_set->size > L) {
+        if (knn->vector->size > L) {
             // remove the most distant neighbours of xq from knn_set until its equal to L
-            prev_max = 0.0;
-            prev_max_pos = -1;
-            while(knn_set->size > L) {
-                float max_dist = 0.0;
-                int max_pos = -1;
-                for (int i=0; i<vecs; i++) {
-                    if (dist_matrix[i] >= max_dist && (prev_max == 0.0 || prev_max >= dist_matrix[i])) {
-                        if (i != prev_max_pos) {
-                            max_dist = dist_matrix[i];
-                            max_pos = i;
-                        }
-                    } 
-                }
-                set_Node node = S_find_equal(knn_set->root, max_pos);
-                if (node != SET_EOF) {
-                    set_remove(knn_set, max_pos);
-                }
-                prev_max = max_dist;
-                prev_max_pos = max_pos;
+            // prev_max = 0.0;
+            // prev_max_pos = -1;
+            while(knn->vector->size > L) {
+                pqueue_remove(knn);
+                // float max_dist = 0.0;
+                // int max_pos = -1;
+                // for (int i=0; i<vecs; i++) {
+                //     if (dist_matrix[i] >= max_dist && (prev_max == 0.0 || prev_max >= dist_matrix[i])) {
+                //         if (i != prev_max_pos) {
+                //             max_dist = dist_matrix[i];
+                //             max_pos = i;
+                //         }
+                //     } 
+                // }
+                // set_Node node = S_find_equal(knn_set->root, max_pos);
+                // if (node != SET_EOF) {
+                //     set_remove(knn_set, max_pos);
+                // }
+                // prev_max = max_dist;
+                // prev_max_pos = max_pos;
             }
         }
     }
     
     // now we have to prune the set again to only keep xq's k nearest neighbours
-    if (knn_set->size > k) {
+    if (knn->vector->size > k) {
         // remove the most distant neighbours of xq from knn_set until its equal to k
-        while(knn_set->size > k) {
-            float max_dist = 0.0;
-            int max_pos = -1;
-            for (int i=0; i<vecs; i++) {
-                if (dist_matrix[i] >= max_dist && (prev_max == 0.0 || prev_max >= dist_matrix[i])) {
-                    if (i != prev_max_pos) {
-                        max_dist = dist_matrix[i];
-                        max_pos = i;
-                    }
-                } 
-            }
-            set_Node node = S_find_equal(knn_set->root, max_pos);
-            if (node != SET_EOF) {
-                set_remove(knn_set, max_pos);
-            }
-            prev_max = max_dist;
-            prev_max_pos = max_pos;
+        while(knn->vector->size > k) {
+            pqueue_remove(knn);
+        //     float max_dist = 0.0;
+        //     int max_pos = -1;
+        //     for (int i=0; i<vecs; i++) {
+        //         if (dist_matrix[i] >= max_dist && (prev_max == 0.0 || prev_max >= dist_matrix[i])) {
+        //             if (i != prev_max_pos) {
+        //                 max_dist = dist_matrix[i];
+        //                 max_pos = i;
+        //             }
+        //         } 
+        //     }
+        //     set_Node node = S_find_equal(knn_set->root, max_pos);
+        //     if (node != SET_EOF) {
+        //         set_remove(knn_set, max_pos);
+        //     }
+        //     prev_max = max_dist;
+        //     prev_max_pos = max_pos;
         }
     }
 
@@ -156,7 +159,7 @@ Set greedySearch(int** G, int R, int dim, int vecs, float** vectors, int s, floa
     free(dist_matrix);
 
     //set_destroy()
-    return knn_set;
+    return knn;
 
 }
 

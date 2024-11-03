@@ -210,26 +210,29 @@ void test_vec_Create(void) {
 
 void test_vec_insert(void) {
 	Vector vec = vec_Create(0); 
-   vec_insert(vec, 10);
-   vec_insert(vec, 20);
-   vec_insert(vec, 310);
-   vec_insert(vec, 510);
-   vec_insert(vec, 1210);
-   vec_insert(vec, 410);
-   vec_insert(vec, 5610);
-   vec_insert(vec, 610);
+   float dist = 0.0f;
+   vec_insert(vec, 10, dist);
+   vec_insert(vec, 20, dist);
+   vec_insert(vec, 310, dist);
+   vec_insert(vec, 510, dist);
+   vec_insert(vec, 1210, dist);
+   vec_insert(vec, 410, dist);
+   vec_insert(vec, 5610, dist);
+   vec_insert(vec, 610, dist);
 
    TEST_ASSERT(vec->size == 8);
    TEST_ASSERT(vec->array[(vec->size)-1].value == 610);
+   TEST_ASSERT(vec->array[(vec->size)-1].dist == 0.0f);
 }
 
 void test_vec_remove(void){
    Vector vec = vec_Create(0);
-   vec_insert(vec, 10);
-   vec_insert(vec, 20);
-   vec_insert(vec, 310);
-   vec_insert(vec, 510);
-   vec_insert(vec, 1210);
+   float dist = 0.0f;
+   vec_insert(vec, 10, dist);
+   vec_insert(vec, 20, dist);
+   vec_insert(vec, 310, dist);
+   vec_insert(vec, 510, dist);
+   vec_insert(vec, 1210, dist);
 
    vec_remove(vec);
    TEST_ASSERT(vec->size == 4);
@@ -240,13 +243,25 @@ void test_vec_remove(void){
    TEST_ASSERT(vec->array[vec->size-1].value == 310);
 }
 
+void test_vec_get_dist(void) {
+   Vector vec = vec_Create(0);
+   vec_insert(vec, 10, 0.0);
+   vec_insert(vec, 20, 2.3);
+   vec_insert(vec, 310, 1.2);
+
+   TEST_ASSERT(vec_get_dist(vec, 0) == 0.0);
+   TEST_ASSERT(vec_get_dist(vec, 1) == 2.3);
+   TEST_ASSERT(vec_get_dist(vec, 2) == 1.2);
+}
+
 void test_vec_get_at(void){
    Vector vec = vec_Create(0);
-   vec_insert(vec, 10);
-   vec_insert(vec, 20);
-   vec_insert(vec, 310);
-   vec_insert(vec, 510);
-   vec_insert(vec, 1210);
+   float dist = 0.0f;
+   vec_insert(vec, 10, dist);
+   vec_insert(vec, 20, dist);
+   vec_insert(vec, 310, dist);
+   vec_insert(vec, 510, dist);
+   vec_insert(vec, 1210, dist);
 
    TEST_ASSERT(vec->array[2].value == 310);
    TEST_ASSERT(vec->array[1].value == 20);
@@ -255,11 +270,12 @@ void test_vec_get_at(void){
 
 void test_vec_set_at(void) {
    Vector vec = vec_Create(0);
-   vec_insert(vec, 10);
-   vec_insert(vec, 20);
-   vec_insert(vec, 310);
-   vec_insert(vec, 510);
-   vec_insert(vec, 1210);
+   float dist = 0.0f;
+   vec_insert(vec, 10, dist);
+   vec_insert(vec, 20, dist);
+   vec_insert(vec, 310, dist);
+   vec_insert(vec, 510, dist);
+   vec_insert(vec, 1210, dist);
 
    vec_set_at(vec, 2, 250);
    TEST_ASSERT(vec->array[2].value == 250);
@@ -269,11 +285,12 @@ void test_vec_set_at(void) {
 
 void test_vec_find_node(void) {
    Vector vec = vec_Create(0);
-   vec_insert(vec, 10);
-   vec_insert(vec, 20);
-   vec_insert(vec, 310);
-   vec_insert(vec, 510);
-   vec_insert(vec, 1210);
+   float dist = 0.0f;
+   vec_insert(vec, 10, dist);
+   vec_insert(vec, 20, dist);
+   vec_insert(vec, 310, dist);
+   vec_insert(vec, 510, dist);
+   vec_insert(vec, 1210, dist);
 
    TEST_ASSERT(vec_find_node(vec, 510)->value == 510);
    TEST_ASSERT(vec_find_node(vec, 1210)->value == 1210);
@@ -282,11 +299,12 @@ void test_vec_find_node(void) {
 
 void test_vec_find_pos(void) {
    Vector vec = vec_Create(0);
-   vec_insert(vec, 10);
-   vec_insert(vec, 20);
-   vec_insert(vec, 310);
-   vec_insert(vec, 510);
-   vec_insert(vec, 1210);
+   float dist = 0.0f;
+   vec_insert(vec, 10, dist);
+   vec_insert(vec, 20, dist);
+   vec_insert(vec, 310, dist);
+   vec_insert(vec, 510, dist);
+   vec_insert(vec, 1210, dist);
 
    TEST_ASSERT(vec_find_pos(vec, 510) == 3);
    TEST_ASSERT(vec_find_pos(vec, 1210) == 4);
@@ -295,33 +313,36 @@ void test_vec_find_pos(void) {
 
 void test_vec_first(void) {
    Vector vec = vec_Create(0);
-   vec_insert(vec, 10);
-   vec_insert(vec, 20);
-   vec_insert(vec, 310);
-   vec_insert(vec, 510);
-   vec_insert(vec, 1210);
+   float dist = 0.0f;
+   vec_insert(vec, 10, dist);
+   vec_insert(vec, 20, dist);
+   vec_insert(vec, 310, dist);
+   vec_insert(vec, 510, dist);
+   vec_insert(vec, 1210, dist);
 
    TEST_ASSERT(vec_first(vec)->value == 10);
 }
 
 void test_vec_last(void) {
    Vector vec = vec_Create(0);
-   vec_insert(vec, 10);
-   vec_insert(vec, 20);
-   vec_insert(vec, 310);
-   vec_insert(vec, 510);
-   vec_insert(vec, 1210);
+   float dist = 0.0f;
+   vec_insert(vec, 10, dist);
+   vec_insert(vec, 20, dist);
+   vec_insert(vec, 310, dist);
+   vec_insert(vec, 510, dist);
+   vec_insert(vec, 1210, dist);
 
    TEST_ASSERT(vec_last(vec)->value == 1210);
 }
 
 void test_vec_next(void) {
    Vector vec = vec_Create(0);
-   vec_insert(vec, 10);
-   vec_insert(vec, 20);
-   vec_insert(vec, 310);
-   vec_insert(vec, 510);
-   vec_insert(vec, 1210);
+   float dist = 0.0f;
+   vec_insert(vec, 10, dist);
+   vec_insert(vec, 20, dist);
+   vec_insert(vec, 310, dist);
+   vec_insert(vec, 510, dist);
+   vec_insert(vec, 1210, dist);
 
    TEST_ASSERT(vec_next(vec, &vec->array[0])->value == 20);
    TEST_ASSERT(vec_next(vec, &vec->array[1])->value == 310);
@@ -329,7 +350,49 @@ void test_vec_next(void) {
 
 // PRIORITY QUEUE TESTS
 
+void test_pqueue_create(void) {
+   Vector vec = vec_Create(0);
+   vec_insert(vec, 10, 0.0);
+   vec_insert(vec, 20, 1.0);
+   vec_insert(vec, 310, 2.0);
+   vec_insert(vec, 510, 3.0);
+   vec_insert(vec, 1210, 4.0);
 
+   PQueue pq = pqueue_create(vec);
+   TEST_ASSERT(pq != NULL);
+   TEST_ASSERT(pq->vector != NULL);
+   TEST_ASSERT(pq->vector->size == 5);
+}
+
+void test_pqueue_insert(void) {
+   Vector vec = vec_Create(0);
+   vec_insert(vec, 10, 0.0);
+   vec_insert(vec, 20, 1.0);
+   vec_insert(vec, 310, 2.0);
+   vec_insert(vec, 510, 3.0);
+   vec_insert(vec, 1210, 4.0);
+
+   PQueue pq = pqueue_create(vec);
+
+   pqueue_insert(pq, 45, 1.5);
+   TEST_ASSERT(pq->vector->array[2].value == 45);
+   TEST_ASSERT(pq->vector->size == 6);
+}
+
+void test_pqueue_remove(void) {
+   Vector vec = vec_Create(0);
+   vec_insert(vec, 10, 0.0);
+   vec_insert(vec, 20, 1.0);
+   vec_insert(vec, 310, 2.0);
+   vec_insert(vec, 510, 3.0);
+   vec_insert(vec, 1210, 4.0);
+
+   PQueue pq = pqueue_create(vec);
+
+   pqueue_remove(pq);
+   TEST_ASSERT(pq->vector->array[pq->vector->size-1].value == 510);
+   TEST_ASSERT(pq->vector->size == 4);
+}
 
 // OPEN FUNCTION TESTS
 // mike path: /home/mike/Documents/Project24-25/open_functions/siftsmall
@@ -738,6 +801,7 @@ TEST_LIST = {
    { "vec_Create", test_vec_Create },
    { "vec_insert", test_vec_insert },
    { "vec_remove", test_vec_remove },
+   { "vec_get_dist", test_vec_get_dist },
    { "vec_get_at", test_vec_get_at },
    { "vec_set_at", test_vec_set_at },
    { "vec_find_node", test_vec_find_node },
@@ -745,6 +809,7 @@ TEST_LIST = {
    { "vec_first", test_vec_first },
    { "vec_last", test_vec_last },
    { "vec_next", test_vec_next },
+   { "pqueue_create", test_pqueue_create },
    { "free_matrix_fvecs", test_free_matrix_fvecs },
    { "free_matrix_ivecs", test_free_matrix_ivecs },
    { "open_fvecs", test_open_fvecs },

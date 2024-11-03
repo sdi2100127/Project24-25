@@ -280,6 +280,10 @@ Vector vec_Create(int size ) {
 	return vec;
 }
 
+float vec_get_dist(Vector vec, int pos) {
+	return vec->array[pos].dist;
+}
+
 int vec_get_at(Vector vec, int pos) {
 	return vec->array[pos].value;
 }
@@ -289,13 +293,14 @@ void vec_set_at(Vector vec, int pos, int value) {
 }
 
 
-void vec_insert(Vector vec, int value) {
+void vec_insert(Vector vec, int value, float dist) {
 	if (vec->capacity == vec->size) {
 		vec->capacity *= 2;
 		vec->array = realloc(vec->array, vec->capacity * sizeof(*vec->array));
 	}
 
-	vec->array[vec->size].value = value;
+	vec->array[vec->size-1].value = value;
+	vec->array[vec->size-1].dist = dist;
 	vec->size++;
 }
 
@@ -376,6 +381,10 @@ VecNode vec_previous(Vector vec, VecNode node) {
 
 // PRIORITY QUEUE
 
+int compare_dist(float dist1, float dist2) {
+	return dist1-dist2;
+}
+
 void node_swap(PQueue pqueue, int node1, int node2) {
 	int value1 = vec_get_at(pqueue->vector, node1);
 	int value2 = vec_get_at(pqueue->vector, node2);
@@ -383,6 +392,21 @@ void node_swap(PQueue pqueue, int node1, int node2) {
 	vec_set_at(pqueue->vector, node1 - 1, value2);
 	vec_set_at(pqueue->vector, node2 - 1, value1);
 }
+
+// void bubble_up(PQueue pqueue, int node) {
+// 	// if you reach the root stop
+// 	if (node == 1)
+// 		return;
+
+// 	// find the node's parent
+// 	int parent = node / 2;		
+
+// 	// if the parent value is smaller, swap and continue recursively to the top
+// 	if (compare(vec_get_at(pqueue->vector, parent), vec_get_at(pqueue->vector, node)) < 0) {
+// 		node_swap(pqueue, parent, node);
+// 		bubble_up(pqueue, parent);
+// 	}
+// }
 
 void bubble_up(PQueue pqueue, int node) {
 	// if you reach the root stop
@@ -392,12 +416,31 @@ void bubble_up(PQueue pqueue, int node) {
 	// find the node's parent
 	int parent = node / 2;		
 
-	// if the parent  value is smaller, swap and continue recursively to the top
-	if (compare(vec_get_at(pqueue->vector, parent), vec_get_at(pqueue->vector, node)) < 0) {
+	// if the parent value is smaller, swap and continue recursively to the top
+	if (compare_dist(vec_get_dist(pqueue->vector, parent), vec_get_dist(pqueue->vector, node)) < 0) {
 		node_swap(pqueue, parent, node);
 		bubble_up(pqueue, parent);
 	}
 }
+
+// void bubble_down(PQueue pqueue, int node) {
+// 	// find the node's kids 
+// 	int left = 2*node;
+// 	int right = left + 1;
+// 	int size = pqueue->vector->size;
+// 	// if it has none return
+// 	if (left > size) return;
+
+// 	// find the max of the two children
+// 	int max = left;
+// 	if (right <= size && compare(vec_get_at(pqueue->vector, left), vec_get_at(pqueue->vector, right)) < 0) max = right;		
+
+// 	// if the node is smaller than the max child, swap and continue recursively to the bottom
+// 	if (compare(vec_get_at(pqueue->vector, node), vec_get_at(pqueue->vector, max)) < 0) {
+// 		node_swap(pqueue, node, max);
+// 		bubble_down(pqueue, max);
+// 	}
+// }
 
 void bubble_down(PQueue pqueue, int node) {
 	// find the node's kids 
@@ -409,10 +452,10 @@ void bubble_down(PQueue pqueue, int node) {
 
 	// find the max of the two children
 	int max = left;
-	if (right <= size && compare(vec_get_at(pqueue->vector, left), vec_get_at(pqueue->vector, right)) < 0) max = right;		
+	if (right <= size && compare_dist(vec_get_dist(pqueue->vector, left), vec_get_dist(pqueue->vector, right)) < 0) max = right;		
 
 	// if the node is smaller than the max child, swap and continue recursively to the bottom
-	if (compare(vec_get_at(pqueue->vector, node), vec_get_at(pqueue->vector, max)) < 0) {
+	if (compare_dist(vec_get_dist(pqueue->vector, node), vec_get_dist(pqueue->vector, max)) < 0) {
 		node_swap(pqueue, node, max);
 		bubble_down(pqueue, max);
 	}
@@ -422,7 +465,7 @@ void naive_heapify(PQueue pqueue, Vector values) {
 	// insert the vector's values one by one to the queue
 	int size = values->size;
 	for (int i = 0; i < size; i++)
-		pqueue_insert(pqueue, vec_get_at(values, i));
+		pqueue_insert(pqueue, vec_get_at(values, i), vec_get_dist(values, i));
 }
 
 PQueue pqueue_create(Vector values) {
@@ -434,9 +477,9 @@ PQueue pqueue_create(Vector values) {
 	return pqueue;
 }
 
-void pqueue_insert(PQueue pqueue, int value) {
+void pqueue_insert(PQueue pqueue, int value, float dist) {
 	// first we insert the value at the very end of the vector
-	vec_insert(pqueue->vector, value);
+	vec_insert(pqueue->vector, value, dist);
 
 	// then we call bubble up to ensure the heap property
 	bubble_up(pqueue, pqueue->vector->size);

@@ -114,6 +114,7 @@ typedef struct vector_node* VecNode;
 
 struct vector_node {
 	int value;
+	int dist;
 };
 
 struct vector {
@@ -126,11 +127,13 @@ struct vector {
 Vector vec_Create(int );
 
 //Inserts a new value to the end of the vector and the size expands by 1
-void vec_insert(Vector , int);
+void vec_insert(Vector , int, float);
 
 //
 void vec_remove(Vector );
 
+//Returns the dist attribute of the node in position pos
+float vec_get_dist(Vector vec, int pos);
 
 //Takes you to the value of the posiotion you given it
 int vec_get_at(Vector , int );
@@ -175,7 +178,7 @@ void naive_heapify(PQueue pqueue, Vector values);
 
 PQueue pqueue_create(Vector values);
 
-void pqueue_insert(PQueue pqueue, int value);
+void pqueue_insert(PQueue pqueue, int value, float dist);
 
 void pqueue_remove(PQueue pqueue);
 
