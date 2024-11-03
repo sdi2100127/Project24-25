@@ -1,11 +1,21 @@
 typedef struct vector* Vector;
 typedef struct vector_node* VecNode;
 
+#define VECTOR_BOF (VecNode)0
+#define VECTOR_EOF (VecNode)0
+
+struct vector_node {
+	int value;
+};
+
+struct vector {
+	VecNode array;			
+	int size;					
+	int capacity;
+};
+
 //Creation of a vector. Needs an int for the size and returns a pointer to a vector sturct.
 Vector vec_Create(int );
-
-//Returns the size of the vector
-int vec_size(Vector );
 
 //Inserts a new value to the end of the vector and the size expands by 1
 void vec_insert(Vector , int);
