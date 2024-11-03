@@ -35,8 +35,8 @@ int main() {
   
   // open groundtruth file using ivecs_open
   const char* groundtruth_file = "siftsmall_groundtruth.ivecs";
-  int groundtruth_vectors, k;
-  int** groundtruth_G = ivecs_open(groundtruth_file, &groundtruth_vectors, &k);
+  int groundtruth_vectors, k_n;
+  int** groundtruth_G = ivecs_open(groundtruth_file, &groundtruth_vectors, &k_n);
 
   printf("\n");
 
@@ -45,19 +45,16 @@ int main() {
 
   // allocate memory for the graph G produced by the vamana algorithm
   int R = 60;
-  int** G = (int**)malloc(R * sizeof(int*));
-  for (int i = 0; i < R; i++) {
-    G[i] = (int*)malloc(vecs * sizeof(int));
-  }
+  Vector* G = (Vector*)malloc(vecs * sizeof(Vector));
 
   int a = 2, L = 25;
   G = Vamana(vectors, vecs, d_base, L, R, a);
 
   printf("neighbours\n");
-  for (int j = 0; j < num_vectors; j++) {
+  for (int j = 0; j < vecs; j++) {
     printf("vector %d:", j);
     for (int i = 0; i < R; i++) {
-        printf(" %d",  G[i][j]);
+      printf(" %d",  vec_get_at(G[j], i));
         
     }
     printf("\n");
@@ -69,16 +66,18 @@ int main() {
   for (int i=0; i<d_queries; i++) {
     xq[i] = posible_queries[i][xq_pos];
   }
+  printf("%d\n", xq_pos);
 
   // run the greedysearch algorithm to find its k nearest neighbours based on G
-  int k = 25;
+  int k = 100;
   Set V;
-  Set knn = greedySearch(G, R, d_base, num_vectors, vectors, med, xq, L, k, &V);
+  PQueue knn = greedySearch(G, R, d_base, vecs, vectors, med, xq, L, k, &V);
 
   // print the set knn
   printf("knn_set: ");
-  for (set_Node node = find_min(knn->root); node != SET_EOF; node = set_next(knn, node)) { 
-      printf("%d ", node->value);
+  Vector knn_vec = knn->vector;
+  for (VecNode node = vec_first(knn_vec); node != VECTOR_EOF; node = vec_next(knn_vec, node)) {
+    printf("%d ", node->value);
   }
   printf("\n");
 

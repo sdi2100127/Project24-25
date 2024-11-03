@@ -13,7 +13,7 @@ main.o: src/main.c open_functions/open.h algorithms/algorithms.h
 
 # Executable
 app: main.o open.o algorithms.o Data_Structs.o
-	gcc main.o open.o algorithms.o Data_Structs.o -o app -lm
+	gcc main.o open.o algorithms.o Data_Structs.o -o app -lm -ggdb
 
 # Clean target
 clean:
@@ -21,4 +21,4 @@ clean:
 
 # Run the program
 run: app
-	./app
+	valgrind ./app

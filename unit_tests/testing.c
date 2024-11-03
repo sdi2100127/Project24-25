@@ -220,6 +220,10 @@ void test_vec_insert(void) {
    vec_insert(vec, 5610, dist);
    vec_insert(vec, 610, dist);
 
+   for (VecNode node = vec_first(vec); node != VECTOR_EOF; node = vec_next(vec, node)) {
+      printf("%d ", node->value);
+   }
+
    TEST_ASSERT(vec->size == 8);
    TEST_ASSERT(vec->array[(vec->size)-1].value == 610);
    TEST_ASSERT(vec->array[(vec->size)-1].dist == 0.0f);
@@ -249,9 +253,9 @@ void test_vec_get_dist(void) {
    vec_insert(vec, 20, 2.3);
    vec_insert(vec, 310, 1.2);
 
-   TEST_ASSERT(vec_get_dist(vec, 0) == 0.0);
-   TEST_ASSERT(vec_get_dist(vec, 1) == 2.3);
-   TEST_ASSERT(vec_get_dist(vec, 2) == 1.2);
+   TEST_ASSERT(vec_get_dist(vec, 0) == 0.0f);
+   TEST_ASSERT(vec_get_dist(vec, 1) == 2.3f);
+   TEST_ASSERT(vec_get_dist(vec, 2) == 1.2f);
 }
 
 void test_vec_get_at(void){
@@ -277,10 +281,12 @@ void test_vec_set_at(void) {
    vec_insert(vec, 510, dist);
    vec_insert(vec, 1210, dist);
 
-   vec_set_at(vec, 2, 250);
+   vec_set_at(vec, 2, 250, 1.0);
    TEST_ASSERT(vec->array[2].value == 250);
-   vec_set_at(vec, vec->size-1, 35);
+   TEST_ASSERT(vec->array[2].dist == 1.0);
+   vec_set_at(vec, vec->size-1, 35, 1.0);
    TEST_ASSERT(vec->array[vec->size-1].value == 35);
+   TEST_ASSERT(vec->array[vec->size-1].dist == 1.0);
 }
 
 void test_vec_find_node(void) {
@@ -596,35 +602,76 @@ void test_greedySearch(void) {
    printf("\n");
 
    int R = 3;
-   int** G = (int**)malloc(R * sizeof(int*));
-   for (int i = 0; i < R; i++) {
-      G[i] = (int*)malloc(vecs * sizeof(int));
+   // int** G = (int**)malloc(R * sizeof(int*));
+   // for (int i = 0; i < R; i++) {
+   //    G[i] = (int*)malloc(vecs * sizeof(int));
+   // }
+
+   Vector* G = (Vector*)malloc(vecs * sizeof(Vector));
+   for (int i=0; i<vecs; i++) {
+      G[i] = vec_Create(0);
    }
 
-   G[0][0] = 1; G[1][0] = 2;  G[2][0] = 3;
-   G[0][1] = 2; G[1][1] = 3;  G[2][1] = 0;
-   G[0][2] = 3; G[1][2] = 4;  G[2][2] = 1;
-   G[0][3] = 1; G[1][3] = 4;  G[2][3] = 2;
-   G[0][4] = 2; G[1][4] = 3;  G[2][4] = 0;
-
-
    printf("neighbours\n");
+   int x;
+   float* vec_x = (float*)malloc(dim * sizeof(float));
+   float* vec_j = (float*)malloc(dim * sizeof(float));
+   // for every vector in the dataset
    for (int j = 0; j < vecs; j++) {
+      for (int i=0; i<dim; i++) {
+         vec_j[i] = vectors[i][j];
+      }
       printf("vector %d:", j);
+      // for every one of its R neighbours
       for (int i = 0; i < R; i++) {
-         printf(" %d",  G[i][j]);
+
+         int stop = 1;
+         while (stop == 1) {
+            x = rand() % (vecs - 1);    // pick another vector randomly
+            stop = 0;
+            for (int z = 0; z < i; z++) {
+               // as long as that vector is not a neighbour already and it is not the same as our current vector
+               if (vec_find_node(G[j], x) != VECTOR_EOF || x == j) {   
+                  stop = 1;
+                  break;
+               }
+            }    
+         }
+         // temporarilly store the vectors j and x to compute their distance
+         for (int i=0; i<dim; i++) {
+            vec_x[i] = vectors[i][x];
+         }
+         vec_insert(G[j], x, euclidean_distance(vec_x, vec_j, dim));
+
+         printf(" %d, %f ", G[j]->array[i].value, G[j]->array[i].dist);
          
       }
       printf("\n");
    }
+   // G[0][0] = 1; G[1][0] = 2;  G[2][0] = 3;
+   // G[0][1] = 2; G[1][1] = 3;  G[2][1] = 0;
+   // G[0][2] = 3; G[1][2] = 4;  G[2][2] = 1;
+   // G[0][3] = 1; G[1][3] = 4;  G[2][3] = 2;
+   // G[0][4] = 2; G[1][4] = 3;  G[2][4] = 0;
+
+
+   // printf("neighbours\n");
+   // for (int j = 0; j < vecs; j++) {
+   //    printf("vector %d:", j);
+   //    for (int i = 0; i < R; i++) {
+   //       printf(" %d",  G[i][j]);
+         
+   //    }
+   //    printf("\n");
+   // }
 
    int s = rand() % (vecs-1), L = 4, k = 3;
    printf("s: %d\n", s);
    Set V;
-   Set knn = greedySearch  (G, R, dim, vecs, vectors, s, xq, L, k, &V);
+   PQueue knn = greedySearch(G, R, dim, vecs, vectors, s, xq, L, k, &V);
 
    TEST_ASSERT(V->size == 4);
-   TEST_ASSERT(knn->size == 3);
+   TEST_ASSERT(knn->vector->size == 3);
 
    Set V_test = set_Create();
    for (int i=0; i<4; i++) set_insert(V_test, i);
@@ -637,14 +684,14 @@ void test_greedySearch(void) {
    set_insert(knn_test, 1);
    set_insert(knn_test, 3);
    for (set_Node node = find_min(knn_test->root); node != SET_EOF; node = set_next(knn_test, node)) {
-      TEST_ASSERT(S_find_equal(knn->root, node->value) != SET_EOF);
+      TEST_ASSERT(vec_find_node(knn->vector, node->value) != VECTOR_EOF);
    }
 
    // set_destroy()
 
 }
 
-void test_RobustPrune(void){
+void test_RobustPrune(void) {
    srand((unsigned int)time(NULL));
 
    // run the test for a vector matrix of 7 vectors with 3 components each
@@ -670,26 +717,68 @@ void test_RobustPrune(void){
    }
 
    int R = 3;
-   int** G = (int**)malloc(R * sizeof(int*));
-   for (int i = 0; i < R; i++) {
-      G[i] = (int*)malloc(vecs * sizeof(int));
+   // int** G = (int**)malloc(R * sizeof(int*));
+   // for (int i = 0; i < R; i++) {
+   //    G[i] = (int*)malloc(vecs * sizeof(int));
+   // }
+
+   // G[0][0] = 3; G[1][0] = 2;  G[2][0] = 1;
+   // G[0][1] = 3; G[1][1] = 2;  G[2][1] = 0;
+   // G[0][2] = 1; G[1][2] = 3;  G[2][2] = 0;
+   // G[0][3] = 2; G[1][3] = 0;  G[2][3] = 1;
+   // G[0][4] = 2; G[1][4] = 3;  G[2][4] = 1;
+
+   Vector* G = (Vector*)malloc(vecs * sizeof(Vector));
+   for (int i=0; i<vecs; i++) {
+      G[i] = vec_Create(0);
    }
 
-   G[0][0] = 3; G[1][0] = 2;  G[2][0] = 1;
-   G[0][1] = 3; G[1][1] = 2;  G[2][1] = 0;
-   G[0][2] = 1; G[1][2] = 3;  G[2][2] = 0;
-   G[0][3] = 2; G[1][3] = 0;  G[2][3] = 1;
-   G[0][4] = 2; G[1][4] = 3;  G[2][4] = 1;
-
    printf("neighbours\n");
+   int x;
+   float* vec_x = (float*)malloc(dim * sizeof(float));
+   float* vec_j = (float*)malloc(dim * sizeof(float));
+   // for every vector in the dataset
    for (int j = 0; j < vecs; j++) {
+      for (int i=0; i<dim; i++) {
+         vec_j[i] = vectors[i][j];
+      }
       printf("vector %d:", j);
+      // for every one of its R neighbours
       for (int i = 0; i < R; i++) {
-         printf(" %d",  G[i][j]);
+
+         int stop = 1;
+         while (stop == 1) {
+            x = rand() % (vecs - 1);    // pick another vector randomly
+            stop = 0;
+            for (int z = 0; z < i; z++) {
+               // as long as that vector is not a neighbour already and it is not the same as our current vector
+               if (vec_find_node(G[j], x) != VECTOR_EOF || x == j) {   
+                  stop = 1;
+                  break;
+               }
+            }    
+         }
+         // temporarilly store the vectors j and x to compute their distance
+         for (int i=0; i<dim; i++) {
+            vec_x[i] = vectors[i][x];
+         }
+         vec_insert(G[j], x, euclidean_distance(vec_x, vec_j, dim));
+
+         printf(" %d, %f ", G[j]->array[i].value, G[j]->array[i].dist);
          
       }
       printf("\n");
    }
+
+   // printf("neighbours\n");
+   // for (int j = 0; j < vecs; j++) {
+   //    printf("vector %d:", j);
+   //    for (int i = 0; i < R; i++) {
+   //       printf(" %d",  G[i][j]);
+         
+   //    }
+   //    printf("\n");
+   // }
 
    // rand() % (vecs-1)
    int p = 0;
@@ -710,7 +799,7 @@ void test_RobustPrune(void){
    }
    printf("\n");
 
-   Set knn = greedySearch(G ,R ,dim ,vecs ,vectors ,s ,xq ,L ,k ,&V);
+   PQueue knn = greedySearch(G ,R ,dim ,vecs ,vectors ,s ,xq ,L ,k ,&V);
 
    RobustPrune(&G, p , &V,  a,  R , &neigh_count,  dim ,  vecs , vectors);
    TEST_ASSERT(V->size == 0);
@@ -719,7 +808,7 @@ void test_RobustPrune(void){
    test_N_out[0] = 3; test_N_out[1] = -1; test_N_out[2] = -1;
 
    for (int i=0; i<R; i++) {
-      TEST_ASSERT(test_N_out[i] ==  G[i][p]);
+      TEST_ASSERT(test_N_out[i] ==  vec_get_at(G[p], i));
    }
 }
 
@@ -759,10 +848,7 @@ void test_Vamana(void) {
 
    int L = 4, R = 3, a = 1;
 
-   int** G = (int**)malloc(R * sizeof(int*));
-   for (int i = 0; i < R; i++) {
-      G[i] = (int*)malloc(vecs * sizeof(int));
-   }
+   Vector* G = (Vector*)malloc(vecs * sizeof(Vector));
 
    G = Vamana(vectors, vecs, dim, L, R, a);
 
@@ -779,7 +865,7 @@ void test_Vamana(void) {
 
    for (int j=0; j<vecs; j++) {
       for (int i=0; i<R; i++) {
-         TEST_ASSERT(G[i][j] == G_test[i][j]);
+         TEST_ASSERT(vec_get_at(G[j], i) == G_test[i][j]);
       }
    }
 

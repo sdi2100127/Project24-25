@@ -288,8 +288,9 @@ int vec_get_at(Vector vec, int pos) {
 	return vec->array[pos].value;
 }
 
-void vec_set_at(Vector vec, int pos, int value) {
+void vec_set_at(Vector vec, int pos, int value, float dist) {
 	vec->array[pos].value = value;
+	vec->array[pos].dist = dist;
 }
 
 
@@ -299,8 +300,8 @@ void vec_insert(Vector vec, int value, float dist) {
 		vec->array = realloc(vec->array, vec->capacity * sizeof(*vec->array));
 	}
 
-	vec->array[vec->size-1].value = value;
-	vec->array[vec->size-1].dist = dist;
+	vec->array[vec->size].value = value;
+	vec->array[vec->size].dist = dist;
 	vec->size++;
 }
 
@@ -381,16 +382,18 @@ VecNode vec_previous(Vector vec, VecNode node) {
 
 // PRIORITY QUEUE
 
-int compare_dist(float dist1, float dist2) {
+float compare_dist(float dist1, float dist2) {
 	return dist1-dist2;
 }
 
 void node_swap(PQueue pqueue, int node1, int node2) {
 	int value1 = vec_get_at(pqueue->vector, node1);
+	float dist1 = vec_get_dist(pqueue->vector, node1);
 	int value2 = vec_get_at(pqueue->vector, node2);
+	float dist2 = vec_get_dist(pqueue->vector, node2);
 
-	vec_set_at(pqueue->vector, node1 - 1, value2);
-	vec_set_at(pqueue->vector, node2 - 1, value1);
+	vec_set_at(pqueue->vector, node1 - 1, value2, dist2);
+	vec_set_at(pqueue->vector, node2 - 1, value1, dist1);
 }
 
 // void bubble_up(PQueue pqueue, int node) {

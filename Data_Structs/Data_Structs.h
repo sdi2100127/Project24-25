@@ -114,7 +114,7 @@ typedef struct vector_node* VecNode;
 
 struct vector_node {
 	int value;
-	int dist;
+	float dist;
 };
 
 struct vector {
@@ -139,7 +139,7 @@ float vec_get_dist(Vector vec, int pos);
 int vec_get_at(Vector , int );
 
 //Changes the position of a value 
-void vec_set_at(Vector vec, int pos, int value);
+void vec_set_at(Vector vec, int pos, int value, float dist);
 
 //Finds the node of a value
 VecNode vec_find_node(Vector , int );
@@ -167,6 +167,8 @@ struct priority_queue
 };
 
 typedef struct priority_queue* PQueue;
+
+float compare_dist(float dist1, float dist2);
 
 void node_swap(PQueue pqueue, int node1, int node2);
 
