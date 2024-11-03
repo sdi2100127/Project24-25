@@ -268,3 +268,89 @@ set_Node S_find_equal(set_Node node, int value) {
 	else 
 		return S_find_equal(node->right, value);
 }
+
+// PRIORITY QUEUE
+
+void node_swap(PQueue pqueue, int node1, int node2) {
+	int* value1 = vec_get_at(pqueue->vector, node1);
+	int* value2 = vec_get_at(pqueue->vector, node2);
+
+	vector_set_at(pqueue->vector, node1 - 1, value2);
+	vector_set_at(pqueue->vector, node2 - 1, value1);
+}
+
+void bubble_up(PQueue pqueue, int node) {
+	// if you reach the root stop
+	if (node == 1)
+		return;
+
+	// find the node's parent
+	int parent = node / 2;		
+
+	// if the parent  value is smaller, swap and continue recursively to the top
+	if (compare(vec_get_at(pqueue->vector, parent), vec_get_at(pqueue->vector, node)) < 0) {
+		node_swap(pqueue, parent, node);
+		bubble_up(pqueue, parent);
+	}
+}
+
+void bubble_down(PQueue pqueue, int node) {
+	// find the node's kids 
+	int left = 2*node;
+	int right = left + 1;
+	int size = pqueue->vector->size;
+	// if it has none return
+	if (left > size) return;
+
+	// find the max of the two children
+	int max = left;
+	if (right <= size && compare(vec_get_at(pqueue->vector, left), vec_get_at(pqueue->vector, right)) < 0) max = right;		
+
+	// if the node is smaller than the max child, swap and continue recursively to the bottom
+	if (compare(vec_get_at(pqueue->vector, node), vec_get_at(pqueue->vector, max)) < 0) {
+		node_swap(pqueue, node, max);
+		bubble_down(pqueue, max);
+	}
+}
+
+void naive_heapify(PQueue pqueue, Vector values) {
+	// insert the vector's values one by one to the queue
+	int size = values->size;
+	for (int i = 0; i < size; i++)
+		pqueue_insert(pqueue, vector_get_at(values, i));
+}
+
+PQueue pqueue_create(Vector values) {
+	PQueue pqueue = malloc(sizeof(*pqueue));
+
+	pqueue->vector = vector_create(0);
+	if (values != NULL ) naive_heapify(pqueue, values);
+
+	return pqueue;
+}
+
+void pqueue_insert(PQueue pqueue, int* value) {
+	// first we insert the value at the very end of the vector
+	vec_insert(pqueue->vector, value);
+
+	// then we call bubble up to ensure the heap property
+	bubble_up(pqueue, pqueue->vector->size);
+}
+
+void pqueue_remove(PQueue pqueue) {
+	int last = pqueue->vector->size;
+	if (last == 0) return;
+
+	// swap the first and last node
+	node_swap(pqueue, 1, last);
+	// and remove the last
+	vec_remove(pqueue->vector);
+
+	// call bubble down to ensure the heap property
+	bubble_down(pqueue, 1);
+}
+
+void pqueue_destroy(PQueue pqueue) {
+	vec_destroy(pqueue->vector);
+	free(pqueue);
+}

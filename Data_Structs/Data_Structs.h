@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "temp.h"
+
 //Decleration of a pointer to store our abstract values in our data structures
 typedef void * pointer;
 
@@ -106,6 +108,27 @@ set_Node S_find_equal(set_Node, int);
 int compare (int , int );
 
 
-// VECTORS
+// PRIORITY QUEUE 
 
-typedef struct vector* Vector;
+struct priority_queue
+{
+	Vector vector;
+};
+
+typedef struct priority_queue* PQueue;
+
+void node_swap(PQueue pqueue, int node1, int node2);
+
+void bubble_up(PQueue pqueue, int node);
+
+void bubble_down(PQueue pqueue, int node);
+
+void naive_heapify(PQueue pqueue, Vector values);
+
+PQueue pqueue_create(Vector values);
+
+void pqueue_insert(PQueue pqueue, int* value);
+
+void pqueue_remove(PQueue pqueue);
+
+void pqueue_destroy(PQueue pqueue);
