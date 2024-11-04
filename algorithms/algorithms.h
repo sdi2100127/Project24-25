@@ -32,7 +32,12 @@ void RobustPrune(Vector** G, int p ,Set* V, int a, int R , int dim , int vecs , 
 // function to find the medoid of a dataset
 int medoid(float** dataset, int vecs, int comps);
 
-// Vamana algorithm
+// We have created two implementation of the vamana algorithm, one for testing and one to use in the main program
+// This was done because in oreder to test vamana we had to have predetermined data, such as the permutation of the
+// vectors indexes and the neighbours in graph G, and that goes against the vamana's algorithm random initiallizations
+
+// Vamana algorithm for testing purposes
 Vector* Vamana(float** dataset, int vecs, int comps, int L, int R, int a);
 
+// Vamana algorithm
 Vector* Vamana_main(float** dataset, int vecs, int comps, int L, int R, int a);

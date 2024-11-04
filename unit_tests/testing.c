@@ -374,12 +374,6 @@ void test_pqueue_create(void) {
 
 void test_pqueue_insert(void) {
    Vector vec = vec_Create(0);
-   // PQueue pq = pqueue_create(vec);
-   // pqueue_insert(pq, 10, 0.0);
-   // pqueue_insert(pq, 20, 1.0);
-   // pqueue_insert(pq, 310, 2.0);
-   // pqueue_insert(pq, 510, 4.0);
-   // pqueue_insert(pq, 1210, 3.0);
 
    vec_insert(vec, 10, 0.0);
    vec_insert(vec, 20, 1.0);
@@ -391,15 +385,7 @@ void test_pqueue_insert(void) {
    TEST_ASSERT(pq->vector->size == 5);
    TEST_ASSERT(v_node_value(pq, 1) == 1210);
 
-   // for (VecNode node = vec_first(pq->vector); node != VECTOR_EOF; node = vec_next(pq->vector, node)) { 
-   //    printf("%d ", node->value);
-   // }
-   // printf("\n");
    pqueue_insert(pq, 45, 1.5);
-   // for (VecNode node = vec_first(pq->vector); node != VECTOR_EOF; node = vec_next(pq->vector, node)) { 
-   //    printf("%d ", node->value);
-   // }
-   // printf("\n");
    
    TEST_ASSERT(v_node_value(pq, 1) == 1210);
    TEST_ASSERT(pq->vector->size == 6);
@@ -580,7 +566,6 @@ void test_euclidean_distance(void) {
    float tolerance = 0.000001;
 
    float dist = euclidean_distance(vec1, vec2, dim);
-   // printf("distance %f", dist);
    TEST_ASSERT(fabs(dist - 8.544003) < tolerance);
 
 }
@@ -624,42 +609,12 @@ void test_greedySearch(void) {
       G[i] = vec_Create(0);
    }
 
-   // printf("neighbours\n");
-   // int x;
-   // float* vec_x = (float*)malloc(dim * sizeof(float));
-   // float* vec_j = (float*)malloc(dim * sizeof(float));
-   // // for every vector in the dataset
-   // for (int j = 0; j < vecs; j++) {
-   //    for (int i=0; i<dim; i++) {
-   //       vec_j[i] = vectors[i][j];
-   //    }
-   //    printf("vector %d:", j);
-   //    // for every one of its R neighbours
-   //    for (int i = 0; i < R; i++) {
-
-   //       int stop = 1;
-   //       while (stop == 1) {
-   //          x = rand() % (vecs - 1);    // pick another vector randomly
-   //          stop = 0;
-   //          for (int z = 0; z < i; z++) {
-   //             // as long as that vector is not a neighbour already and it is not the same as our current vector
-   //             if (vec_find_node(G[j], x) != VECTOR_EOF || x == j) {   
-   //                stop = 1;
-   //                break;
-   //             }
-   //          }    
-   //       }
-   //       // temporarilly store the vectors j and x to compute their distance
-   //       for (int i=0; i<dim; i++) {
-   //          vec_x[i] = vectors[i][x];
-   //       }
-   //       vec_insert(G[j], x, euclidean_distance(vec_x, vec_j, dim));
-
-   //       printf(" %d, %f ", G[j]->array[i].value, G[j]->array[i].dist);
-         
-   //    }
-   //    printf("\n");
-   // }
+   // we check the vamana for G:
+   // vector0: 1 2 3 
+   // vector1: 3 2 0
+   // vector2: 1 3 4
+   // vector3: 2 4 1
+   // vector4: 2 3 0
 
    float* vec1 = (float*)malloc(dim * sizeof(float));
    float* vec2 = (float*)malloc(dim * sizeof(float));
@@ -749,8 +704,6 @@ void test_greedySearch(void) {
       TEST_ASSERT(vec_find_node(knn->vector, node->value) != VECTOR_EOF);
    }
 
-   // set_destroy()
-
 }
 
 void test_RobustPrune(void) {
@@ -785,42 +738,12 @@ void test_RobustPrune(void) {
       G[i] = vec_Create(0);
    }
 
-   // printf("neighbours\n");
-   // int x;
-   // float* vec_x = (float*)malloc(dim * sizeof(float));
-   // float* vec_j = (float*)malloc(dim * sizeof(float));
-   // // for every vector in the dataset
-   // for (int j = 0; j < vecs; j++) {
-   //    for (int i=0; i<dim; i++) {
-   //       vec_j[i] = vectors[i][j];
-   //    }
-   //    printf("vector %d:", j);
-   //    // for every one of its R neighbours
-   //    for (int i = 0; i < R; i++) {
-
-   //       int stop = 1;
-   //       while (stop == 1) {
-   //          x = rand() % (vecs - 1);    // pick another vector randomly
-   //          stop = 0;
-   //          for (int z = 0; z < i; z++) {
-   //             // as long as that vector is not a neighbour already and it is not the same as our current vector
-   //             if (vec_find_node(G[j], x) != VECTOR_EOF || x == j) {   
-   //                stop = 1;
-   //                break;
-   //             }
-   //          }    
-   //       }
-   //       // temporarilly store the vectors j and x to compute their distance
-   //       for (int i=0; i<dim; i++) {
-   //          vec_x[i] = vectors[i][x];
-   //       }
-   //       vec_insert(G[j], x, euclidean_distance(vec_x, vec_j, dim));
-
-   //       printf(" %d, %f ", G[j]->array[i].value, G[j]->array[i].dist);
-         
-   //    }
-   //    printf("\n");
-   // }
+   // we check the vamana for G:
+   // vector0: 1 2 3 
+   // vector1: 3 2 0
+   // vector2: 1 3 4
+   // vector3: 2 4 1
+   // vector4: 2 3 0
 
    float* vec1 = (float*)malloc(dim * sizeof(float));
    float* vec2 = (float*)malloc(dim * sizeof(float));
@@ -888,7 +811,6 @@ void test_RobustPrune(void) {
       printf("\n");
    }
 
-   // rand() % (vecs-1)
    int p = 0;
    int s = 1, L = 4, k = 3;
    printf("s: %d\n", s);
