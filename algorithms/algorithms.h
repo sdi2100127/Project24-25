@@ -27,10 +27,12 @@ PQueue greedySearch(Vector* G, int R, int dim, int vecs, float** vectors, int s,
 //a --> the distance threshold that is necessarily bigger or equal to 1
 //R --> the the degree bound for our selection
 //neigh_count --> a count that we have to keep how many neighboors we have added tg p
-void RobustPrune(Vector** G, int p ,Set* V, int a, int R , int* neigh_count, int dim , int vecs , float** vectors);
+void RobustPrune(Vector** G, int p ,Set* V, int a, int R , int dim , int vecs , float** vectors);
 
 // function to find the medoid of a dataset
 int medoid(float** dataset, int vecs, int comps);
 
 // Vamana algorithm
 Vector* Vamana(float** dataset, int vecs, int comps, int L, int R, int a);
+
+Vector* Vamana_main(float** dataset, int vecs, int comps, int L, int R, int a);

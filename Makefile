@@ -21,4 +21,4 @@ clean:
 
 # Run the program
 run: app
-	valgrind ./app
+	./app

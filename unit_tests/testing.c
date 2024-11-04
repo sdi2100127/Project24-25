@@ -714,6 +714,9 @@ void test_greedySearch(void) {
       }
       if (j ==2 || j==3 || j==0) vec_insert(G[4], j, euclidean_distance(vec1, vec2, dim));
    }
+
+   free(vec1);
+   free(vec2);
    
    printf("neighbours\n");
    for (int j = 0; j < vecs; j++) {
@@ -872,6 +875,9 @@ void test_RobustPrune(void) {
       }
       if (j ==2 || j==3 || j==0) vec_insert(G[4], j, euclidean_distance(vec1, vec2, dim));
    }
+
+   free(vec1);
+   free(vec2);
    
    printf("neighbours\n");
    for (int j = 0; j < vecs; j++) {
@@ -888,7 +894,6 @@ void test_RobustPrune(void) {
    printf("s: %d\n", s);
    printf("p: %d\n", p);
    Set V;
-   int neigh_count;
    int a = 1;
 
    float* xq = (float*)malloc(dim * sizeof(float*));
@@ -903,7 +908,7 @@ void test_RobustPrune(void) {
 
    PQueue knn = greedySearch(G ,R ,dim ,vecs ,vectors ,s ,xq ,L ,k ,&V);
 
-   RobustPrune(&G, p , &V,  a,  R , &neigh_count,  dim ,  vecs , vectors);
+   RobustPrune(&G, p , &V,  a,  R,  dim ,  vecs , vectors);
    TEST_ASSERT(V->size == 0);
 
    int* test_N_out = (int*)malloc(R * sizeof(int*));
@@ -968,7 +973,15 @@ void test_Vamana(void) {
    G_test[0][4] = 1; G_test[1][4] = -1;  G_test[2][4] = -1;
 
    for (int j=0; j<vecs; j++) {
-      for (int i=0; i<R; i++) {
+      printf("Nout(%d): ", j);
+      for (int i=0; i<G[j]->size; i++) {
+         printf("%d ", vec_get_at(G[j], i));
+      }
+      printf("\n");
+   }
+
+   for (int j=0; j<vecs; j++) {
+      for (int i=0; i<G[j]->size; i++) {
          TEST_ASSERT(vec_get_at(G[j], i) == G_test[i][j]);
       }
    }

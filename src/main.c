@@ -13,7 +13,7 @@ int main() {
   int num_vectors, d_base;
   float** dataset = fvecs_open(base_file, &num_vectors, &d_base);
 
-  int vecs = 100;
+  int vecs = 1000;
   float** vectors = (float**)malloc(d_base * sizeof(float*));
   for (int i = 0; i < d_base; i++) {
     vectors[i] = (float*)malloc(vecs * sizeof(float));
@@ -21,7 +21,7 @@ int main() {
 
   for (int j = 0; j<num_vectors && j < vecs; j++) {
     printf("vector %d: ", j);
-    for (int i = 0; i<d_base && i < 5; i++) {
+    for (int i = 0; i<d_base; i++) {
       vectors[i][j] = dataset[i][j];
       printf("%f ", vectors[i][j]);
     }
@@ -44,13 +44,13 @@ int main() {
   printf("medoid: %d\n", med);
 
   // allocate memory for the graph G produced by the vamana algorithm
-  int R = 60;
+  int R = 6;
   Vector* G = (Vector*)malloc(vecs * sizeof(Vector));
 
-  int a = 2, L = 25;
-  G = Vamana(vectors, vecs, d_base, L, R, a);
+  int a = 1, L = 7;
+  G = Vamana_main(vectors, vecs, d_base, L, R, a);
 
-  printf("neighbours\n");
+  printf("G\n");
   for (int j = 0; j < vecs; j++) {
     printf("vector %d:", j);
     for (int i = 0; i < R; i++) {
@@ -69,15 +69,22 @@ int main() {
   printf("%d\n", xq_pos);
 
   // run the greedysearch algorithm to find its k nearest neighbours based on G
-  int k = 100;
+  int k = 5;
   Set V;
   PQueue knn = greedySearch(G, R, d_base, vecs, vectors, med, xq, L, k, &V);
 
-  // print the set knn
-  printf("knn_set: ");
-  Vector knn_vec = knn->vector;
-  for (VecNode node = vec_first(knn_vec); node != VECTOR_EOF; node = vec_next(knn_vec, node)) {
-    printf("%d ", node->value);
+  printf("GROUNDTRUTH knn_set under %d: ", vecs);
+  int* test_knn = (int*)malloc(k * sizeof(int));
+  int count = 0;
+  for (int i=0; i<k_n; i++) {
+    int n_point = groundtruth_G[i][xq_pos];
+    if (n_point < vecs) {
+      test_knn[count] = n_point;
+      printf("%d ", test_knn[count]);
+      count++;
+    }
+    if (count == k) break;
+    
   }
   printf("\n");
 
