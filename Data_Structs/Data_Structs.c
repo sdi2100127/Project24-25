@@ -386,60 +386,6 @@ VecNode vec_previous(Vector vec, VecNode node) {
 
 // https://www.w3resource.com/c-programming-exercises/heap/c-heap-exercises-6.php
 
-float compare_dist(float dist1, float dist2) {
-	return dist1-dist2;
-}
-
-int v_node_value(PQueue pqueue, int node) {
-	return vec_get_at(pqueue->vector, node - 1);
-}
-
-float v_node_dist(PQueue pqueue, int node) {
-	return vec_get_dist(pqueue->vector, node - 1);
-}
-
-void node_swap(PQueue pqueue, int node1, int node2) {
-	int value1 = v_node_value(pqueue, node1);
-	float dist1 = v_node_dist(pqueue, node1);
-	int value2 = v_node_value(pqueue, node2);
-	float dist2 = v_node_dist(pqueue, node2);
-
-	printf("swaping: %d, %d\n", value1, value2);
-
-	vec_set_at(pqueue->vector, node1 - 1, value2, dist2);
-	vec_set_at(pqueue->vector, node2 - 1, value1, dist1);
-}
-
-void heapify(PQueue pq, int node) {
-	int largest = node;    // Initialize largest as the root
-    int left = 2 * node + 1; // Calculate index of the left child
-    int right = 2 * node + 2; // Calculate index of the right child
-
-    // If left child is larger than root
-    if (left < pq->vector->size && v_node_dist(pq, left) > v_node_dist(pq, largest))
-        largest = left;
-
-    // If right child is larger than largest so far
-    if (right < pq->vector->size && v_node_dist(pq, right) > v_node_dist(pq, largest))
-        largest = right;
-
-    // If largest is not root
-    if (largest != node) {
-        // Swap the found largest element with the root
-        node_swap(pq, node, largest);
-
-        // Recursively heapify the affected sub-tree
-        heapify(pq, largest);
-    }
-}
-
-void build_heap(PQueue pq) {
-	for (int i = pq->vector->size / 2 - 1; i >= 0; i--) {
-        heapify(pq, i);
-    }
-}
-
-
 void bubble_up(PQueue pqueue, int node) {
 	// if you reach the root stop
 	if (node == 1)
@@ -447,8 +393,6 @@ void bubble_up(PQueue pqueue, int node) {
 
 	// find the node's parent
 	int parent = node/ 2;
-	
-	printf("Bubble up node: %d, parent: %d, comp_dist: %f\n", node, parent, compare_dist(v_node_dist(pqueue, parent), v_node_dist(pqueue, node)));	
 
 	// if the parent value is smaller, swap and continue recursively to the top
 	if (compare_dist(v_node_dist(pqueue, parent), v_node_dist(pqueue, node)) < 0.0f) {
@@ -477,6 +421,28 @@ void bubble_down(PQueue pqueue, int node) {
 	}
 }
 
+float compare_dist(float dist1, float dist2) {
+	return dist1-dist2;
+}
+
+int v_node_value(PQueue pqueue, int node) {
+	return vec_get_at(pqueue->vector, node - 1);
+}
+
+float v_node_dist(PQueue pqueue, int node) {
+	return vec_get_dist(pqueue->vector, node - 1);
+}
+
+void node_swap(PQueue pqueue, int node1, int node2) {
+	int value1 = v_node_value(pqueue, node1);
+	float dist1 = v_node_dist(pqueue, node1);
+	int value2 = v_node_value(pqueue, node2);
+	float dist2 = v_node_dist(pqueue, node2);
+
+	vec_set_at(pqueue->vector, node1 - 1, value2, dist2);
+	vec_set_at(pqueue->vector, node2 - 1, value1, dist1);
+}
+
 void naive_heapify(PQueue pqueue, Vector values) {
 	// insert the vector's values one by one to the queue
 	int size = values->size;
@@ -498,10 +464,8 @@ void pqueue_insert(PQueue pqueue, int value, float dist) {
 	if (vec_find_node(pqueue->vector, value) != VECTOR_EOF) return;
 	vec_insert(pqueue->vector, value, dist);
 
-	printf("Inserting node: %d with distance: %f\n", value, dist);
-
 	// then we call bubble up to ensure the heap property
-	build_heap(pqueue);
+	bubble_up(pqueue, pqueue->vector->size);
 }
 
 void pqueue_remove(PQueue pqueue) {
@@ -514,7 +478,7 @@ void pqueue_remove(PQueue pqueue) {
 	vec_remove(pqueue->vector);
 
 	// call bubble down to ensure the heap property
-	heapify(pqueue, 0);
+	bubble_down(pqueue, 1);
 }
 
 void pqueue_destroy(PQueue pqueue) {

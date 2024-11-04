@@ -64,7 +64,7 @@ PQueue greedySearch(Vector* G, int R, int dim, int vecs, float** vectors, int s,
         Vector knn_vec = knn->vector;
         for (VecNode node = vec_first(knn_vec); node != VECTOR_EOF; node = vec_next(knn_vec, node)) {
             node_value = node->value;
-            printf("node_value: %d\n", node_value);
+            //printf("node_value: %d\n", node_value);
             //if (node_value == -1) continue;
             if (S_find_equal(visited_nodes->root, node_value) == SET_EOF) {
                 flag = 1;   // unvisited nodes where indeed found              
@@ -79,7 +79,7 @@ PQueue greedySearch(Vector* G, int R, int dim, int vecs, float** vectors, int s,
                 }
             }
         }
-        printf("min_dist: %f, xp: %d\n", min_dist, xp);
+        //printf("min_dist: %f, xp: %d\n", min_dist, xp);
 
         // if there where no more unvisited nodes found there is no point in continuing with the loop
         if (flag == 0) break; 
@@ -87,12 +87,10 @@ PQueue greedySearch(Vector* G, int R, int dim, int vecs, float** vectors, int s,
         // now we add all the outgoing neighbours of the node xp in the knn_set
         // the outgoing neighbours of a node are the one that are included in said node's column
         // the incoming neighbours are the other node's columns that the node is part of
-        printf("inserting: ");
         for (int i=0; i<G[xp]->size; i++) {
-            printf("%d ", vec_get_at(G[xp], i));
-            pqueue_insert(knn, vec_get_at(G[xp], i), vec_get_dist(G[xp], i));
+            int point = vec_get_at(G[xp], i);
+            pqueue_insert(knn, point, dist_matrix[point]);
         }
-        printf("\n");
 
         // add node xp to te visited_nodes set
         set_insert(visited_nodes, xp);
@@ -100,31 +98,22 @@ PQueue greedySearch(Vector* G, int R, int dim, int vecs, float** vectors, int s,
         // if the knn_set is bigger than L
         if (knn->vector->size > L) {
             // remove the most distant neighbours of xq from knn_set until its equal to L
-            // prev_max = 0.0;
-            // prev_max_pos = -1;
-            printf("removing ");
             while(knn->vector->size > L) {
-                printf("%d ", vec_get_at(knn->vector, 0));
                 pqueue_remove(knn);
-                // float max_dist = 0.0;
-                // int max_pos = -1;
-                // for (int i=0; i<vecs; i++) {
-                //     if (dist_matrix[i] >= max_dist && (prev_max == 0.0 || prev_max >= dist_matrix[i])) {
-                //         if (i != prev_max_pos) {
-                //             max_dist = dist_matrix[i];
-                //             max_pos = i;
-                //         }
-                //     } 
-                // }
-                // set_Node node = S_find_equal(knn_set->root, max_pos);
-                // if (node != SET_EOF) {
-                //     set_remove(knn_set, max_pos);
-                // }
-                // prev_max = max_dist;
-                // prev_max_pos = max_pos;
             }
-            printf("\n");
         }
+
+        // printf("knn_set: ");
+        // for (VecNode node = vec_first(knn->vector); node != VECTOR_EOF; node = vec_next(knn->vector, node)) { 
+        //     printf("%d ", node->value);
+        // }
+        // printf("\n");
+
+        // printf("visited_set: ");
+        // for (set_Node node = find_min(visited_nodes->root); node != SET_EOF; node = set_next(visited_nodes, node)) { 
+        //     printf("%d ", node->value);
+        // }
+        // printf("\n");
     }
     
     // now we have to prune the set again to only keep xq's k nearest neighbours
@@ -132,22 +121,6 @@ PQueue greedySearch(Vector* G, int R, int dim, int vecs, float** vectors, int s,
         // remove the most distant neighbours of xq from knn_set until its equal to k
         while(knn->vector->size > k) {
             pqueue_remove(knn);
-        //     float max_dist = 0.0;
-        //     int max_pos = -1;
-        //     for (int i=0; i<vecs; i++) {
-        //         if (dist_matrix[i] >= max_dist && (prev_max == 0.0 || prev_max >= dist_matrix[i])) {
-        //             if (i != prev_max_pos) {
-        //                 max_dist = dist_matrix[i];
-        //                 max_pos = i;
-        //             }
-        //         } 
-        //     }
-        //     set_Node node = S_find_equal(knn_set->root, max_pos);
-        //     if (node != SET_EOF) {
-        //         set_remove(knn_set, max_pos);
-        //     }
-        //     prev_max = max_dist;
-        //     prev_max_pos = max_pos;
         }
     }
 
@@ -162,16 +135,12 @@ PQueue greedySearch(Vector* G, int R, int dim, int vecs, float** vectors, int s,
         printf("%d ", node->value);
     }
     printf("\n");
-
     
     *V = visited_nodes;
     
     free(vec_s);
     free(dist_matrix);
     free(vec_p);
-
-    //Not sure
-    free(visited_nodes);
 
     //set_destroy()
     return knn;
@@ -226,12 +195,15 @@ void RobustPrune(Vector** G, int p ,Set * V, int a, int R , int * neigh_count ,i
                 min_dist = dist;
             }
         }
+
+        printf("p*: %d\n", p_star);
         
         for (int i=0; i<dim; i++) {
             vec_of_p_star[i] = vectors[i][p_star];
         }
 
-        vec_set_at(temp_G[p], i_count, p_star, euclidean_distance(vec_of_p_star, vec_of_p, dim));
+        //vec_set_at(temp_G[p], i_count, p_star, euclidean_distance(vec_of_p_star, vec_of_p, dim));
+        vec_insert(temp_G[p], p_star, euclidean_distance(vec_of_p_star, vec_of_p, dim));
         i_count ++;
 
         if(i_count == R)
@@ -257,11 +229,18 @@ void RobustPrune(Vector** G, int p ,Set * V, int a, int R , int * neigh_count ,i
 
     }
 
-    // printf("Nout(%d): ", p);
-    // for (int i=0; i<dim; i++) {
-    //     printf("%d ", temp_G[i][p]);
-    // }
-    // printf("\n");
+    printf("V: ");
+    for (set_Node node = find_min(temp->root); node != SET_EOF; node = set_next(temp, node)) {
+        printf("%d ", node->value);
+    }
+    printf("\n");
+
+    printf("Nout(%d): ", p);
+    for (int i=0; i<temp_G[p]->size; i++) {
+        printf("%d ", vec_get_at(temp_G[p], i));
+    }
+    printf("\n");
+    printf("size: %d\n", temp_G[p]->size);
 
     *V = temp;
     *G = temp_G;
@@ -276,8 +255,8 @@ void RobustPrune(Vector** G, int p ,Set * V, int a, int R , int * neigh_count ,i
 
 
     //not sure
-    free(temp);
-    free(temp_G);
+    // free(temp);
+    // free(temp_G);
 
     //printf("\n");
 
