@@ -27,10 +27,10 @@ PQueue greedySearch(Vector* G, int R, int dim, int vecs, float** vectors, int s,
 //a --> the distance threshold that is necessarily bigger or equal to 1
 //R --> the the degree bound for our selection
 //neigh_count --> a count that we have to keep how many neighboors we have added tg p
-void RobustPrune(Vector** G, int p ,Set* V, int a, int R , int dim , int vecs , float** vectors);
+void RobustPrune(Vector** G, int p ,Set* V, int a, int R , int dim , int vecs , float** vectors, float** dist_m);
 
 // function to find the medoid of a dataset
-int medoid(float** dataset, int vecs, int comps);
+int medoid(float** dataset, int vecs, int comps, float*** dist_m);
 
 // We have created two implementation of the vamana algorithm, one for testing and one to use in the main program
 // This was done because in oreder to test vamana we had to have predetermined data, such as the permutation of the

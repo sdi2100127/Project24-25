@@ -43,13 +43,10 @@ PQueue greedySearch(Vector* G, int R, int dim, int vecs, float** vectors, int s,
 
     float* vec_p = (float*)malloc(dim * sizeof(float));
 
-    //create a distance matrix with the euclidean distance of each vector to xq
+    //create a distance matrix with the euclidean distance of each vector to xq and initiallize it to -1
     float* dist_matrix = (float*)malloc(vecs * sizeof(float*));
     for (int j = 0; j < vecs; j++) {
-        for (int i=0; i<dim; i++) {
-            vec_p[i] = vectors[i][j];
-        }
-        dist_matrix[j] = euclidean_distance(vec_p, xq, dim);
+        dist_matrix[j] = -1;
     }
 
     float prev_max; 
@@ -65,14 +62,19 @@ PQueue greedySearch(Vector* G, int R, int dim, int vecs, float** vectors, int s,
         for (VecNode node = vec_first(knn_vec); node != VECTOR_EOF; node = vec_next(knn_vec, node)) {
             node_value = node->value;
             //printf("node_value: %d\n", node_value);
-            //if (node_value == -1) continue;
             if (S_find_equal(visited_nodes->root, node_value) == SET_EOF) {
                 flag = 1;   // unvisited nodes where indeed found              
 
                 // if the next node xp is not initialized yet initialize it with the first unvisited node you encounter
-                // otherwise check if its position is smaller than the current min_pos
+                // otherwise check if its distance to xq is smaller than the current min_dist
+                if (dist_matrix[node_value] == -1) {    // if the distance has not been computed before, compute it
+                    for (int i=0; i<dim; i++) {
+                        vec_p[i] = vectors[i][node_value];
+                    }
+                    dist_matrix[node_value] = euclidean_distance(vec_p, xq, dim);
+                }
                 float dist = dist_matrix[node_value];
-                //float dist = node->dist;
+
                 if (xp == -1 || dist <= min_dist) {
                     xp = node_value;
                     min_dist = dist;
@@ -89,6 +91,13 @@ PQueue greedySearch(Vector* G, int R, int dim, int vecs, float** vectors, int s,
         // the incoming neighbours are the other node's columns that the node is part of
         for (int i=0; i<G[xp]->size; i++) {
             int point = vec_get_at(G[xp], i);
+            // if the distance has not been computed before, compute it
+            if (dist_matrix[point] == -1) {
+                for (int i=0; i<dim; i++) {
+                    vec_p[i] = vectors[i][point];
+                }
+                dist_matrix[point] = euclidean_distance(vec_p, xq, dim);
+            }
             pqueue_insert(knn, point, dist_matrix[point]);
         }
 
@@ -136,10 +145,10 @@ PQueue greedySearch(Vector* G, int R, int dim, int vecs, float** vectors, int s,
 }
 
 //Implementation of Robust Prune function
-void RobustPrune(Vector** G, int p ,Set * V, int a, int R, int dim , int vecs , float **vectors){
+void RobustPrune(Vector** G, int p ,Set * V, int a, int R, int dim , int vecs , float **vectors,float** dist_m){
     //printf("ROBUST PRUNE\n");
     
-    // we start out by creating some temporary stcucts to store the visited nodes set, as well as the graph G
+    // we start out by creating some temporary structs to store the visited nodes set, as well as the graph G
     Set temp = *V;
     Vector* temp_G = *G;
 
@@ -155,25 +164,25 @@ void RobustPrune(Vector** G, int p ,Set * V, int a, int R, int dim , int vecs , 
 
     int i_count = 0;    // to keep count of the Nout vector index
 
-    float* dist_matrix_2 = (float*)malloc(vecs * sizeof(float*));
-    float* vec_of_p_star = (float*)malloc(dim * sizeof(float));
-    float* vec_p = (float*)malloc(dim * sizeof(float));             //And to do that we create a distance matrix with the euclidean distance
-    float* vec_of_p = (float*)malloc(dim * sizeof(float));
-    float* dist_matrix = (float*)malloc(vecs * sizeof(float*));
+    // float* dist_matrix_2 = (float*)malloc(vecs * sizeof(float*));
+    // float* vec_of_p_star = (float*)malloc(dim * sizeof(float));
+    // float* vec_p = (float*)malloc(dim * sizeof(float));             //And to do that we create a distance matrix with the euclidean distance
+    // float* vec_of_p = (float*)malloc(dim * sizeof(float));
+    // float* dist_matrix = (float*)malloc(vecs * sizeof(float*));
 
     // temporarily store the vector corresponding to p
-    for (int i=0; i<dim; i++) {
-        vec_of_p[i] = vectors[i][p];
-    }
+    // for (int i=0; i<dim; i++) {
+    //     vec_of_p[i] = vectors[i][p];
+    // }
 
     // in order to compute its distance from every point p in G
     // this might be not needed, and taking too long !!!!
-    for (int j = 0; j < vecs; j++) {
-        for (int i=0; i<dim; i++) {
-        vec_p[i] = vectors[i][j];
-        }
-        dist_matrix[j] = euclidean_distance(vec_p, vec_of_p, dim);
-    }
+    // for (int j = 0; j < vecs; j++) {
+    //     for (int i=0; i<dim; i++) {
+    //         vec_p[i] = vectors[i][j];
+    //     }
+    //     dist_matrix[j] = euclidean_distance(vec_p, vec_of_p, dim);
+    // }
     
     while(temp->size != 0){
         //Now we have to find which vector of V has minimum distance to our point p
@@ -182,8 +191,8 @@ void RobustPrune(Vector** G, int p ,Set * V, int a, int R, int dim , int vecs , 
 
         for (set_Node node = find_min(temp->root); node != SET_EOF; node = set_next(temp, node)) {
             int node_value = node->value;
-            float dist = dist_matrix[node_value];
-            if (p_star == -1 || dist_matrix[node_value] <= min_dist) {
+            float dist = dist_m[node_value][p];
+            if (p_star == -1 || dist <= min_dist) {
                 p_star = node_value;
                 min_dist = dist;
             }
@@ -192,12 +201,13 @@ void RobustPrune(Vector** G, int p ,Set * V, int a, int R, int dim , int vecs , 
         printf("p*: %d\n", p_star);
         
         // temporarily store the vector corresponding to p*
-        for (int i=0; i<dim; i++) {
-            vec_of_p_star[i] = vectors[i][p_star];
-        }
+        // for (int i=0; i<dim; i++) {
+        //     vec_of_p_star[i] = vectors[i][p_star];
+        // }
 
         // insert p* to the outgoing neighbours of p
-        vec_insert(temp_G[p], p_star, euclidean_distance(vec_of_p_star, vec_of_p, dim));
+        // vec_insert(temp_G[p], p_star, euclidean_distance(vec_of_p_star, vec_of_p, dim));
+        vec_insert(temp_G[p], p_star, min_dist);
         i_count ++;
 
         // if we found R neighbours --> stop
@@ -206,18 +216,18 @@ void RobustPrune(Vector** G, int p ,Set * V, int a, int R, int dim , int vecs , 
 
         // compute p* 's distance from every point p in G
         // this might be not needed, and taking too long !!!!
-        for (int j = 0; j < vecs; j++) {
-            for (int i=0; i<dim; i++) {
-                vec_p[i] = vectors[i][j];
-            }
-            dist_matrix_2[j] = euclidean_distance(vec_p, vec_of_p_star, dim);
-        }
+        // for (int j = 0; j < vecs; j++) {
+        //     for (int i=0; i<dim; i++) {
+        //         vec_p[i] = vectors[i][j];
+        //     }
+        //     dist_matrix_2[j] = euclidean_distance(vec_p, vec_of_p_star, dim);
+        // }
 
         // for every point p in V perform the necessary pruning by removing certain points
         set_Node next = find_min(temp->root);
         while(next != SET_EOF){
             int node_value = next->value;
-            if(a * dist_matrix_2[node_value] <= dist_matrix[node_value]){
+            if(a * dist_m[node_value][p_star] <= dist_m[node_value][p]){
                 next = set_next(temp, next);
                 set_remove(temp,node_value);
             } else {
@@ -243,23 +253,25 @@ void RobustPrune(Vector** G, int p ,Set * V, int a, int R, int dim , int vecs , 
     *V = temp;
     *G = temp_G;
 
-    free(dist_matrix);
-    free(dist_matrix_2);
+    // free(dist_matrix);
+    // free(dist_matrix_2);
     
-    free(vec_p);
-    free(vec_of_p);
-    free(vec_of_p_star);
+    // free(vec_p);
+    // free(vec_of_p);
+    // free(vec_of_p_star);
 
     return;
 }
 
-int medoid(float** dataset, int vecs, int comps) {
+int medoid(float** dataset, int vecs, int comps, float*** dist_m) {
+    float** temp_m =  *dist_m;
 
     float* vec_p1 = (float*)malloc(comps * sizeof(float));
     float* vec_p2 = (float*)malloc(comps * sizeof(float));
 
     float min_sum = FLT_MAX;
     int min_p = -1;
+    float dist;
     float dist_sum;
 
     // for each vector in the dataset
@@ -279,8 +291,14 @@ int medoid(float** dataset, int vecs, int comps) {
             }
 
             // and add it to the total sum
-            if (j != z) {
-                dist_sum = dist_sum + squared_euclidean_distance(vec_p1, vec_p2, comps);
+            if (j != z)  {
+                // compute the distance only if it has not been computed before
+                if (temp_m[j][z] == 0) {
+                    dist = squared_euclidean_distance(vec_p1, vec_p2, comps);
+                    temp_m[j][z] = dist;
+                    temp_m[z][j] = dist;
+                }
+                dist_sum = dist_sum + temp_m[j][z];
             }
         }
         
@@ -293,6 +311,8 @@ int medoid(float** dataset, int vecs, int comps) {
 
     free(vec_p1);
     free(vec_p2);
+
+    *dist_m = temp_m;
 
     printf("medoid sum: %f\n", min_sum);
     return min_p;
@@ -345,8 +365,14 @@ Vector* Vamana_main(float** dataset, int vecs, int comps, int L, int R, int a) {
         printf("\n");
     }
 
+    // create a 2D distance matrix that will hold the euclidean distances between all vectors of the dataset
+    float** dist_matrix = (float**)malloc(vecs * sizeof(float*));
+    for (int i = 0; i < vecs; i++) {
+        dist_matrix[i] = (float*)malloc(vecs * sizeof(float));
+    }
+
     // now we find the medoid of the dataset that will be our starting point s
-    int s = medoid(dataset, vecs, comps);
+    int s = medoid(dataset, vecs, comps, &dist_matrix);
     printf("medoid: %d\n", s);
 
     // create a random permutation of 1...vecs (really from 0 to vecs-1) 
@@ -391,7 +417,7 @@ Vector* Vamana_main(float** dataset, int vecs, int comps, int L, int R, int a) {
         Set V;
         PQueue knn = greedySearch(G, R, comps, vecs, dataset, s, xq, L, 1, &V);
         // then run robust prune
-        RobustPrune(&G, query_pos, &V, a, R, comps, vecs, dataset);
+        RobustPrune(&G, query_pos, &V, a, R, comps, vecs, dataset, dist_matrix);
 
         for (int j=0; j<G[query_pos]->size; j++) {
             
@@ -412,7 +438,7 @@ Vector* Vamana_main(float** dataset, int vecs, int comps, int L, int R, int a) {
                 }
                 set_insert(Nout_j, query_pos);
                 // and we call robust prune
-                RobustPrune(&G, point, &Nout_j, a, R, comps, vecs, dataset);
+                RobustPrune(&G, point, &Nout_j, a, R, comps, vecs, dataset, dist_matrix);
 
                 //set_destroy(Nout_j);
 
@@ -521,8 +547,15 @@ Vector* Vamana(float** dataset, int vecs, int comps, int L, int R, int a) {
         printf("\n");
     }
 
+    // create a 2D distance matrix that will hold the euclidean distances between all vectors of the dataset
+    float** dist_matrix = (float**)malloc(vecs * sizeof(float*));
+    for (int i = 0; i < vecs; i++) {
+        dist_matrix[i] = (float*)malloc(vecs * sizeof(float));
+    }
+
     // now we find the medoid of the dataset that will be our starting point s
-    int s = medoid(dataset, vecs, comps);
+    // and we also fill the distance matrix
+    int s = medoid(dataset, vecs, comps, &dist_matrix);
     printf("medoid: %d\n", s);
 
     // create a random permutation of 1...vecs (really from 0 to vecs-1) 
@@ -557,7 +590,7 @@ Vector* Vamana(float** dataset, int vecs, int comps, int L, int R, int a) {
         Set V;
         PQueue knn = greedySearch(G, R, comps, vecs, dataset, s, xq, L, 1, &V);
         
-        RobustPrune(&G, query_pos, &V, a, R, comps, vecs, dataset);
+        RobustPrune(&G, query_pos, &V, a, R, comps, vecs, dataset, dist_matrix);
 
         for (int j=0; j<G[query_pos]->size; j++) {
             
@@ -577,7 +610,7 @@ Vector* Vamana(float** dataset, int vecs, int comps, int L, int R, int a) {
                     set_insert(Nout_j, vec_get_at(G[point], n));
                 }
                 set_insert(Nout_j, query_pos);
-                RobustPrune(&G, point, &Nout_j, a, R, comps, vecs, dataset);
+                RobustPrune(&G, point, &Nout_j, a, R, comps, vecs, dataset, dist_matrix);
 
                 //set_destroy(Nout_j)
 

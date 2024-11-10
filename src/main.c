@@ -40,7 +40,13 @@ int main() {
 
   printf("\n");
 
-  int med = medoid(vectors, vecs, d_base);
+  // create a 2D distance matrix that will hold the euclidean distances between all vectors of the dataset
+  float** dist_matrix = (float**)malloc(vecs * sizeof(float*));
+  for (int i = 0; i < vecs; i++) {
+      dist_matrix[i] = (float*)malloc(vecs * sizeof(float));
+  }
+
+  int med = medoid(vectors, vecs, d_base, &dist_matrix);
   printf("medoid: %d\n", med);
 
   // allocate memory for the graph G produced by the vamana algorithm

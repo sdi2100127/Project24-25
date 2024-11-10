@@ -470,7 +470,7 @@ void test_open_fvecs(void) {
    // open the file
    FILE *fp = NULL;
    char path[100];
-   sprintf(path, "/home/mike/Documents/Project24-25/open_functions/siftsmall/%s", filename);
+   sprintf(path, "open_functions/siftsmall/%s", filename);
    fp = fopen(path, "rb");
 
    TEST_ASSERT(fp != NULL); // check that file was opened successfully
@@ -514,7 +514,7 @@ void test_open_ivecs(void) {
    // open the file
    FILE *fp = NULL;
    char path[100];
-   sprintf(path, "/home/mike/Documents/Project24-25/open_functions/siftsmall/%s", filename);
+   sprintf(path, "open_functions/siftsmall/%s", filename);
    fp = fopen(path, "rb");
 
    TEST_ASSERT(fp != NULL); // check that file was opened successfully
@@ -828,9 +828,17 @@ void test_RobustPrune(void) {
    }
    printf("\n");
 
+   // create a 2D distance matrix that will hold the euclidean distances between all vectors of the dataset
+   float** dist_matrix = (float**)malloc(vecs * sizeof(float*));
+   for (int i = 0; i < vecs; i++) {
+      dist_matrix[i] = (float*)malloc(vecs * sizeof(float));
+   }
+
+   int med = medoid(vectors, vecs, dim, &dist_matrix);
+
    PQueue knn = greedySearch(G ,R ,dim ,vecs ,vectors ,s ,xq ,L ,k ,&V);
 
-   RobustPrune(&G, p , &V,  a,  R,  dim ,  vecs , vectors);
+   RobustPrune(&G, p , &V,  a,  R,  dim ,  vecs , vectors, dist_matrix);
    TEST_ASSERT(V->size == 0);
 
    int* test_N_out = (int*)malloc(R * sizeof(int*));
@@ -858,7 +866,13 @@ void test_medoid(void) {
    vectors[0][3] = 1.0; vectors[1][3] = 5.0; vectors[2][3] = 8.0;
    vectors[0][4] = 2.0; vectors[1][4] = 5.0; vectors[2][4] = 0.0;
 
-   int med = medoid(vectors, vecs, dim);
+   // create a 2D distance matrix that will hold the euclidean distances between all vectors of the dataset
+   float** dist_matrix = (float**)malloc(vecs * sizeof(float*));
+   for (int i = 0; i < vecs; i++) {
+      dist_matrix[i] = (float*)malloc(vecs * sizeof(float));
+   }
+
+   int med = medoid(vectors, vecs, dim, &dist_matrix);
    TEST_ASSERT(med == 1);
 }
 

@@ -384,8 +384,6 @@ VecNode vec_previous(Vector vec, VecNode node) {
 
 // PRIORITY QUEUE
 
-// https://www.w3resource.com/c-programming-exercises/heap/c-heap-exercises-6.php
-
 void bubble_up(PQueue pqueue, int node) {
 	// if you reach the root stop
 	if (node == 1)

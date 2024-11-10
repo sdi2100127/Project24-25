@@ -1,13 +1,10 @@
 #include "open.h"
 
-// mike path: /home/mike/Documents/Project24-25/open_functions/siftsmall
-// nefeli path: /home/users/sdi2100127/Documents/Project24-25/open_functions/siftsmall
-
 float** fvecs_open(const char* filename, int* num_vectors, int* d) {
     // first we have to open the file in binary read mode using the correct file path
     FILE *fp = NULL;
     char path[100];
-    sprintf(path, "/home/mike/Documents/Project24-25/open_functions/siftsmall/%s", filename);
+    sprintf(path, "open_functions/siftsmall/%s", filename);
     fp = fopen(path, "rb");
 
     if (fp == NULL) {
@@ -67,7 +64,7 @@ int** ivecs_open(const char* filename, int* num_vectors, int* d) {
     // first we have to open the file in binary read mode using the correct file path
     FILE *fp = NULL;
     char path[100];
-    sprintf(path, "/home/mike/Documents/Project24-25/open_functions/siftsmall/%s", filename);
+    sprintf(path, "open_functions/siftsmall/%s", filename);
     fp = fopen(path, "rb");
 
     if (fp == NULL) {

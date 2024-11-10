@@ -129,7 +129,7 @@ Vector vec_Create(int );
 //Inserts a new value to the end of the vector and the size expands by 1
 void vec_insert(Vector , int, float);
 
-//
+//Removes the last value in the vector
 void vec_remove(Vector );
 
 //Returns the dist attribute of the node in position pos
