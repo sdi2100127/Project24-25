@@ -145,7 +145,7 @@ PQueue greedySearch(Vector* G, int R, int dim, int vecs, float** vectors, int s,
 }
 
 //Implementation of Robust Prune function
-void RobustPrune(Vector** G, int p ,Set * V, int a, int R, int dim , int vecs , float **vectors,float** dist_m){
+void RobustPrune(Vector** G, int p ,Set * V, int a, int R, int dim , int vecs , float **vectors, float** dist_m){
     //printf("ROBUST PRUNE\n");
     
     // we start out by creating some temporary structs to store the visited nodes set, as well as the graph G
@@ -371,6 +371,12 @@ Vector* Vamana_main(float** dataset, int vecs, int comps, int L, int R, int a) {
         dist_matrix[i] = (float*)malloc(vecs * sizeof(float));
     }
 
+    for(int i=0; i<vecs; i++) {
+        for(int j=0; j<vecs; j++) {
+            dist_matrix[i][j] = 0;
+        }
+    }
+
     // now we find the medoid of the dataset that will be our starting point s
     int s = medoid(dataset, vecs, comps, &dist_matrix);
     printf("medoid: %d\n", s);
@@ -512,7 +518,7 @@ Vector* Vamana(float** dataset, int vecs, int comps, int L, int R, int a) {
         for (int i = 0; i < comps; i++) {
             vec2[i] = dataset[i][j];
         }
-        if (j ==3 || j==4 || j==1) vec_insert(G[2], j, euclidean_distance(vec1, vec2, comps));
+        if (j ==3 || j==0 || j==1) vec_insert(G[2], j, euclidean_distance(vec1, vec2, comps));
     }
 
     for (int i = 0; i < comps; i++) {
@@ -522,7 +528,7 @@ Vector* Vamana(float** dataset, int vecs, int comps, int L, int R, int a) {
         for (int i = 0; i < comps; i++) {
             vec2[i] = dataset[i][j];
         }
-        if (j == 1 || j==4 || j==2) vec_insert(G[3], j, euclidean_distance(vec1, vec2, comps));
+        if (j == 2 || j==0 || j==1) vec_insert(G[3], j, euclidean_distance(vec1, vec2, comps));
     }
 
     for (int i = 0; i < comps; i++) {
@@ -532,7 +538,7 @@ Vector* Vamana(float** dataset, int vecs, int comps, int L, int R, int a) {
         for (int i = 0; i < comps; i++) {
             vec2[i] = dataset[i][j];
         }
-        if (j ==2 || j==3 || j==0) vec_insert(G[4], j, euclidean_distance(vec1, vec2, comps));
+        if (j ==2 || j==3 || j==1) vec_insert(G[4], j, euclidean_distance(vec1, vec2, comps));
     }
 
     free(vec1);
@@ -551,6 +557,12 @@ Vector* Vamana(float** dataset, int vecs, int comps, int L, int R, int a) {
     float** dist_matrix = (float**)malloc(vecs * sizeof(float*));
     for (int i = 0; i < vecs; i++) {
         dist_matrix[i] = (float*)malloc(vecs * sizeof(float));
+    }
+
+    for(int i=0; i<vecs; i++) {
+        for(int j=0; j<vecs; j++) {
+            dist_matrix[i][j] = 0;
+        }
     }
 
     // now we find the medoid of the dataset that will be our starting point s

@@ -13,7 +13,7 @@ int main() {
   int num_vectors, d_base;
   float** dataset = fvecs_open(base_file, &num_vectors, &d_base);
 
-  int vecs = 1000;
+  int vecs = 10000;
   float** vectors = (float**)malloc(d_base * sizeof(float*));
   for (int i = 0; i < d_base; i++) {
     vectors[i] = (float*)malloc(vecs * sizeof(float));
@@ -50,10 +50,10 @@ int main() {
   printf("medoid: %d\n", med);
 
   // allocate memory for the graph G produced by the vamana algorithm
-  int R = 6;
+  int R = 60; // 1000: 6, 10000: 60
   Vector* G = (Vector*)malloc(vecs * sizeof(Vector));
 
-  int a = 1, L = 7;
+  int a = 1, L = 7; // 1000: 7, 10000: 25
   G = Vamana_main(vectors, vecs, d_base, L, R, a);
 
   printf("G\n");

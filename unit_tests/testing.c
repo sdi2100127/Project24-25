@@ -872,6 +872,12 @@ void test_medoid(void) {
       dist_matrix[i] = (float*)malloc(vecs * sizeof(float));
    }
 
+   for(int i=0; i<vecs; i++) {
+      for(int j=0; j<vecs; j++) {
+         dist_matrix[i][j] = 0;
+      }
+   }
+
    int med = medoid(vectors, vecs, dim, &dist_matrix);
    TEST_ASSERT(med == 1);
 }
