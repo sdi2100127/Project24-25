@@ -1,4 +1,4 @@
-name: C Project CI
+name: Running tests
 
 # Trigger the workflow on push and pull request to the main branch
 on:
