@@ -76,7 +76,7 @@ void set_insert(Set, int);
 void set_remove(Set ,int );
 
 //Destroy of the set
-void set_destroy(Set,int);
+void set_destroy(Set);
 
 //Creation of a set node
 set_Node S_node_create(int);      
@@ -91,7 +91,7 @@ set_Node min_remove(set_Node ,set_Node * );
 set_Node S_remove(set_Node , int, int* , int* );
 
 //Total deletion of a set node
-void S_destroy(set_Node , int );
+void S_destroy(set_Node);
 
 //Other functions that will be very helpfull
 
@@ -147,9 +147,7 @@ VecNode vec_find_node(Vector , int );
 //Finds the position of a value
 int vec_find_pos(Vector , int );
 
-// 
-void vec_set_destroy_value(Vector ,int );
-
+// free vector's vec memory
 void vec_destroy(Vector);
 
 

@@ -44,17 +44,16 @@ float** fvecs_open(const char* filename, int* num_vectors, int* d) {
         vectors[i] = (float*)malloc(vecs * sizeof(float));
     }
 
+    float* vec = (float*)malloc(vec_size); 
     for (int j = 0; j < vecs; j++) {
         // Read each vector and copy it
-        float* vec = (float*)malloc(vec_size); 
         fread(vec, vec_size, 1, fp);
         
         for (int i = 0; i < dim; i++) {
             vectors[i][j] = vec[i + 1]; // vec[0] is the dimension, vec[1] to vec[d] are the vector components
         }
-        
-        free(vec);
     }
+    free(vec);
 
     fclose(fp);
     return vectors;

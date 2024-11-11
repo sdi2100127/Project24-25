@@ -36,4 +36,4 @@ run: app
 
 # Run the unit tests
 run_test: test
-	./test
+	valgrind ./test

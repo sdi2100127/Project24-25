@@ -80,7 +80,9 @@ PQueue greedySearch(Vector* G, int R, int dim, int vecs, float** vectors, int s,
                     min_dist = dist;
                 }
             }
+            
         }
+        vec_destroy(knn_vec);
         //printf("min_dist: %f, xp: %d\n", min_dist, xp);
 
         // if there where no more unvisited nodes found there is no point in continuing with the loop
@@ -646,4 +648,14 @@ Vector* Vamana(float** dataset, int vecs, int comps, int L, int R, int a) {
     free(xq);
     free(point_vec);
     return G;
+}
+
+void free_G(Vector* G, int v) {
+    // Free the allocated memory for the matrix
+    if (G == NULL) return;
+
+    for (int i = 0; i < v; i++) {
+        vec_destroy(G[i]);
+    }
+    free(G);
 }

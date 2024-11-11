@@ -70,27 +70,7 @@ void list_destroy(List l){
 	free(l);
 }
 
-
-
-
-
-
-
-//Implementation of the Set struct and functions
-
-
-
-// struct set{
-// 	set_Node root;				
-// 	int size;
-// };
-
-
-// struct set_node{
-//     set_Node left,right;
-//     int value;
-// };
-
+// SET
 
 set_Node S_node_create(int value) {
 	set_Node node = malloc(sizeof(*node)) ;
@@ -181,8 +161,8 @@ void set_remove(Set set,int value){
 		set->size--;
 }
 
-void set_destroy(Set set,int dvalue ){
-	S_destroy(set->root, dvalue);
+void set_destroy(Set set){
+	S_destroy(set->root);
 	free(set);
 }
 
@@ -249,12 +229,12 @@ set_Node S_remove(set_Node node, int value, int * flag, int * old_value) {
 }
 
 
-void S_destroy(set_Node node,int dvalue){
+void S_destroy(set_Node node){
 	if(node == NULL){
 		return;
 	}
-	S_destroy(node->left, dvalue);
-	S_destroy(node->right, dvalue);
+	S_destroy(node->left);
+	S_destroy(node->right);
 
 	free(node);
 }

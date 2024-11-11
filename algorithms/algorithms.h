@@ -41,3 +41,5 @@ Vector* Vamana(float** dataset, int vecs, int comps, int L, int R, int a);
 
 // Vamana algorithm
 Vector* Vamana_main(float** dataset, int vecs, int comps, int L, int R, int a);
+
+void free_G(Vector* G, int v);

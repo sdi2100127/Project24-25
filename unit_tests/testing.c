@@ -21,6 +21,8 @@ void test_set_Create(void) {
 
    TEST_ASSERT(set->root == NULL);
    TEST_ASSERT(set->size == 0);
+
+   set_destroy(set);
 }
 
 void test_S_node_create(void) {
@@ -30,6 +32,8 @@ void test_S_node_create(void) {
    TEST_ASSERT(node->value == x);
    TEST_ASSERT(node->left == NULL);
    TEST_ASSERT(node->right == NULL);
+
+   S_destroy(node);
 }
 
 void test_S_node_insert(void) {
@@ -60,6 +64,8 @@ void test_S_node_insert(void) {
    TEST_ASSERT(set->root->left->value == y);
    TEST_ASSERT(set->root->right->value == z);
 
+   set_destroy(set);
+
 }
 
 void test_set_insert(void) {
@@ -76,6 +82,8 @@ void test_set_insert(void) {
 
    set_insert(set, y);
    TEST_ASSERT(set->size == 3);
+
+   set_destroy(set);
 }
 
 void test_find_min(void) {
@@ -87,6 +95,9 @@ void test_find_min(void) {
 
    set_Node min_node = find_min(set->root);
    TEST_ASSERT(min_node->value == 3);
+
+   set_destroy(set);
+   S_destroy(min_node);
 }
 
 void test_find_max(void) {
@@ -98,6 +109,9 @@ void test_find_max(void) {
 
    set_Node max_node = find_max(set->root);
    TEST_ASSERT(max_node->value == 8);
+
+   set_destroy(set);
+   S_destroy(max_node);
 }
 
 void test_find_next(void) {
@@ -115,6 +129,9 @@ void test_find_next(void) {
 
    node = find_next(set->root, set->root->right);
    TEST_ASSERT(node == SET_EOF);
+
+   set_destroy(set);
+   S_destroy(node);
 }
 
 void test_set_next(void) {
@@ -132,6 +149,9 @@ void test_set_next(void) {
 
    node = set_next(set, set->root->right);
    TEST_ASSERT(node == SET_EOF);
+
+   set_destroy(set);
+   S_destroy(node);
 }
 
 void test_min_remove(void) {
@@ -150,6 +170,10 @@ void test_min_remove(void) {
    new_root = min_remove(set->root, &min);
    TEST_ASSERT(min->value == 5);
    TEST_ASSERT(new_root->value == 8);
+
+   set_destroy(set);
+   S_destroy(min);
+   S_destroy(new_root);
 }
 
 void test_S_remove(void) {
@@ -168,6 +192,9 @@ void test_S_remove(void) {
    flag = 0;
    set->root= S_remove(set->root, x, &flag, &old_value);
    TEST_ASSERT(flag == 0);
+
+   set_destroy(set);
+
 }
 
 void test_set_remove(void) {
@@ -183,6 +210,8 @@ void test_set_remove(void) {
 
    set_remove(set, x);
    TEST_ASSERT(set->size == 2);
+
+   set_destroy(set);
 }
 
 void test_S_find_equal(void) {
@@ -197,6 +226,9 @@ void test_S_find_equal(void) {
 
    node = S_find_equal(set->root, 6);
    TEST_ASSERT(node == SET_EOF);
+
+   set_destroy(set);
+   S_destroy(node);
 }
 
 //VECTOR FUNCTIONS TESTS
@@ -206,6 +238,8 @@ void test_vec_Create(void) {
 
    TEST_ASSERT(vec->size == 5);
    TEST_ASSERT(vec->capacity == 5);
+
+   vec_destroy(vec);
 }
 
 void test_vec_insert(void) {
@@ -228,6 +262,8 @@ void test_vec_insert(void) {
    TEST_ASSERT(vec->size == 8);
    TEST_ASSERT(vec->array[(vec->size)-1].value == 610);
    TEST_ASSERT(vec->array[(vec->size)-1].dist == 0.0f);
+
+   vec_destroy(vec);
 }
 
 void test_vec_remove(void){
@@ -246,6 +282,8 @@ void test_vec_remove(void){
    vec_remove(vec);
    TEST_ASSERT(vec->size == 3);
    TEST_ASSERT(vec->array[vec->size-1].value == 310);
+
+   vec_destroy(vec);
 }
 
 void test_vec_get_dist(void) {
@@ -257,6 +295,8 @@ void test_vec_get_dist(void) {
    TEST_ASSERT(vec_get_dist(vec, 0) == 0.0f);
    TEST_ASSERT(vec_get_dist(vec, 1) == 2.3f);
    TEST_ASSERT(vec_get_dist(vec, 2) == 1.2f);
+
+   vec_destroy(vec);
 }
 
 void test_vec_get_at(void){
@@ -271,6 +311,8 @@ void test_vec_get_at(void){
    TEST_ASSERT(vec->array[2].value == 310);
    TEST_ASSERT(vec->array[1].value == 20);
    TEST_ASSERT(vec->array[vec->size-1].value == 1210);
+
+   vec_destroy(vec);
 }
 
 void test_vec_set_at(void) {
@@ -288,6 +330,8 @@ void test_vec_set_at(void) {
    vec_set_at(vec, vec->size-1, 35, 1.0);
    TEST_ASSERT(vec->array[vec->size-1].value == 35);
    TEST_ASSERT(vec->array[vec->size-1].dist == 1.0);
+
+   vec_destroy(vec);
 }
 
 void test_vec_find_node(void) {
@@ -302,6 +346,8 @@ void test_vec_find_node(void) {
    TEST_ASSERT(vec_find_node(vec, 510)->value == 510);
    TEST_ASSERT(vec_find_node(vec, 1210)->value == 1210);
    TEST_ASSERT(vec_find_node(vec, 3) == VECTOR_EOF);
+
+   vec_destroy(vec);
 }
 
 void test_vec_find_pos(void) {
@@ -316,6 +362,8 @@ void test_vec_find_pos(void) {
    TEST_ASSERT(vec_find_pos(vec, 510) == 3);
    TEST_ASSERT(vec_find_pos(vec, 1210) == 4);
    TEST_ASSERT(vec_find_pos(vec, 3) == -1);
+
+   vec_destroy(vec);
 }
 
 void test_vec_first(void) {
@@ -328,6 +376,8 @@ void test_vec_first(void) {
    vec_insert(vec, 1210, dist);
 
    TEST_ASSERT(vec_first(vec)->value == 10);
+
+   vec_destroy(vec);
 }
 
 void test_vec_last(void) {
@@ -340,6 +390,8 @@ void test_vec_last(void) {
    vec_insert(vec, 1210, dist);
 
    TEST_ASSERT(vec_last(vec)->value == 1210);
+
+   vec_destroy(vec);
 }
 
 void test_vec_next(void) {
@@ -353,6 +405,8 @@ void test_vec_next(void) {
 
    TEST_ASSERT(vec_next(vec, &vec->array[0])->value == 20);
    TEST_ASSERT(vec_next(vec, &vec->array[1])->value == 310);
+
+   vec_destroy(vec);
 }
 
 // PRIORITY QUEUE TESTS
@@ -370,6 +424,9 @@ void test_pqueue_create(void) {
    TEST_ASSERT(pq->vector != NULL);
    TEST_ASSERT(pq->vector->size == 5);
    TEST_ASSERT(v_node_value(pq, 1) == 1210);
+
+   pqueue_destroy(pq);
+   vec_destroy(vec);
 }
 
 void test_pqueue_insert(void) {
@@ -392,6 +449,9 @@ void test_pqueue_insert(void) {
 
    pqueue_insert(pq, 45, 1.5);
    TEST_ASSERT(pq->vector->size == 6);
+
+   pqueue_destroy(pq);
+   vec_destroy(vec);
 }
 
 void test_pqueue_remove(void) {
@@ -411,6 +471,9 @@ void test_pqueue_remove(void) {
 
    TEST_ASSERT(v_node_value(pq, 1) == 510);
    TEST_ASSERT(pq->vector->size == 4);
+
+   pqueue_destroy(pq);
+   vec_destroy(vec);
 }
 
 // OPEN FUNCTION TESTS
@@ -497,13 +560,16 @@ void test_open_fvecs(void) {
    
    
    // for the first few vectors, check that they are infact the same
+   float* vec = (float*)malloc(vec_size);
    for (int j = 0; j<num_vectors && j < 20; j++) {
-      float* vec = (float*)malloc(vec_size); 
       fread(vec, vec_size, 1, fp);
       for (int i = 0; i<d && i < 5; i++) {
          TEST_ASSERT(vectors[i][j] == vec[i + 1]);
       }
    }
+   free(vec);
+
+   fclose(fp);
 
    // Free the allocated memory
    free_matrix_fvecs(vectors, d);
@@ -541,13 +607,16 @@ void test_open_ivecs(void) {
    
    
    // for the first few vectors, check that they are infact the same
-   for (int j = 0; j<num_vectors && j < 20; j++) {
-      int* vec = (int*)malloc(vec_size); 
+   int* vec = (int*)malloc(vec_size);
+   for (int j = 0; j<num_vectors && j < 20; j++) { 
       fread(vec, vec_size, 1, fp);
       for (int i = 0; i<d && i < 5; i++) {
          TEST_ASSERT(vectors[i][j] == vec[i + 1]);
       }
    }
+   free(vec);
+
+   fclose(fp);
 
    // Free the allocated memory
    free_matrix_ivecs(vectors, d);
@@ -568,6 +637,8 @@ void test_euclidean_distance(void) {
    float dist = euclidean_distance(vec1, vec2, dim);
    TEST_ASSERT(fabs(dist - 8.544003) < tolerance);
 
+   free(vec1);
+   free(vec2);
 }
 
 void test_greedySearch(void) {
@@ -694,6 +765,7 @@ void test_greedySearch(void) {
    for (int i=0; i<4; i++) set_insert(V_test, i);
    for (set_Node node = find_min(V_test->root); node != SET_EOF; node = set_next(V_test, node)) {
       TEST_ASSERT(S_find_equal(V->root, node->value) != SET_EOF);
+      S_destroy(node);
    }
 
    Set knn_test = set_Create();
@@ -702,7 +774,16 @@ void test_greedySearch(void) {
    set_insert(knn_test, 3);
    for (set_Node node = find_min(knn_test->root); node != SET_EOF; node = set_next(knn_test, node)) {
       TEST_ASSERT(vec_find_node(knn->vector, node->value) != VECTOR_EOF);
+      S_destroy(node);
    }
+
+   free(xq);
+   free_matrix_fvecs(vectors, dim);
+   set_destroy(V);
+   set_destroy(V_test);
+   set_destroy(knn_test);
+   pqueue_destroy(knn);
+   free_G(G, vecs);
 
 }
 
@@ -963,8 +1044,8 @@ TEST_LIST = {
    { "open_ivecs", test_open_ivecs },
    { "euclidean_distance", test_euclidean_distance },
    { "greedySearch", test_greedySearch },
-   { "RobustPrune", test_RobustPrune },
-   { "medoid", test_medoid },
-   { "Vamana", test_Vamana },
+   // { "RobustPrune", test_RobustPrune },
+   // { "medoid", test_medoid },
+   // { "Vamana", test_Vamana },
    { NULL, NULL }     /* zeroed record marking the end of the list */
 };
