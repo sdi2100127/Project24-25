@@ -97,7 +97,6 @@ void test_find_min(void) {
    TEST_ASSERT(min_node->value == 3);
 
    set_destroy(set);
-   S_destroy(min_node);
 }
 
 void test_find_max(void) {
@@ -111,7 +110,6 @@ void test_find_max(void) {
    TEST_ASSERT(max_node->value == 8);
 
    set_destroy(set);
-   S_destroy(max_node);
 }
 
 void test_find_next(void) {
@@ -166,14 +164,13 @@ void test_min_remove(void) {
    TEST_ASSERT(min->value == y);
    TEST_ASSERT(new_root->value == set->root->value);
 
-   set_insert(set, 6);
+   int h = 6;
+   set_insert(set, h);
    new_root = min_remove(set->root, &min);
    TEST_ASSERT(min->value == 5);
    TEST_ASSERT(new_root->value == 8);
 
    set_destroy(set);
-   S_destroy(min);
-   S_destroy(new_root);
 }
 
 void test_S_remove(void) {
@@ -308,9 +305,9 @@ void test_vec_get_at(void){
    vec_insert(vec, 510, dist);
    vec_insert(vec, 1210, dist);
 
-   TEST_ASSERT(vec->array[2].value == 310);
-   TEST_ASSERT(vec->array[1].value == 20);
-   TEST_ASSERT(vec->array[vec->size-1].value == 1210);
+   TEST_ASSERT(vec_get_at(vec, 2) == 310);
+   TEST_ASSERT(vec_get_at(vec, 1) == 20);
+   TEST_ASSERT(vec_get_at(vec, vec->size-1) == 1210);
 
    vec_destroy(vec);
 }
@@ -763,18 +760,17 @@ void test_greedySearch(void) {
 
    Set V_test = set_Create();
    for (int i=0; i<4; i++) set_insert(V_test, i);
-   for (set_Node node = find_min(V_test->root); node != SET_EOF; node = set_next(V_test, node)) {
+   set_Node node;
+   for (node = find_min(V_test->root); node != SET_EOF; node = set_next(V_test, node)) {
       TEST_ASSERT(S_find_equal(V->root, node->value) != SET_EOF);
-      S_destroy(node);
    }
 
    Set knn_test = set_Create();
    set_insert(knn_test, 0);
    set_insert(knn_test, 1);
    set_insert(knn_test, 3);
-   for (set_Node node = find_min(knn_test->root); node != SET_EOF; node = set_next(knn_test, node)) {
+   for (node = find_min(knn_test->root); node != SET_EOF; node = set_next(knn_test, node)) {
       TEST_ASSERT(vec_find_node(knn->vector, node->value) != VECTOR_EOF);
-      S_destroy(node);
    }
 
    free(xq);
@@ -915,6 +911,12 @@ void test_RobustPrune(void) {
       dist_matrix[i] = (float*)malloc(vecs * sizeof(float));
    }
 
+   for(int i=0; i<vecs; i++) {
+      for(int j=0; j<vecs; j++) {
+         dist_matrix[i][j] = 0;
+      }
+   }
+
    int med = medoid(vectors, vecs, dim, &dist_matrix);
 
    PQueue knn = greedySearch(G ,R ,dim ,vecs ,vectors ,s ,xq ,L ,k ,&V);
@@ -930,6 +932,14 @@ void test_RobustPrune(void) {
    for (int i=0; i<G[p]->size; i++) {
       TEST_ASSERT(test_N_out[i] ==  vec_get_at(G[p], i));
    }
+
+   free(xq);
+   free_matrix_fvecs(vectors, dim);
+   free_matrix_fvecs(dist_matrix, vecs);
+   set_destroy(V);
+   free(test_N_out);
+   pqueue_destroy(knn);
+   free_G(G, vecs);
 }
 
 void test_medoid(void) {
@@ -961,6 +971,9 @@ void test_medoid(void) {
 
    int med = medoid(vectors, vecs, dim, &dist_matrix);
    TEST_ASSERT(med == 1);
+
+   free_matrix_fvecs(vectors, dim);
+   free_matrix_fvecs(dist_matrix, vecs);
 }
 
 void test_Vamana(void) {
@@ -1009,6 +1022,10 @@ void test_Vamana(void) {
       }
    }
 
+   free_matrix_fvecs(vectors, dim);
+   free_G(G, vecs);
+   free_matrix_ivecs(G_test, R);
+
 }
 
 TEST_LIST = {
@@ -1044,8 +1061,8 @@ TEST_LIST = {
    { "open_ivecs", test_open_ivecs },
    { "euclidean_distance", test_euclidean_distance },
    { "greedySearch", test_greedySearch },
-   // { "RobustPrune", test_RobustPrune },
-   // { "medoid", test_medoid },
-   // { "Vamana", test_Vamana },
+   { "RobustPrune", test_RobustPrune },
+   { "medoid", test_medoid },
+   { "Vamana", test_Vamana },
    { NULL, NULL }     /* zeroed record marking the end of the list */
 };

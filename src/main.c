@@ -13,7 +13,7 @@ int main() {
   int num_vectors, d_base;
   float** dataset = fvecs_open(base_file, &num_vectors, &d_base);
 
-  int vecs = 10000;
+  int vecs = 1000;
   float** vectors = (float**)malloc(d_base * sizeof(float*));
   for (int i = 0; i < d_base; i++) {
     vectors[i] = (float*)malloc(vecs * sizeof(float));
@@ -46,6 +46,12 @@ int main() {
       dist_matrix[i] = (float*)malloc(vecs * sizeof(float));
   }
 
+  for(int i=0; i<vecs; i++) {
+    for(int j=0; j<vecs; j++) {
+        dist_matrix[i][j] = 0;
+    }
+  }
+
   int med = medoid(vectors, vecs, d_base, &dist_matrix);
   printf("medoid: %d\n", med);
 
@@ -55,6 +61,7 @@ int main() {
 
   int a = 1, L = 7; // 1000: 7, 10000: 25
   G = Vamana_main(vectors, vecs, d_base, L, R, a);
+  return 0;
 
   printf("G\n");
   for (int j = 0; j < vecs; j++) {
@@ -93,6 +100,17 @@ int main() {
     
   }
   printf("\n");
+
+  free_matrix_fvecs(dataset, d_base);
+  free_matrix_fvecs(vectors, d_base);
+  free_matrix_fvecs(posible_queries, d_queries);
+  free_matrix_ivecs(groundtruth_G, k_n);
+  free_matrix_fvecs(dist_matrix, vecs);
+  free_G(G, vecs);
+  free(xq);
+  free(test_knn);
+  pqueue_destroy(knn);
+  set_destroy(V);
 
   return 0;
 

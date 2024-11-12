@@ -3,6 +3,7 @@
 #include <math.h>
 #include <time.h>
 #include "../Data_Structs/Data_Structs.h"
+#include "../open_functions/open.h"
 
 float euclidean_distance(float* vec1, float* vec2, int comps);
 

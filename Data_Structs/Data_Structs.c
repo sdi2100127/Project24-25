@@ -73,7 +73,7 @@ void list_destroy(List l){
 // SET
 
 set_Node S_node_create(int value) {
-	set_Node node = malloc(sizeof(*node)) ;
+	set_Node node = malloc(sizeof(*node));
 	node->left = NULL;
     node->right = NULL;
 	node->value = value;

@@ -15,7 +15,7 @@ main.o: src/main.c open_functions/open.h algorithms/algorithms.h
 
 # Executable
 app: main.o open.o algorithms.o Data_Structs.o
-	gcc main.o open.o algorithms.o Data_Structs.o -o app -lm -ggdb
+	gcc main.o open.o algorithms.o Data_Structs.o -g -o app -lm -ggdb
 
 # UNIT TESTS:
 
@@ -24,7 +24,7 @@ testing.o: unit_tests/testing.c unit_tests/acutest.h open_functions/open.h algor
 	gcc -c unit_tests/testing.c -o testing.o
 # Executable
 test: testing.o open.o algorithms.o Data_Structs.o
-	gcc testing.o open.o algorithms.o Data_Structs.o -o test -lm
+	gcc testing.o open.o algorithms.o Data_Structs.o -g -o test -lm 
 
 # Clean target
 clean:
@@ -32,7 +32,7 @@ clean:
 
 # Run the program
 run: app
-	./app
+	valgrind --leak-check=full --track-origins=yes ./app
 
 # Run the unit tests
 run_test: test
