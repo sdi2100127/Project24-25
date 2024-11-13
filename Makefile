@@ -32,7 +32,7 @@ clean:
 
 # Run the program
 run: app
-	valgrind --leak-check=full --track-origins=yes ./app
+	./app
 
 # Run the unit tests
 run_test: test

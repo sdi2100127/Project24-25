@@ -155,7 +155,7 @@ void RobustPrune(Vector** G, int p ,Set * V, int a, int R, int dim , int vecs , 
 
     // then we insert all the outgoing neighbours of p (Nout(p)) to the V set
     printf("Nout(p)\n");
-    for (int i = 0; i < R; i++){           
+    for (int i = 0; i < temp_G[p]->size; i++){           
         printf("%d ", vec_get_at(temp_G[p], i));
         set_insert(temp, vec_get_at(temp_G[p], i));
     }

@@ -13,7 +13,7 @@ int main() {
   int num_vectors, d_base;
   float** dataset = fvecs_open(base_file, &num_vectors, &d_base);
 
-  int vecs = 5000;
+  int vecs = 10000;
   float** vectors = (float**)malloc(d_base * sizeof(float*));
   for (int i = 0; i < d_base; i++) {
     vectors[i] = (float*)malloc(vecs * sizeof(float));
@@ -54,15 +54,15 @@ int main() {
     }
   }
 
-  int med = medoid(vectors, vecs, d_base, &dist_matrix);
-  printf("medoid: %d\n", med);
-  return 0;
-  //int med;
+  // int med = medoid(vectors, vecs, d_base, &dist_matrix);
+  // printf("medoid: %d\n", med);
+  // return 0;
+  int med;
 
   // allocate memory for the graph G produced by the vamana algorithm
   int R = 60; // 1000: 6, 10000: 60
 
-  int a = 1, L = 25; // 1000: 7, 10000: 25
+  int a = 2, L = 25; // 1000: 7, 10000: 25
   Vector* G = Vamana_main(vectors, vecs, d_base, L, R, a, &med);
 
   printf("G\n");
@@ -85,7 +85,7 @@ int main() {
 
 
   // run the greedysearch algorithm to find its k nearest neighbours based on G
-  int k = 10;
+  int k = 15;
   Set V;
   PQueue knn = greedySearch(G, R, d_base, vecs, vectors, med, xq, L, k, &V);
 
