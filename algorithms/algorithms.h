@@ -41,6 +41,6 @@ int medoid(float** dataset, int vecs, int comps, float*** dist_m);
 Vector* Vamana(float** dataset, int vecs, int comps, int L, int R, int a);
 
 // Vamana algorithm
-Vector* Vamana_main(float** dataset, int vecs, int comps, int L, int R, int a);
+Vector* Vamana_main(float** dataset, int vecs, int comps, int L, int R, int a, int* med);
 
 void free_G(Vector* G, int v);

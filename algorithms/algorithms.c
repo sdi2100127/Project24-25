@@ -329,7 +329,7 @@ int medoid(float** dataset, int vecs, int comps, float*** dist_m) {
     return min_p;
 }
 
-Vector* Vamana_main(float** dataset, int vecs, int comps, int L, int R, int a) {
+Vector* Vamana_main(float** dataset, int vecs, int comps, int L, int R, int a, int* med) {
     // first we have to initialize G to a random R-regular directed graph
 
     Vector* G = (Vector*)malloc(vecs * sizeof(Vector));
@@ -397,7 +397,7 @@ Vector* Vamana_main(float** dataset, int vecs, int comps, int L, int R, int a) {
     // now we find the medoid of the dataset that will be our starting point s
     int s = medoid(dataset, vecs, comps, &dist_matrix);
     printf("vamana found medoid: %d\n", s);
-
+    *med = s;
 
     // create a random permutation of 1...vecs (really from 0 to vecs-1) 
     // and store it in the array per
