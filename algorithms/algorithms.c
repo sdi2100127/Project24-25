@@ -146,13 +146,15 @@ PQueue greedySearch(Vector* G, int R, int dim, int vecs, float** vectors, int s,
 
 //Implementation of Robust Prune function
 void RobustPrune(Vector** G, int p ,Set * V, int a, int R, int dim , int vecs , float **vectors, float** dist_m){
-    //printf("ROBUST PRUNE\n");
+    printf("ROBUST PRUNE\n");
+    printf("p: %d\n", p);
     
     // we start out by creating some temporary structs to store the visited nodes set, as well as the graph G
     Set temp = *V;
     Vector* temp_G = *G;
 
     // then we insert all the outgoing neighbours of p (Nout(p)) to the V set
+    printf("Nout(p)\n");
     for (int i = 0; i < R; i++){           
         printf("%d ", vec_get_at(temp_G[p], i));
         set_insert(temp, vec_get_at(temp_G[p], i));
@@ -336,7 +338,7 @@ Vector* Vamana_main(float** dataset, int vecs, int comps, int L, int R, int a) {
         G[i] = vec_Create(0);
     }
 
-    printf("neighbours\n");
+    printf("vamana finding neighbours\n");
     int x;
     float* vec_x = (float*)malloc(comps * sizeof(float));
     float* vec_j = (float*)malloc(comps * sizeof(float));
@@ -354,13 +356,17 @@ Vector* Vamana_main(float** dataset, int vecs, int comps, int L, int R, int a) {
             while (stop == 1) {
                 x = rand() % (vecs - 1);    // pick another vector randomly
                 stop = 0;
-                for (int z = 0; z < i; z++) {
-                    // as long as that vector is not a neighbour already and it is not the same as our current vector
-                    if (vec_find_node(G[j], x) != VECTOR_EOF || x == j) {   
-                        stop = 1;
-                        break;
-                    }
-                }    
+                // as long as that vector is not a neighbour already and it is not the same as our current vector
+                if (vec_find_node(G[j], x) != VECTOR_EOF || x == j) {   
+                    stop = 1;
+                }
+                // for (int z = 0; z < i; z++) {
+                //     // as long as that vector is not a neighbour already and it is not the same as our current vector
+                //     if (vec_find_node(G[j], x) != VECTOR_EOF || x != j) {   
+                //         stop = 1;
+                //         break;
+                //     }
+                // }    
             }
             // temporarilly store the vectors j and x to compute their distance
             for (int i=0; i<comps; i++) {
@@ -390,7 +396,7 @@ Vector* Vamana_main(float** dataset, int vecs, int comps, int L, int R, int a) {
 
     // now we find the medoid of the dataset that will be our starting point s
     int s = medoid(dataset, vecs, comps, &dist_matrix);
-    printf("medoid: %d\n", s);
+    printf("vamana found medoid: %d\n", s);
 
 
     // create a random permutation of 1...vecs (really from 0 to vecs-1) 
@@ -417,6 +423,8 @@ Vector* Vamana_main(float** dataset, int vecs, int comps, int L, int R, int a) {
         printf("%d ", per[i]);
     }
     printf("\n");
+
+    //return;
 
     float* xq = (float*)malloc(comps * sizeof(float));
     float* point_vec = (float*)malloc(comps * sizeof(float));

@@ -993,9 +993,7 @@ void test_Vamana(void) {
 
    int L = 4, R = 3, a = 1;
 
-   Vector* G = (Vector*)malloc(vecs * sizeof(Vector));
-
-   G = Vamana(vectors, vecs, dim, L, R, a);
+   Vector* G = Vamana(vectors, vecs, dim, L, R, a);
 
    int** G_test = (int**)malloc(R * sizeof(int*));
    for (int i = 0; i < R; i++) {

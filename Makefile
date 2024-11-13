@@ -36,4 +36,4 @@ run: app
 
 # Run the unit tests
 run_test: test
-	valgrind ./test
+	valgrind --leak-check=full --track-origins=yes ./test
