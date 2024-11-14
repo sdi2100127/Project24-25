@@ -32,8 +32,8 @@ clean:
 
 # Run the program
 run: app
-	./app
+	./app -k 100 -L 125  -R 40
 
 # Run the unit tests
 run_test: test
-	./test
+	./test 

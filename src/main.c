@@ -8,6 +8,23 @@
 int main(int argc, char ** argv) {
   srand((unsigned int)time(NULL));
 
+  time_t start,end;
+  start = time(NULL);
+  int k , L , R , a = 1;
+  for (int i = 0; i< argc; i++){
+    if(strcmp(argv[i], "-k") == 0){
+      k = atoi(argv[i+1]);
+    }
+    if(strcmp(argv[i], "-L") == 0){
+      L = atoi(argv[i+1]);
+    }
+    if(strcmp(argv[i], "-R") == 0){
+      R = atoi(argv[i+1]);
+    }
+  }
+  // allocate memory for the graph G produced by the vamana algorithm
+  
+
   // open base vectors file using ivecs_open
   const char* base_file = "siftsmall_base.fvecs";
   int num_vectors, d_base;
@@ -59,10 +76,6 @@ int main(int argc, char ** argv) {
   // return 0;
   int med;
 
-  // allocate memory for the graph G produced by the vamana algorithm
-  int R = 40; // 1000: 6, 10000: 60
-
-  int a = 1, L = 125; // 1000: 7, 10000: 25
   Vector* G = Vamana_main(vectors, vecs, d_base, L, R, a, &med);
 
   printf("G\n");
@@ -85,7 +98,6 @@ int main(int argc, char ** argv) {
 
 
   // run the greedysearch algorithm to find its k nearest neighbours based on G
-  int k = 100;
   Set V;
   PQueue knn = greedySearch(G, R, d_base, vecs, vectors, med, xq, L, k, &V);
 
@@ -117,6 +129,7 @@ int main(int argc, char ** argv) {
   float accuracy = found* 100 / k;
   printf("Our programm calculates the data with an accuracy of : %f \n",accuracy);
 
+
   free_matrix_fvecs(dataset, d_base);
   free_matrix_fvecs(vectors, d_base);
   free_matrix_fvecs(posible_queries, d_queries);
@@ -127,6 +140,9 @@ int main(int argc, char ** argv) {
   free(test_knn);
   pqueue_destroy(knn);
   set_destroy(V);
+
+  end = time(NULL);
+  printf("The programm has taken %.f seconds \n", difftime(end,start));
 
   return 0;
 
