@@ -5,7 +5,7 @@
 #include "../algorithms/algorithms.h"
 #include "../open_functions/open.h"
 
-int main() {
+int main(int argc, char ** argv) {
   srand((unsigned int)time(NULL));
 
   // open base vectors file using ivecs_open
@@ -60,9 +60,9 @@ int main() {
   int med;
 
   // allocate memory for the graph G produced by the vamana algorithm
-  int R = 60; // 1000: 6, 10000: 60
+  int R = 40; // 1000: 6, 10000: 60
 
-  int a = 2, L = 25; // 1000: 7, 10000: 25
+  int a = 1, L = 125; // 1000: 7, 10000: 25
   Vector* G = Vamana_main(vectors, vecs, d_base, L, R, a, &med);
 
   printf("G\n");
@@ -85,24 +85,37 @@ int main() {
 
 
   // run the greedysearch algorithm to find its k nearest neighbours based on G
-  int k = 15;
+  int k = 100;
   Set V;
   PQueue knn = greedySearch(G, R, d_base, vecs, vectors, med, xq, L, k, &V);
 
-  printf("GROUNDTRUTH knn_set under %d: ", vecs);
+  // printf("GROUNDTRUTH knn_set under %d: ", vecs);
+  // int count = 0;
+  // for (int i=0; i<k_n; i++) {
+  //   int n_point = groundtruth_G[i][xq_pos];
+  //   if (n_point < vecs) {
+  //     test_knn[count] = n_point;
+  //     printf("%d ", test_knn[count]);
+  //     count++;
+  //   }
+  //   if (count == k) break;
+    
+  // }
+  // printf("\n");
+
+  //Calculation of accuracy  
   int* test_knn = (int*)malloc(k * sizeof(int));
-  int count = 0;
+
+  int found = 0;
   for (int i=0; i<k_n; i++) {
     int n_point = groundtruth_G[i][xq_pos];
-    if (n_point < vecs) {
-      test_knn[count] = n_point;
-      printf("%d ", test_knn[count]);
-      count++;
+    if (vec_find_node(knn->vector,n_point) != VECTOR_EOF) {
+      found++;
     }
-    if (count == k) break;
-    
+    if (found == k) break;
   }
-  printf("\n");
+  float accuracy = found* 100 / k;
+  printf("Our programm calculates the data with an accuracy of : %f \n",accuracy);
 
   free_matrix_fvecs(dataset, d_base);
   free_matrix_fvecs(vectors, d_base);
