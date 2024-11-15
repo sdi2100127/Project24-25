@@ -648,12 +648,12 @@ void test_data_open(void) {
    float* vec = (float*)malloc(vec_size);
    for (int j = 0; j<num_vectors && j < 20; j++) {
       fread(vec, vec_size, 1, fp);
-      printf("vector %d: ", j);
+      //printf("vector %d: ", j);
       for (int i = 0; i<vec_num_d+2 && i < 5; i++) {
-         printf("%f ", vectors[i][j]);
-         TEST_ASSERT(vectors[i][j] == vec[i + 1]);
+         //printf("%f ", vectors[i][j]);
+         TEST_ASSERT(vectors[i][j] == vec[i]);
       }
-      printf("\n");
+      //printf("\n");
    }
    free(vec);
 
@@ -661,6 +661,50 @@ void test_data_open(void) {
 
    // Free the allocated memory
    free_matrix_fvecs(vectors, vec_num_d+2);
+}
+
+void test_query_open(void) {
+   const char* filename = "dummy-queries.bin"; // Specify your fvecs file
+   // open the file
+   FILE *fp = NULL;
+   char path[100];
+   sprintf(path, "dummies/%s", filename);
+   fp = fopen(path, "rb");
+
+   TEST_ASSERT(fp != NULL); // check that file was opened successfully
+
+   // read the query number off of the first 4 bytes of the file
+   int queries;
+   fread(&queries, sizeof(int), 1, fp);
+   
+   int vec_num_d = 100;
+   int vec_size = (4 + vec_num_d) * sizeof(float);
+
+   // call fvecs_open
+   int num_q;
+   float** vectors = query_open(filename, &num_q, vec_num_d);
+   
+   TEST_ASSERT(vectors != NULL); // check if the vectors matrix was created
+   TEST_ASSERT(num_q == queries); // check if the number of vectors is the same
+   
+   
+   // for the first few vectors, check that they are infact the same
+   float* vec = (float*)malloc(vec_size);
+   for (int j = 0; j<queries && j < 20; j++) {
+      fread(vec, vec_size, 1, fp);
+      //printf("vector %d: ", j);
+      for (int i = 0; i<vec_num_d+4 && i < 5; i++) {
+         //printf("%f ", vectors[i][j]);
+         TEST_ASSERT(vectors[i][j] == vec[i]);
+      }
+      //printf("\n");
+   }
+   free(vec);
+
+   fclose(fp);
+
+   // Free the allocated memory
+   free_matrix_fvecs(vectors, vec_num_d+4);
 }
 
 void test_euclidean_distance(void) {
@@ -1102,10 +1146,11 @@ TEST_LIST = {
    { "open_fvecs", test_open_fvecs },
    { "open_ivecs", test_open_ivecs },
    { "data_open", test_data_open },
-   // { "euclidean_distance", test_euclidean_distance },
-   // { "greedySearch", test_greedySearch },
-   // { "RobustPrune", test_RobustPrune },
-   // { "medoid", test_medoid },
-   // { "Vamana", test_Vamana },
+   { "query_open", test_query_open },
+   { "euclidean_distance", test_euclidean_distance },
+   { "greedySearch", test_greedySearch },
+   { "RobustPrune", test_RobustPrune },
+   { "medoid", test_medoid },
+   { "Vamana", test_Vamana },
    { NULL, NULL }     /* zeroed record marking the end of the list */
 };

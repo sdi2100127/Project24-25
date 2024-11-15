@@ -152,7 +152,7 @@ float** data_open(const char* filename, int* num_vectors, int vec_num_d) {
     // read the number of vectors off of the first 4 bytes of the file
     int num_vecs;
     fread(&num_vecs, sizeof(uint32_t), 1, fp);
-    printf("dimention: %d ", num_vecs);
+    printf("vectors: %d \n", num_vecs);
     *num_vectors = num_vecs;
 
     // allocate memory for the matrix of vectors and fill it
@@ -161,19 +161,68 @@ float** data_open(const char* filename, int* num_vectors, int vec_num_d) {
     // i = rows/components , j = columns/vectors !!!!!!!!
     // each column represents a different vector and each row a different component of each vector
 
-    float** vectors = (float**)malloc(vec_num_d * sizeof(float*));
-    for (int i = 0; i < vec_num_d+2; i++) {
+    int vec_dim = vec_num_d+2;
+
+    float** vectors = (float**)malloc(vec_dim * sizeof(float*));
+    for (int i = 0; i < vec_dim; i++) {
         vectors[i] = (float*)malloc(num_vecs * sizeof(float));
     }
 
-    int vec_size = (2 + vec_num_d) * sizeof(float);
+    int vec_size = vec_dim * sizeof(float);
     float* vec = (float*)malloc(vec_size); 
     for (int j = 0; j < num_vecs; j++) {
         // Read each vector and copy it
         fread(vec, vec_size, 1, fp);
         
-        for (int i = 0; i < vec_num_d+2; i++) {
-            vectors[i][j] = vec[i + 1]; // vec[0] is the dimension, vec[1] to vec[d] are the vector components
+        for (int i = 0; i < vec_dim; i++) {
+            vectors[i][j] = vec[i]; // vec[0] is the dimension, vec[1] to vec[d] are the vector components
+        }
+    }
+    free(vec);
+
+    fclose(fp);
+    return vectors;
+}
+
+float** query_open(const char* filename, int* num_q, int vec_num_d) {
+    // first we have to open the file in binary read mode using the correct file path
+    FILE *fp = NULL;
+    char path[100];
+    sprintf(path, "dummies/%s", filename);
+    fp = fopen(path, "rb");
+
+    if (fp == NULL) {
+        perror("error opening file");
+        exit(EXIT_FAILURE);
+    }
+
+    // read the number of queries off of the first 4 bytes of the file
+    int num_queries;
+    fread(&num_queries, sizeof(uint32_t), 1, fp);
+    printf("queries: %d \n", num_queries);
+    *num_q = num_queries;
+
+    // allocate memory for the matrix of vectors and fill it
+    // every column will represent a vector and the array will be of form dim x vecs
+
+    // i = rows/components , j = columns/vectors !!!!!!!!
+    // each column represents a different vector and each row a different component of each vector
+
+    int vec_dim = vec_num_d+4;
+
+    float** vectors = (float**)malloc(vec_dim * sizeof(float*));
+    for (int i = 0; i < vec_dim; i++) {
+        vectors[i] = (float*)malloc(num_queries * sizeof(float));
+    }
+
+    int vec_size = vec_dim * sizeof(float);
+    float* vec = (float*)malloc(vec_size); 
+    for (int j = 0; j < num_queries; j++) {
+        // Read each vector and copy it
+        fread(vec, vec_size, 1, fp);
+        
+        for (int i = 0; i < vec_dim; i++) {
+            vectors[i][j] = vec[i]; // vec[0] is the dimension, vec[1] to vec[d] are the vector components
         }
     }
     free(vec);
