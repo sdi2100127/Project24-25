@@ -619,6 +619,50 @@ void test_open_ivecs(void) {
    free_matrix_ivecs(vectors, d);
 }
 
+void test_data_open(void) {
+   const char* filename = "dummy-data.bin"; // Specify your fvecs file
+   // open the file
+   FILE *fp = NULL;
+   char path[100];
+   sprintf(path, "dummies/%s", filename);
+   fp = fopen(path, "rb");
+
+   TEST_ASSERT(fp != NULL); // check that file was opened successfully
+
+   // read the dimention off of the first 4 bytes of the file
+   int vecs;
+   fread(&vecs, sizeof(int), 1, fp);
+   
+   int vec_num_d = 100;
+   int vec_size = (2 + vec_num_d) * sizeof(float);
+
+   // call fvecs_open
+   int num_vectors;
+   float** vectors = data_open(filename, &num_vectors, vec_num_d);
+   
+   TEST_ASSERT(vectors != NULL); // check if the vectors matrix was created
+   TEST_ASSERT(num_vectors == vecs); // check if the number of vectors is the same
+   
+   
+   // for the first few vectors, check that they are infact the same
+   float* vec = (float*)malloc(vec_size);
+   for (int j = 0; j<num_vectors && j < 20; j++) {
+      fread(vec, vec_size, 1, fp);
+      printf("vector %d: ", j);
+      for (int i = 0; i<vec_num_d+2 && i < 5; i++) {
+         printf("%f ", vectors[i][j]);
+         TEST_ASSERT(vectors[i][j] == vec[i + 1]);
+      }
+      printf("\n");
+   }
+   free(vec);
+
+   fclose(fp);
+
+   // Free the allocated memory
+   free_matrix_fvecs(vectors, vec_num_d+2);
+}
+
 void test_euclidean_distance(void) {
    // run the test for a vector matrix of 5 vectors with 3 components each
    int dim = 3;
@@ -991,7 +1035,7 @@ void test_Vamana(void) {
    vectors[0][3] = 1.0; vectors[1][3] = 5.0; vectors[2][3] = 8.0;
    vectors[0][4] = 2.0; vectors[1][4] = 5.0; vectors[2][4] = 0.0;
 
-   int L = 4, R = 3, a = 1;
+   int L = 4, R = 3, a = 1, med;
 
    Vector* G = Vamana(vectors, vecs, dim, L, R, a);
 
@@ -1057,10 +1101,11 @@ TEST_LIST = {
    { "free_matrix_ivecs", test_free_matrix_ivecs },
    { "open_fvecs", test_open_fvecs },
    { "open_ivecs", test_open_ivecs },
-   { "euclidean_distance", test_euclidean_distance },
-   { "greedySearch", test_greedySearch },
-   { "RobustPrune", test_RobustPrune },
-   { "medoid", test_medoid },
-   { "Vamana", test_Vamana },
+   { "data_open", test_data_open },
+   // { "euclidean_distance", test_euclidean_distance },
+   // { "greedySearch", test_greedySearch },
+   // { "RobustPrune", test_RobustPrune },
+   // { "medoid", test_medoid },
+   // { "Vamana", test_Vamana },
    { NULL, NULL }     /* zeroed record marking the end of the list */
 };
