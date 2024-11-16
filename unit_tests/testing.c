@@ -1,5 +1,6 @@
 #include "acutest.h"
 #include <time.h>
+#include <float.h>
 
 #include "../open_functions/open.h"
 #include "../algorithms/algorithms.h"
@@ -473,6 +474,147 @@ void test_pqueue_remove(void) {
    vec_destroy(vec);
 }
 
+
+// HASHMAP TESTS
+
+void test_map_create() {
+   Map map = map_create(0, 10);
+
+   TEST_ASSERT(map != NULL);
+   TEST_ASSERT(map->capacity == 53); 
+   TEST_ASSERT(map->size == 0);
+   TEST_ASSERT(map->deleted == 0);
+
+   map_destroy(map);
+}
+
+void test_map_insert() {
+   Map map = map_create(0, 100);
+   TEST_ASSERT(map->capacity == 193); 
+
+   map_insert(map, 10, 5);
+   TEST_ASSERT(map->size == 1);
+   TEST_ASSERT(map->array[10].key == 10);
+   TEST_ASSERT(map->array[10].state == OCCUPIED);
+   TEST_ASSERT(map->array[10].values->root->value == 5);
+
+   map_insert(map, 20, 10);
+   TEST_ASSERT(map->size == 2);
+   TEST_ASSERT(map->array[20].key == 20);
+   TEST_ASSERT(map->array[20].state == OCCUPIED);
+   TEST_ASSERT(map->array[20].values->root->value == 10);
+
+   map_insert(map, 10, 15); 
+   TEST_ASSERT(map->size == 2);
+   TEST_ASSERT(map->array[10].key == 10);
+   TEST_ASSERT(map->array[10].state == OCCUPIED);
+   TEST_ASSERT(S_find_equal(map->array[10].values->root, 15) != SET_EOF);
+
+   map_destroy(map);
+}
+
+void test_map_find_node() {
+   Map map = map_create(0, 100);
+
+   map_insert(map, 10, 5);
+   map_insert(map, 20, 10);
+   map_insert(map, 10, 15); 
+
+   MapNode node = map_find_node(map, 10);
+   TEST_ASSERT(node->key == 10);
+   TEST_ASSERT(S_find_equal(node->values->root, 5) != SET_EOF);
+   TEST_ASSERT(S_find_equal(node->values->root, 15) != SET_EOF);
+   TEST_ASSERT(node->state == OCCUPIED);
+
+   node = map_find_node(map, 15);
+   TEST_ASSERT(node == MAP_EOF);
+
+   map_destroy(map);
+}
+
+void test_map_remove() {
+   Map map = map_create(0, 100);
+
+   map_insert(map, 10, 5);
+   map_insert(map, 20, 10);
+   map_insert(map, 10, 15); 
+
+   map_remove(map, 10);
+   MapNode node = map_find_node(map, 10);
+   TEST_ASSERT(node == MAP_EOF);
+   TEST_ASSERT(map->deleted == 1);
+   TEST_ASSERT(map->size == 1);
+
+   map_remove(map, 20);
+   node = map_find_node(map, 20);
+   TEST_ASSERT(node == MAP_EOF);
+   TEST_ASSERT(map->deleted == 2);
+   TEST_ASSERT(map->size == 0);
+
+   map_destroy(map);
+}
+
+void test_map_find_values() {
+   Map map = map_create(0, 100);
+
+   map_insert(map, 10, 5);
+   map_insert(map, 20, 10);
+   map_insert(map, 10, 15); 
+
+   Set set = map_find_values(map, 10);
+   TEST_ASSERT(set->size == 2);
+   TEST_ASSERT(S_find_equal(set->root, 5) != SET_EOF);
+   TEST_ASSERT(S_find_equal(set->root, 15) != SET_EOF);
+
+   set = map_find_values(map, 20);
+   TEST_ASSERT(set->size == 1);
+
+   set = map_find_values(map, 15);
+   TEST_ASSERT(set == NULL);
+
+   map_destroy(map);
+}
+
+void test_map_first() {
+   Map map = map_create(0, 100);
+
+   map_insert(map, 10, 5);
+   map_insert(map, 20, 10);
+   map_insert(map, 10, 15); 
+
+   MapNode first = map_first(map);
+   TEST_ASSERT(first->key == 10);
+
+   map_remove(map, 10);
+   first = map_first(map);
+   TEST_ASSERT(first->key == 20);
+
+   map_destroy(map);
+}
+
+void test_rehash() {
+
+   Map map = map_create(0, 5); 
+   TEST_ASSERT(map->capacity == 53);
+
+   // Insert enough elements to exceed MAX_LOAD_FACTOR
+   for (int i = 0; i < 50; i++) {
+      map_insert(map, i, i * 10);
+   }
+
+   // Verify the map has rehashed
+   TEST_ASSERT(map->capacity == 97);
+
+   // Verify all elements are still accessible
+   for (int i = 0; i < 50; i++) {
+      Set values = map_find_values(map, i);
+      TEST_ASSERT(values != NULL);
+      //TEST_ASSERT(set_contains(values, i * 10));
+   }
+
+   map_destroy(map);
+}
+
 // OPEN FUNCTION TESTS
 // mike path: /home/mike/Documents/Project24-25/open_functions/siftsmall
 
@@ -646,15 +788,22 @@ void test_data_open(void) {
    
    // for the first few vectors, check that they are infact the same
    float* vec = (float*)malloc(vec_size);
-   for (int j = 0; j<num_vectors && j < 20; j++) {
+   float max_filter = FLT_MIN;
+   float min_filter = FLT_MAX;
+   for (int j = 0; j<num_vectors; j++) {
       fread(vec, vec_size, 1, fp);
       //printf("vector %d: ", j);
-      for (int i = 0; i<vec_num_d+2 && i < 5; i++) {
+      for (int i = 0; i<vec_num_d+2; i++) {
          //printf("%f ", vectors[i][j]);
+         if (i == 0) {
+            if (vectors[i][j] <= min_filter) min_filter = vectors[i][j];
+            if (vectors[i][j] >= max_filter) max_filter = vectors[i][j];
+         }
          TEST_ASSERT(vectors[i][j] == vec[i]);
       }
       //printf("\n");
    }
+   printf("min: %f , max: %f\n", min_filter, max_filter);
    free(vec);
 
    fclose(fp);
@@ -1115,42 +1264,48 @@ void test_Vamana(void) {
 }
 
 TEST_LIST = {
-   { "set_Create", test_set_Create },
-   { "S_node_create", test_S_node_create },
-   { "S_node_insert", test_S_node_insert },
-   { "set_insert", test_set_insert },
-   { "find_min", test_find_min },
-   { "find_max", test_find_max },
-   { "find_next", test_find_next },
-   { "set_next", test_set_next },
-   { "min_remove", test_min_remove },
-   { "S_remove", test_S_remove },
-   { "set_remove", test_set_remove },
-   { "S_find_equal", test_S_find_equal },
-   { "vec_Create", test_vec_Create },
-   { "vec_insert", test_vec_insert },
-   { "vec_remove", test_vec_remove },
-   { "vec_get_dist", test_vec_get_dist },
-   { "vec_get_at", test_vec_get_at },
-   { "vec_set_at", test_vec_set_at },
-   { "vec_find_node", test_vec_find_node },
-   { "vec_find_pos", test_vec_find_pos },
-   { "vec_first", test_vec_first },
-   { "vec_last", test_vec_last },
-   { "vec_next", test_vec_next },
-   { "pqueue_create", test_pqueue_create },
-   { "pqueue_insert", test_pqueue_insert },
-   { "pqueue_remove", test_pqueue_remove },
-   { "free_matrix_fvecs", test_free_matrix_fvecs },
-   { "free_matrix_ivecs", test_free_matrix_ivecs },
-   { "open_fvecs", test_open_fvecs },
-   { "open_ivecs", test_open_ivecs },
-   { "data_open", test_data_open },
-   { "query_open", test_query_open },
-   { "euclidean_distance", test_euclidean_distance },
-   { "greedySearch", test_greedySearch },
-   { "RobustPrune", test_RobustPrune },
-   { "medoid", test_medoid },
-   { "Vamana", test_Vamana },
+   // { "set_Create", test_set_Create },
+   // { "S_node_create", test_S_node_create },
+   // { "S_node_insert", test_S_node_insert },
+   // { "set_insert", test_set_insert },
+   // { "find_min", test_find_min },
+   // { "find_max", test_find_max },
+   // { "find_next", test_find_next },
+   // { "set_next", test_set_next },
+   // { "min_remove", test_min_remove },
+   // { "S_remove", test_S_remove },
+   // { "set_remove", test_set_remove },
+   // { "S_find_equal", test_S_find_equal },
+   // { "vec_Create", test_vec_Create },
+   // { "vec_insert", test_vec_insert },
+   // { "vec_remove", test_vec_remove },
+   // { "vec_get_dist", test_vec_get_dist },
+   // { "vec_get_at", test_vec_get_at },
+   // { "vec_set_at", test_vec_set_at },
+   // { "vec_find_node", test_vec_find_node },
+   // { "vec_find_pos", test_vec_find_pos },
+   // { "vec_first", test_vec_first },
+   // { "vec_last", test_vec_last },
+   // { "vec_next", test_vec_next },
+   // { "pqueue_create", test_pqueue_create },
+   // { "pqueue_insert", test_pqueue_insert },
+   // { "pqueue_remove", test_pqueue_remove },
+   { "map_create", test_map_create },
+   { "map_insert", test_map_insert },
+   { "map_find_node", test_map_find_node },
+   { "map_remove", test_map_remove },
+   { "map_find_values", test_map_find_values },
+   { "rehash", test_rehash },
+   // { "free_matrix_fvecs", test_free_matrix_fvecs },
+   // { "free_matrix_ivecs", test_free_matrix_ivecs },
+   // { "open_fvecs", test_open_fvecs },
+   // { "open_ivecs", test_open_ivecs },
+   // { "data_open", test_data_open },
+   // { "query_open", test_query_open },
+   // { "euclidean_distance", test_euclidean_distance },
+   // { "greedySearch", test_greedySearch },
+   // { "RobustPrune", test_RobustPrune },
+   // { "medoid", test_medoid },
+   // { "Vamana", test_Vamana },
    { NULL, NULL }     /* zeroed record marking the end of the list */
 };

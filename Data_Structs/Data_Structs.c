@@ -463,3 +463,154 @@ void pqueue_destroy(PQueue pqueue) {
 	vec_destroy(pqueue->vector);
 	free(pqueue);
 }
+
+// HASH MAP
+
+int prime_sizes[] = {53, 97, 193, 389, 769, 1543, 3079, 6151, 12289, 24593, 49157, 98317, 196613, 393241,
+	786433, 1572869, 3145739, 6291469, 12582917, 25165843, 50331653, 100663319, 201326611, 402653189, 805306457, 1610612741};
+
+unsigned int hash_function(int filter, int min, int table_size) {
+    return (filter-min) % table_size;
+}
+
+Map map_create(float min, float max) {
+	Map map = malloc(sizeof(*map));
+	int cap = 0;
+	for (int i=0; i<25; i++) {
+		if (prime_sizes[i] >= max-min+1) {
+			cap = prime_sizes[i];
+			break;
+		}
+	}
+	map->capacity = cap;
+	map->array = malloc(map->capacity * sizeof(struct map_node));
+
+	// mark all nodes as empty
+	for (int i = 0; i < map->capacity; i++) {
+		map->array[i].state = EMPTY;
+		map->array[i].values = NULL;
+		map->array[i].key = 0;
+	}
+
+	map->size = 0;
+	map->deleted = 0;
+
+	map->max_f = max;
+	map->min_f = min;
+
+	return map;
+}
+
+static void rehash(Map map) {
+	// store old data
+	int old_capacity = map->capacity;
+	MapNode old_array = map->array;
+
+	// determine new capacity 
+	int prime_no = sizeof(prime_sizes) / sizeof(int);
+	for (int i = 0; i < prime_no; i++) {					
+		if (prime_sizes[i] > old_capacity) {
+			map->capacity = prime_sizes[i]; 
+			break;
+		}
+	}
+
+	// if there are no more firsts, double it
+	if (map->capacity == old_capacity)					
+		map->capacity *= 2;								
+
+	// create a bigger hash table
+	map->array = malloc(map->capacity * sizeof(struct map_node));
+	for (int i = 0; i < map->capacity; i++)
+		map->array[i].state = EMPTY;
+
+	// only store the occupied entries
+	map->size = 0;
+	for (int i = 0; i < old_capacity; i++)
+		if (old_array[i].state == OCCUPIED) {
+			for (set_Node node = find_min(old_array[i].values->root); node != SET_EOF; node = set_next(old_array[i].values, node)) 
+				map_insert(map, old_array[i].key, node->value);
+			set_destroy(old_array[i].values);
+		}
+			
+	free(old_array);
+}
+
+void map_insert(Map map, int key, int value) {
+	MapNode node = NULL;
+
+	// compute the position where the key "hashes" to
+	int pos = hash_function(key, map->min_f, map->capacity);
+	node = &map->array[pos];
+
+	if (node->state == DELETED || node->state == EMPTY) {
+		if (node->state == DELETED) map->deleted--;
+		node->values = set_Create();
+		map->size++;
+	}
+	
+	set_insert(node->values, value);
+	node->state = OCCUPIED;
+	node->key = key;
+
+	float load_factor = (float)(map->size + map->deleted) / map->capacity;
+	if (load_factor > MAX_LOAD_FACTOR)
+		rehash(map);
+}
+
+MapNode map_find_node(Map map, int key) {
+	// compute the position where the key "hashes" to
+	int pos = hash_function(key, map->min_f, map->capacity);
+
+	// if the position where the key hashes is occupied and the corresponding key matches, return the map node
+	if (map->array[pos].state == OCCUPIED && compare(map->array[pos].key, key) == 0) {
+		MapNode node = &map->array[pos];
+		return node;
+	}
+	return MAP_EOF;
+}
+
+void map_remove(Map map, int key) {
+	// find in which node the key is held
+	MapNode node = map_find_node(map, key);
+	if (node == MAP_EOF)
+		return;
+
+	// destroy the corresponding values set
+	set_destroy(node->values);
+
+	// set the node to deleted
+	node->state = DELETED;
+	map->deleted++;
+	map->size--;
+
+	return;
+}
+
+Set map_find_values(Map map, int key) {
+	MapNode node = map_find_node(map, key);
+	if (node != MAP_EOF)
+		return node->values;
+	else
+		return NULL;
+}
+
+void map_destroy(Map map) {
+	for (int i = 0; i < map->capacity; i++) {
+		if (map->array[i].state == OCCUPIED) {
+			set_destroy(map->array[i].values);
+		}
+	}
+
+	free(map->array);
+	free(map);
+}
+
+MapNode map_first(Map map) {
+	// start from the beginning of the array until you find the first occupied node
+	for (int i = 0; i < map->capacity; i++)
+		if (map->array[i].state == OCCUPIED)
+			return &map->array[i];
+
+	return MAP_EOF;
+}

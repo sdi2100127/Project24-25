@@ -17,6 +17,19 @@ main.o: src/main.c open_functions/open.h algorithms/algorithms.h
 app: main.o open.o algorithms.o Data_Structs.o
 	gcc main.o open.o algorithms.o Data_Structs.o -g -o app -lm -ggdb
 
+# FILTERED MAIN PROGRAM:
+
+# Object files
+filtered_algorithms.o: algorithms/filtered_algorithms.c algorithms/filtered_algorithms.h 
+	gcc -c algorithms/filtered_algorithms.c -o filtered_algorithms.o 
+
+filtered_main.o: src/filtered_main.c open_functions/open.h algorithms/filtered_algorithms.h
+	gcc -c src/main.c -o main.o 
+
+# Executable
+filtered_app: main.o open.o algorithms.o filtered_algorithms.o Data_Structs.o
+	gcc main.o open.o algorithms.o filtered_algorithms.o Data_Structs.o -g -o app -lm -ggdb
+
 # UNIT TESTS:
 
 # Object files
@@ -24,7 +37,7 @@ testing.o: unit_tests/testing.c unit_tests/acutest.h open_functions/open.h algor
 	gcc -c unit_tests/testing.c -o testing.o
 # Executable
 test: testing.o open.o algorithms.o Data_Structs.o
-	gcc testing.o open.o algorithms.o Data_Structs.o -g -o test -lm 
+	gcc testing.o open.o algorithms.o Data_Structs.o -g -o test -lm
 
 # Clean target
 clean:
@@ -34,6 +47,10 @@ clean:
 run: app
 	./app -k 100 -L 125  -R 40
 
+# Run the filtered program
+run_filter: filtered_app
+	./filtered_app -k 100 -L 125  -R 40
+
 # Run the unit tests
 run_test: test
-	./test 
+	valgrind ./test 

@@ -191,3 +191,50 @@ void pqueue_destroy(PQueue pqueue);
 void heapify(PQueue pq, int node);
 
 void build_heap(PQueue pq);
+
+// HASH MAP
+
+#define MAP_EOF (MapNode)0
+
+extern int prime_sizes[];
+
+typedef enum {
+	EMPTY, OCCUPIED, DELETED
+} State;
+
+#define MAX_LOAD_FACTOR 0.7
+
+struct map_node{
+	int key;		// hash key
+	Set values;  	// set of values corresponding to said key
+	State state;	// state of each node
+};
+
+typedef struct map_node* MapNode;
+
+struct map {
+	MapNode array;
+	int capacity;
+	int size;
+	int deleted;
+	float max_f;
+	float min_f;
+};
+
+typedef struct map* Map;
+
+Map map_create(float min, float max);
+
+static void rehash(Map map);
+
+void map_insert(Map map, int key, int value);
+
+MapNode map_find_node(Map map, int key);
+
+void map_remove(Map map, int key);
+
+Set map_find_values(Map map, int key);
+
+void map_destroy(Map map);
+
+MapNode map_first(Map map);
