@@ -614,3 +614,11 @@ MapNode map_first(Map map) {
 
 	return MAP_EOF;
 }
+
+MapNode map_next(Map map, MapNode node) {
+	for (int i = node - map->array + 1; i < map->capacity; i++)
+		if (map->array[i].state == OCCUPIED)
+			return &map->array[i];
+
+	return MAP_EOF;
+}

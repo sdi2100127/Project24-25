@@ -73,7 +73,7 @@ int FindMedoid(float** dataset, int vecs, int comps, float*** dist_m) {
 
 }
 
-Vector* FilteredVamanaIndexing(float** dataset, int vecs, int comps, int L, int R, int a, int* med) {
+Vector* FilteredVamanaIndexing(float** dataset, float min_f, float max_f, int vecs, int comps, int L, int R, int a, int* med) {
     // first we initialize G to an empty graph
     Vector* G = (Vector*)malloc(vecs * sizeof(Vector));
    
@@ -99,6 +99,34 @@ Vector* FilteredVamanaIndexing(float** dataset, int vecs, int comps, int L, int 
     printf("vamana found medoid: %d\n", s);
     *med = s;
 
+    // now we will have to map each point of the dataset to each corresponding filter
+    // we will do that by using a hashmap structure(filter --> key) that has an array big enough
+    // so that every key-filter hashes to a different position
+    // by doing that we ensure that every position in the hash map only holds the points
+    // corresponding to a certain filter f(values --> set of points with filter f)
+    Map filtered_data = map_create(min_f, max_f);
+
+    for (int j=0; j<vecs; j++) {
+        map_insert(filtered_data, (int)dataset[0][j], j);
+    }
+
+    Set values;
+    int count = 0;
+    for (MapNode node = map_first(filtered_data); node != MAP_EOF; node = map_next(filtered_data, node)) {
+        count++;
+        printf("filter %d: ", node->key);
+        values = node->values;
+        for (set_Node s_node = find_min(values->root); s_node != SET_EOF; s_node = set_next(values, s_node)) {
+            printf("%d ", s_node->value);
+        }
+        printf("\n");
+        if (count == 10) break;
+    }
+
+    set_destroy(values);
+    map_destroy(filtered_data);
+
+    return NULL;
 }
 
 

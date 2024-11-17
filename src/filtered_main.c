@@ -1,8 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <string.h>
 
-#include "../algorithms/algorithms.h"
+//#include "../algorithms/algorithms.h"
 #include "../algorithms/filtered_algorithms.h"
 #include "../open_functions/open.h"
 
@@ -27,9 +28,10 @@ int main(int argc, char ** argv) {
     // open base vectors file using data_open
     const char* base_file = "dummy-data.bin";
     int num_vectors, d_base = 100;
-    float** dataset = data_open(base_file, &num_vectors, d_base);
+    float min_f, max_f;
+    float** dataset = data_open(base_file, &num_vectors, d_base, &min_f, &max_f);
 
-    int vecs = 10000;
+    int vecs = 100;
     float** vectors = (float**)malloc(d_base * sizeof(float*));
     for (int i = 0; i < d_base; i++) {
         vectors[i] = (float*)malloc(vecs * sizeof(float));
@@ -69,7 +71,9 @@ int main(int argc, char ** argv) {
 
     int med;
 
-    Vector* G = FilteredVamanaIndexing(vectors, vecs, d_base, L, R, a, &med);
+    Vector* G = FilteredVamanaIndexing(vectors, min_f, max_f, vecs, d_base, L, R, a, &med);
+
+    return 0;
 
     printf("G\n");
     for (int j = 0; j < vecs; j++) {

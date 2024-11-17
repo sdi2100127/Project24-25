@@ -24,11 +24,11 @@ filtered_algorithms.o: algorithms/filtered_algorithms.c algorithms/filtered_algo
 	gcc -c algorithms/filtered_algorithms.c -o filtered_algorithms.o 
 
 filtered_main.o: src/filtered_main.c open_functions/open.h algorithms/filtered_algorithms.h
-	gcc -c src/main.c -o main.o 
+	gcc -c src/filtered_main.c -o filtered_main.o 
 
 # Executable
-filtered_app: main.o open.o algorithms.o filtered_algorithms.o Data_Structs.o
-	gcc main.o open.o algorithms.o filtered_algorithms.o Data_Structs.o -g -o app -lm -ggdb
+filtered_app: filtered_main.o open.o algorithms.o filtered_algorithms.o Data_Structs.o
+	gcc filtered_main.o open.o algorithms.o filtered_algorithms.o Data_Structs.o -g -o filtered_app -lm -ggdb
 
 # UNIT TESTS:
 
@@ -49,8 +49,8 @@ run: app
 
 # Run the filtered program
 run_filter: filtered_app
-	./filtered_app -k 100 -L 125  -R 40
+	valgrind ./filtered_app -k 100 -L 125  -R 40
 
 # Run the unit tests
 run_test: test
-	valgrind ./test 
+	./test 

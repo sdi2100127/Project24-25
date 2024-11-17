@@ -238,3 +238,5 @@ Set map_find_values(Map map, int key);
 void map_destroy(Map map);
 
 MapNode map_first(Map map);
+
+MapNode map_next(Map map, MapNode node);

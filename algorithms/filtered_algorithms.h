@@ -37,7 +37,7 @@ int FindMedoid(float** dataset, int vecs, int comps, float*** dist_m);
 // vectors indexes and the neighbours in graph G, and that goes against the vamana's algorithm random initiallizations
 
 // Vamana algorithm for testing purposes
-Vector* FilteredVamanaIndexing(float** dataset, int vecs, int comps, int L, int R, int a, int* med);
+Vector* FilteredVamanaIndexing(float** dataset, float min_f, float max_f, int vecs, int comps, int L, int R, int a, int* med);
 
 // Vamana algorithm
 Vector* StichedVamanaIndexing(float** dataset, int vecs, int comps, int L, int R, int a, int* med);

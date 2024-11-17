@@ -4,11 +4,8 @@
 
 #include "../open_functions/open.h"
 #include "../algorithms/algorithms.h"
+//#include "../algorithms/filtered_algorithms.h"
 
-//#include "../Vamana/Vamana.h"
-
-// compile example: cc testing.c ../open_functions/open.c ../Data_Structs/Data_Structs.c ../algorithms/algorithms.c -o testing -lm
-// run: ./testing
 
 // https://github.com/mity/acutest/blob/master/README.md
 // There is a macro TEST_ASSERT which is very similar to TEST_CHECK but, if it fails, it aborts execution of the current unit test instantly.
@@ -592,6 +589,25 @@ void test_map_first() {
    map_destroy(map);
 }
 
+void test_map_next() {
+   Map map = map_create(0, 100);
+
+   map_insert(map, 10, 5);
+   map_insert(map, 20, 10);
+   map_insert(map, 10, 15); 
+
+   MapNode first = map_first(map);
+   TEST_ASSERT(first->key == 10);
+
+   MapNode next = map_next(map, first);
+   TEST_ASSERT(next->key == 20);
+
+   next = map_next(map, next);
+   TEST_ASSERT(next == MAP_EOF);
+
+   map_destroy(map);
+}
+
 void test_rehash() {
 
    Map map = map_create(0, 5); 
@@ -780,8 +796,9 @@ void test_data_open(void) {
 
    // call fvecs_open
    int num_vectors;
-   float** vectors = data_open(filename, &num_vectors, vec_num_d);
-   
+   float min, max;
+   float** vectors = data_open(filename, &num_vectors, vec_num_d, &min, &max);
+
    TEST_ASSERT(vectors != NULL); // check if the vectors matrix was created
    TEST_ASSERT(num_vectors == vecs); // check if the number of vectors is the same
    
@@ -804,6 +821,8 @@ void test_data_open(void) {
       //printf("\n");
    }
    printf("min: %f , max: %f\n", min_filter, max_filter);
+   TEST_ASSERT(min == min_filter);
+   TEST_ASSERT(max == max_filter);
    free(vec);
 
    fclose(fp);
@@ -1264,48 +1283,50 @@ void test_Vamana(void) {
 }
 
 TEST_LIST = {
-   // { "set_Create", test_set_Create },
-   // { "S_node_create", test_S_node_create },
-   // { "S_node_insert", test_S_node_insert },
-   // { "set_insert", test_set_insert },
-   // { "find_min", test_find_min },
-   // { "find_max", test_find_max },
-   // { "find_next", test_find_next },
-   // { "set_next", test_set_next },
-   // { "min_remove", test_min_remove },
-   // { "S_remove", test_S_remove },
-   // { "set_remove", test_set_remove },
-   // { "S_find_equal", test_S_find_equal },
-   // { "vec_Create", test_vec_Create },
-   // { "vec_insert", test_vec_insert },
-   // { "vec_remove", test_vec_remove },
-   // { "vec_get_dist", test_vec_get_dist },
-   // { "vec_get_at", test_vec_get_at },
-   // { "vec_set_at", test_vec_set_at },
-   // { "vec_find_node", test_vec_find_node },
-   // { "vec_find_pos", test_vec_find_pos },
-   // { "vec_first", test_vec_first },
-   // { "vec_last", test_vec_last },
-   // { "vec_next", test_vec_next },
-   // { "pqueue_create", test_pqueue_create },
-   // { "pqueue_insert", test_pqueue_insert },
-   // { "pqueue_remove", test_pqueue_remove },
+   { "set_Create", test_set_Create },
+   { "S_node_create", test_S_node_create },
+   { "S_node_insert", test_S_node_insert },
+   { "set_insert", test_set_insert },
+   { "find_min", test_find_min },
+   { "find_max", test_find_max },
+   { "find_next", test_find_next },
+   { "set_next", test_set_next },
+   { "min_remove", test_min_remove },
+   { "S_remove", test_S_remove },
+   { "set_remove", test_set_remove },
+   { "S_find_equal", test_S_find_equal },
+   { "vec_Create", test_vec_Create },
+   { "vec_insert", test_vec_insert },
+   { "vec_remove", test_vec_remove },
+   { "vec_get_dist", test_vec_get_dist },
+   { "vec_get_at", test_vec_get_at },
+   { "vec_set_at", test_vec_set_at },
+   { "vec_find_node", test_vec_find_node },
+   { "vec_find_pos", test_vec_find_pos },
+   { "vec_first", test_vec_first },
+   { "vec_last", test_vec_last },
+   { "vec_next", test_vec_next },
+   { "pqueue_create", test_pqueue_create },
+   { "pqueue_insert", test_pqueue_insert },
+   { "pqueue_remove", test_pqueue_remove },
    { "map_create", test_map_create },
    { "map_insert", test_map_insert },
    { "map_find_node", test_map_find_node },
    { "map_remove", test_map_remove },
    { "map_find_values", test_map_find_values },
+   { "map_first", test_map_first },
+   { "map_next", test_map_next },
    { "rehash", test_rehash },
-   // { "free_matrix_fvecs", test_free_matrix_fvecs },
-   // { "free_matrix_ivecs", test_free_matrix_ivecs },
-   // { "open_fvecs", test_open_fvecs },
-   // { "open_ivecs", test_open_ivecs },
-   // { "data_open", test_data_open },
-   // { "query_open", test_query_open },
-   // { "euclidean_distance", test_euclidean_distance },
-   // { "greedySearch", test_greedySearch },
-   // { "RobustPrune", test_RobustPrune },
-   // { "medoid", test_medoid },
-   // { "Vamana", test_Vamana },
+   { "free_matrix_fvecs", test_free_matrix_fvecs },
+   { "free_matrix_ivecs", test_free_matrix_ivecs },
+   { "open_fvecs", test_open_fvecs },
+   { "open_ivecs", test_open_ivecs },
+   { "data_open", test_data_open },
+   { "query_open", test_query_open },
+   { "euclidean_distance", test_euclidean_distance },
+   { "greedySearch", test_greedySearch },
+   { "RobustPrune", test_RobustPrune },
+   { "medoid", test_medoid },
+   { "Vamana", test_Vamana },
    { NULL, NULL }     /* zeroed record marking the end of the list */
 };
