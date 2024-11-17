@@ -206,7 +206,8 @@ typedef enum {
 
 struct map_node{
 	int key;		// hash key
-	Set values;  	// set of values corresponding to said key
+	//Set values;  	// set of values corresponding to said key
+	Vector values;
 	State state;	// state of each node
 };
 
@@ -233,7 +234,7 @@ MapNode map_find_node(Map map, int key);
 
 void map_remove(Map map, int key);
 
-Set map_find_values(Map map, int key);
+Vector map_find_values(Map map, int key);
 
 void map_destroy(Map map);
 

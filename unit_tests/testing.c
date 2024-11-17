@@ -3,8 +3,8 @@
 #include <float.h>
 
 #include "../open_functions/open.h"
-#include "../algorithms/algorithms.h"
-//#include "../algorithms/filtered_algorithms.h"
+//#include "../algorithms/algorithms.h"
+#include "../algorithms/filtered_algorithms.h"
 
 
 // https://github.com/mity/acutest/blob/master/README.md
@@ -493,19 +493,19 @@ void test_map_insert() {
    TEST_ASSERT(map->size == 1);
    TEST_ASSERT(map->array[10].key == 10);
    TEST_ASSERT(map->array[10].state == OCCUPIED);
-   TEST_ASSERT(map->array[10].values->root->value == 5);
+   TEST_ASSERT(vec_find_node(map->array[10].values, 5) != VECTOR_EOF);
 
    map_insert(map, 20, 10);
    TEST_ASSERT(map->size == 2);
    TEST_ASSERT(map->array[20].key == 20);
    TEST_ASSERT(map->array[20].state == OCCUPIED);
-   TEST_ASSERT(map->array[20].values->root->value == 10);
+   TEST_ASSERT(vec_find_node(map->array[20].values, 10) != VECTOR_EOF);
 
    map_insert(map, 10, 15); 
    TEST_ASSERT(map->size == 2);
    TEST_ASSERT(map->array[10].key == 10);
    TEST_ASSERT(map->array[10].state == OCCUPIED);
-   TEST_ASSERT(S_find_equal(map->array[10].values->root, 15) != SET_EOF);
+   TEST_ASSERT(vec_find_node(map->array[10].values, 15) != VECTOR_EOF);
 
    map_destroy(map);
 }
@@ -519,8 +519,8 @@ void test_map_find_node() {
 
    MapNode node = map_find_node(map, 10);
    TEST_ASSERT(node->key == 10);
-   TEST_ASSERT(S_find_equal(node->values->root, 5) != SET_EOF);
-   TEST_ASSERT(S_find_equal(node->values->root, 15) != SET_EOF);
+   TEST_ASSERT(vec_find_node(map->array[10].values, 5) != VECTOR_EOF);
+   TEST_ASSERT(vec_find_node(map->array[10].values, 15) != VECTOR_EOF);
    TEST_ASSERT(node->state == OCCUPIED);
 
    node = map_find_node(map, 15);
@@ -558,16 +558,16 @@ void test_map_find_values() {
    map_insert(map, 20, 10);
    map_insert(map, 10, 15); 
 
-   Set set = map_find_values(map, 10);
-   TEST_ASSERT(set->size == 2);
-   TEST_ASSERT(S_find_equal(set->root, 5) != SET_EOF);
-   TEST_ASSERT(S_find_equal(set->root, 15) != SET_EOF);
+   Vector vec = map_find_values(map, 10);
+   TEST_ASSERT(vec->size == 2);
+   TEST_ASSERT(vec_find_node(map->array[10].values, 15) != VECTOR_EOF);
+   TEST_ASSERT(vec_find_node(map->array[10].values, 5) != VECTOR_EOF);
 
-   set = map_find_values(map, 20);
-   TEST_ASSERT(set->size == 1);
+   vec = map_find_values(map, 20);
+   TEST_ASSERT(vec->size == 1);
 
-   set = map_find_values(map, 15);
-   TEST_ASSERT(set == NULL);
+   vec = map_find_values(map, 15);
+   TEST_ASSERT(vec == NULL);
 
    map_destroy(map);
 }
@@ -623,7 +623,7 @@ void test_rehash() {
 
    // Verify all elements are still accessible
    for (int i = 0; i < 50; i++) {
-      Set values = map_find_values(map, i);
+      Vector values = map_find_values(map, i);
       TEST_ASSERT(values != NULL);
       //TEST_ASSERT(set_contains(values, i * 10));
    }
@@ -1282,6 +1282,10 @@ void test_Vamana(void) {
 
 }
 
+void test_FilteredMediod(void) {
+
+}
+
 TEST_LIST = {
    { "set_Create", test_set_Create },
    { "S_node_create", test_S_node_create },
@@ -1328,5 +1332,6 @@ TEST_LIST = {
    { "RobustPrune", test_RobustPrune },
    { "medoid", test_medoid },
    { "Vamana", test_Vamana },
+   { "FilteredMediod", test_FilteredMediod },
    { NULL, NULL }     /* zeroed record marking the end of the list */
 };

@@ -31,7 +31,7 @@ int main(int argc, char ** argv) {
     float min_f, max_f;
     float** dataset = data_open(base_file, &num_vectors, d_base, &min_f, &max_f);
 
-    int vecs = 100;
+    int vecs = 10000;
     float** vectors = (float**)malloc(d_base * sizeof(float*));
     for (int i = 0; i < d_base; i++) {
         vectors[i] = (float*)malloc(vecs * sizeof(float));
@@ -73,17 +73,15 @@ int main(int argc, char ** argv) {
 
     Vector* G = FilteredVamanaIndexing(vectors, min_f, max_f, vecs, d_base, L, R, a, &med);
 
-    return 0;
-
-    printf("G\n");
-    for (int j = 0; j < vecs; j++) {
-        printf("vector %d:", j);
-        for (int i = 0; i < R; i++) {
-        printf(" %d",  vec_get_at(G[j], i));
+    // printf("G\n");
+    // for (int j = 0; j < vecs; j++) {
+    //     printf("vector %d:", j);
+    //     for (int i = 0; i < R; i++) {
+    //     printf(" %d",  vec_get_at(G[j], i));
             
-        }
-        printf("\n");
-    }
+    //     }
+    //     printf("\n");
+    // }
 
     // randomly select a query vector
     int xq_pos = rand() % (query_vectors - 1);

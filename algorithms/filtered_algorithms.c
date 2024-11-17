@@ -29,23 +29,26 @@ int FilteredMedoid(float** dataset, int vecs, int comps, float*** dist_m) {
     for (int j=0; j<vecs; j++) {
 
         dist_sum = 0.0f;
+        int count = 0;
         for (int i=2; i<comps; i++) {
-            vec_p1[i] = dataset[i][j];
+            vec_p1[count] = dataset[i][j];
+            count++;
         }
 
         
         // compute its distance to all other vectors
         for (int z=0; z<vecs; z++) {
-            
+            count = 0;
             for (int i=2; i<comps; i++) {
-                vec_p2[i] = dataset[i][z];
+                vec_p2[count] = dataset[i][z];
+                count++;
             }
 
             // and add it to the total sum
             if (j != z)  {
                 // compute the distance only if it has not been computed before
                 if (temp_m[j][z] == 0) {
-                    dist = squared_euclidean_distance(vec_p1, vec_p2, comps);
+                    dist = squared_euclidean_distance(vec_p1, vec_p2, comps-2);
                     temp_m[j][z] = dist;
                     temp_m[z][j] = dist;
                 }
@@ -69,8 +72,26 @@ int FilteredMedoid(float** dataset, int vecs, int comps, float*** dist_m) {
     return min_p;
 }
 
-int FindMedoid(float** dataset, int vecs, int comps, float*** dist_m) {
+Map FindMedoid(float** dataset, int vecs, int comps, float*** dist_m, float min_f, float max_f, Map filtered_data, int t) {
+    // initialize M as an empty map
+    Map M = map_create(min_f, max_f);
 
+    Set rand_p = set_Create();
+    // for each different filter f
+    for (MapNode node = map_first(filtered_data); node != MAP_EOF; node = map_next(filtered_data, node)) {
+        // Set values = node->values;
+        // int* val_array = (int*)malloc((values->size)* sizeof(float));
+        // int i = 0;
+        // // crete an array to hold all the values 
+        // for (set_Node s_node = find_min(values->root); s_node != SET_EOF; s_node = set_next(values, s_node)) {
+        //     val_array[i] = s_node->value;
+        //     i++;
+        // }
+        // while (rand_p->size < t || rand_p->size < values->size) {
+        //     int x = rand() % values->size;
+        //     set_insert(rand_p, val_array[x]);
+        // }
+    }
 }
 
 Vector* FilteredVamanaIndexing(float** dataset, float min_f, float max_f, int vecs, int comps, int L, int R, int a, int* med) {
@@ -110,23 +131,22 @@ Vector* FilteredVamanaIndexing(float** dataset, float min_f, float max_f, int ve
         map_insert(filtered_data, (int)dataset[0][j], j);
     }
 
-    Set values;
-    int count = 0;
-    for (MapNode node = map_first(filtered_data); node != MAP_EOF; node = map_next(filtered_data, node)) {
-        count++;
-        printf("filter %d: ", node->key);
-        values = node->values;
-        for (set_Node s_node = find_min(values->root); s_node != SET_EOF; s_node = set_next(values, s_node)) {
-            printf("%d ", s_node->value);
-        }
-        printf("\n");
-        if (count == 10) break;
-    }
+    // Set values;
+    // for (MapNode node = map_first(filtered_data); node != MAP_EOF; node = map_next(filtered_data, node)) {
+    //     printf("filter %d: ", node->key);
+    //     values = node->values;
+    //     for (set_Node s_node = find_min(values->root); s_node != SET_EOF; s_node = set_next(values, s_node)) {
+    //         printf("%d ", s_node->value);
+    //     }
+    //     printf("\n");
+    // }
 
-    set_destroy(values);
+
+
     map_destroy(filtered_data);
+    free_matrix_fvecs(dist_matrix, vecs);
 
-    return NULL;
+    return G;
 }
 
 

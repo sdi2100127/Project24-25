@@ -33,11 +33,11 @@ filtered_app: filtered_main.o open.o algorithms.o filtered_algorithms.o Data_Str
 # UNIT TESTS:
 
 # Object files
-testing.o: unit_tests/testing.c unit_tests/acutest.h open_functions/open.h algorithms/algorithms.h
+testing.o: unit_tests/testing.c unit_tests/acutest.h open_functions/open.h algorithms/algorithms.h algorithms/filtered_algorithms.h
 	gcc -c unit_tests/testing.c -o testing.o
 # Executable
-test: testing.o open.o algorithms.o Data_Structs.o
-	gcc testing.o open.o algorithms.o Data_Structs.o -g -o test -lm
+test: testing.o open.o algorithms.o filtered_algorithms.o Data_Structs.o
+	gcc testing.o open.o algorithms.o filtered_algorithms.o Data_Structs.o -g -o test -lm
 
 # Clean target
 clean:
@@ -49,8 +49,8 @@ run: app
 
 # Run the filtered program
 run_filter: filtered_app
-	valgrind ./filtered_app -k 100 -L 125  -R 40
+	./filtered_app -k 100 -L 125  -R 40
 
 # Run the unit tests
 run_test: test
-	./test 
+	valgrind ./test 

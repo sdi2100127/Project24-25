@@ -189,6 +189,7 @@ float** data_open(const char* filename, int* num_vectors, int vec_num_d, float* 
 
     *min_f = min_filter;
     *max_f = max_filter;
+    printf("min: %f , max: %f\n", min_filter, max_filter);
 
     fclose(fp);
     return vectors;
@@ -232,7 +233,7 @@ float** query_open(const char* filename, int* num_q, int vec_num_d) {
         fread(vec, vec_size, 1, fp);
         
         for (int i = 0; i < vec_dim; i++) {
-            vectors[i][j] = vec[i]; // vec[0] is the dimension, vec[1] to vec[d] are the vector components
+            vectors[i][j] = vec[i]; 
         }
     }
     free(vec);

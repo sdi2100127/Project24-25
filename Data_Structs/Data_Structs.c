@@ -319,12 +319,6 @@ int vec_find_pos(Vector vec, int value) {
 	return -1;
 }
 
-// void vec_set_destroy_value(Vector vec, int value) {
-// 	int old = vec->array[vec->size].value;
-// 	int destroy_value = value;
-// 	return old;
-// }
-
 void vec_destroy(Vector vec) {
 	free(vec->array);
 	free(vec);
@@ -528,9 +522,9 @@ static void rehash(Map map) {
 	map->size = 0;
 	for (int i = 0; i < old_capacity; i++)
 		if (old_array[i].state == OCCUPIED) {
-			for (set_Node node = find_min(old_array[i].values->root); node != SET_EOF; node = set_next(old_array[i].values, node)) 
+			for (VecNode node = vec_first(old_array[i].values); node != VECTOR_EOF; node = vec_next(old_array[i].values, node))
 				map_insert(map, old_array[i].key, node->value);
-			set_destroy(old_array[i].values);
+			vec_destroy(old_array[i].values);
 		}
 			
 	free(old_array);
@@ -545,11 +539,11 @@ void map_insert(Map map, int key, int value) {
 
 	if (node->state == DELETED || node->state == EMPTY) {
 		if (node->state == DELETED) map->deleted--;
-		node->values = set_Create();
+		node->values = vec_Create(0);
 		map->size++;
 	}
 	
-	set_insert(node->values, value);
+	vec_insert(node->values, value, 0.0);
 	node->state = OCCUPIED;
 	node->key = key;
 
@@ -577,7 +571,7 @@ void map_remove(Map map, int key) {
 		return;
 
 	// destroy the corresponding values set
-	set_destroy(node->values);
+	vec_destroy(node->values);
 
 	// set the node to deleted
 	node->state = DELETED;
@@ -587,7 +581,7 @@ void map_remove(Map map, int key) {
 	return;
 }
 
-Set map_find_values(Map map, int key) {
+Vector map_find_values(Map map, int key) {
 	MapNode node = map_find_node(map, key);
 	if (node != MAP_EOF)
 		return node->values;
@@ -598,7 +592,7 @@ Set map_find_values(Map map, int key) {
 void map_destroy(Map map) {
 	for (int i = 0; i < map->capacity; i++) {
 		if (map->array[i].state == OCCUPIED) {
-			set_destroy(map->array[i].values);
+			vec_destroy(map->array[i].values);
 		}
 	}
 
