@@ -1283,7 +1283,44 @@ void test_Vamana(void) {
 }
 
 void test_FilteredMediod(void) {
+   // run the test for a vector matrix of 5 vectors with 3 components each
+   int dim = 5; // 0 --> C, 1--> T, 2-4--> vector components
+   int vecs = 5;
+   float** vectors = (float**)malloc(dim * sizeof(float*));
+   for (int i = 0; i < dim; i++) {
+      vectors[i] = (float*)malloc(vecs * sizeof(float));
+   }
 
+   // randomly select C an T attributes
+   for(int j=0; j<vecs; j++) {
+      vectors[0][j] = (float)(rand() % 100);
+      vectors[1][j] = (float)rand()/(float)(RAND_MAX/100);
+   }
+   
+
+   vectors[2][0] = 4.0; vectors[3][0] = 6.0; vectors[4][0] = 9.0;
+   vectors[2][1] = 4.0; vectors[3][1] = 5.0; vectors[4][1] = 4.0;
+   vectors[2][2] = 2.0; vectors[3][2] = 8.0; vectors[4][2] = 4.0;
+   vectors[2][3] = 1.0; vectors[3][3] = 5.0; vectors[4][3] = 8.0;
+   vectors[2][4] = 2.0; vectors[3][4] = 5.0; vectors[4][4] = 0.0;
+
+   // create a 2D distance matrix that will hold the euclidean distances between all vectors of the dataset
+   float** dist_matrix = (float**)malloc(vecs * sizeof(float*));
+   for (int i = 0; i < vecs; i++) {
+      dist_matrix[i] = (float*)malloc(vecs * sizeof(float));
+   }
+
+   for(int i=0; i<vecs; i++) {
+      for(int j=0; j<vecs; j++) {
+         dist_matrix[i][j] = 0;
+      }
+   }
+
+   int med = FilteredMedoid(vectors, vecs, dim, &dist_matrix);
+   TEST_ASSERT(med == 1);
+
+   free_matrix_fvecs(vectors, dim);
+   free_matrix_fvecs(dist_matrix, vecs);
 }
 
 TEST_LIST = {

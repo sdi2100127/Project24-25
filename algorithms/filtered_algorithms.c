@@ -74,24 +74,52 @@ int FilteredMedoid(float** dataset, int vecs, int comps, float*** dist_m) {
 
 Map FindMedoid(float** dataset, int vecs, int comps, float*** dist_m, float min_f, float max_f, Map filtered_data, int t) {
     // initialize M as an empty map
+    // M mapps filters to start nodes
     Map M = map_create(min_f, max_f);
 
-    Set rand_p = set_Create();
+    // initialize T as an empty map
+    // T mapps point ids to how often they have been used as medoids
+    Map T = map_create(0, vecs);
+
+    Set R_f = set_Create();
     // for each different filter f
     for (MapNode node = map_first(filtered_data); node != MAP_EOF; node = map_next(filtered_data, node)) {
-        // Set values = node->values;
-        // int* val_array = (int*)malloc((values->size)* sizeof(float));
-        // int i = 0;
-        // // crete an array to hold all the values 
-        // for (set_Node s_node = find_min(values->root); s_node != SET_EOF; s_node = set_next(values, s_node)) {
-        //     val_array[i] = s_node->value;
-        //     i++;
-        // }
-        // while (rand_p->size < t || rand_p->size < values->size) {
-        //     int x = rand() % values->size;
-        //     set_insert(rand_p, val_array[x]);
-        // }
+        // let P_f denote the ids of all points matching filter f
+        // (which are the contents of the corresponding bucket in the hash map)
+        Vector P_f = node->values;
+
+        // R_f holds t randomly sampled data point ids from P_f
+        while (R_f->size < t || R_f->size < P_f->size) {
+            int x = rand() % (P_f->size-1);
+            set_insert(R_f, vec_get_at(P_f, x));
+        }
+
+        // find the point of the filter f(node) with the minimum uses as medoid
+        int p_star;
+        int min_T = max_f;
+        for (set_Node s_node = find_min(R_f->root); s_node != SET_EOF; s_node = set_next(R_f, s_node)) { 
+            Vector val = map_find_values(T, s_node->value);
+            int count = vec_get_at(val, 0);
+            if (count < min_T) {
+                p_star = s_node->value;
+                min_T = count;
+            }
+        }
+
+        // update it in map M 
+        map_insert(M, node, p_star);
+
+        // and increase the count in map T
+        // obtain current count
+        int cur_count = vec_get_at(map_find_values(T, p_star), 0);
+        // remove it to ensure that the map always contains only the latest count
+        map_remove(T, p_star);
+        // insert the key p_star again with the updated count
+        map_insert(T, p_star, cur_count++);
+
     }
+
+    return M;
 }
 
 Vector* FilteredVamanaIndexing(float** dataset, float min_f, float max_f, int vecs, int comps, int L, int R, int a, int* med) {
