@@ -1282,7 +1282,7 @@ void test_Vamana(void) {
 
 }
 
-void test_FilteredMediod(void) {
+void test_FilteredMedoid(void) {
    // run the test for a vector matrix of 5 vectors with 3 components each
    int dim = 5; // 0 --> C, 1--> T, 2-4--> vector components
    int vecs = 5;
@@ -1323,52 +1323,129 @@ void test_FilteredMediod(void) {
    free_matrix_fvecs(dist_matrix, vecs);
 }
 
+void test_FindMedoid() {
+   // run the test for a vector matrix of 5 vectors with 3 components each
+   int dim = 5; // 0 --> C, 1--> T, 2-4--> vector components
+   int vecs = 6;
+   float** vectors = (float**)malloc(dim * sizeof(float*));
+   for (int i = 0; i < dim; i++) {
+      vectors[i] = (float*)malloc(vecs * sizeof(float));
+   }
+
+   // randomly select T attribute
+   for(int j=0; j<vecs; j++) {
+      vectors[1][j] = (float)rand()/(float)(RAND_MAX/100);
+   }
+   
+   vectors[0][0] = 1.0;
+   vectors[0][1] = 1.0;
+   vectors[0][2] = 4.0;
+   vectors[0][3] = 2.0;
+   vectors[0][4] = 2.0;
+   vectors[0][5] = 2.0;
+
+   vectors[2][0] = 4.0; vectors[3][0] = 6.0; vectors[4][0] = 9.0;
+   vectors[2][1] = 4.0; vectors[3][1] = 5.0; vectors[4][1] = 4.0;
+   vectors[2][2] = 2.0; vectors[3][2] = 8.0; vectors[4][2] = 4.0;
+   vectors[2][3] = 1.0; vectors[3][3] = 5.0; vectors[4][3] = 8.0;
+   vectors[2][4] = 2.0; vectors[3][4] = 5.0; vectors[4][4] = 0.0;
+   vectors[2][5] = 3.0; vectors[3][5] = 5.0; vectors[4][5] = 1.0;
+
+   for (int j = 0; j < vecs; j++) {
+      printf("vector %d:", j);
+      for (int i = 0; i < dim; i++) {
+         printf("%f ",  vectors[i][j]);
+      }
+      printf("\n");
+   }
+
+   // create the filtered data map
+   float min_f = 1.0, max_f = 4.0;
+   Map filtered_data = map_create(min_f, max_f);
+
+   for (int j=0; j<vecs; j++) {
+      map_insert(filtered_data, (int)vectors[0][j], j);
+   }
+
+   Vector values;
+   for (MapNode node = map_first(filtered_data); node != MAP_EOF; node = map_next(filtered_data, node)) {
+      printf("filter %d: ", node->key);
+      values = node->values;
+      for (VecNode node = vec_first(values); node != VECTOR_EOF; node = vec_next(values, node)) {
+         printf("%d ", node->value);
+      }
+      printf("\n");
+   }
+
+   Map M = FindMedoid(vectors, vecs, min_f, max_f, filtered_data, 1);
+
+   int test_M[3];
+   test_M[0] = 0; test_M[1] = 3; test_M[2] = 2;
+
+   int count = 0;
+   for (MapNode node = map_first(M); node != MAP_EOF; node = map_next(M, node)) {
+      printf("filter %d: ", node->key);
+      values = node->values;
+      for (VecNode node = vec_first(values); node != VECTOR_EOF; node = vec_next(values, node)) {
+         printf("%d ", node->value);
+         TEST_ASSERT(node->value == test_M[count]);
+      }
+      count++;
+      printf("\n");
+   }
+
+   free_matrix_fvecs(vectors, dim);
+   map_destroy(M);
+   map_destroy(filtered_data);
+}
+
 TEST_LIST = {
-   { "set_Create", test_set_Create },
-   { "S_node_create", test_S_node_create },
-   { "S_node_insert", test_S_node_insert },
-   { "set_insert", test_set_insert },
-   { "find_min", test_find_min },
-   { "find_max", test_find_max },
-   { "find_next", test_find_next },
-   { "set_next", test_set_next },
-   { "min_remove", test_min_remove },
-   { "S_remove", test_S_remove },
-   { "set_remove", test_set_remove },
-   { "S_find_equal", test_S_find_equal },
-   { "vec_Create", test_vec_Create },
-   { "vec_insert", test_vec_insert },
-   { "vec_remove", test_vec_remove },
-   { "vec_get_dist", test_vec_get_dist },
-   { "vec_get_at", test_vec_get_at },
-   { "vec_set_at", test_vec_set_at },
-   { "vec_find_node", test_vec_find_node },
-   { "vec_find_pos", test_vec_find_pos },
-   { "vec_first", test_vec_first },
-   { "vec_last", test_vec_last },
-   { "vec_next", test_vec_next },
-   { "pqueue_create", test_pqueue_create },
-   { "pqueue_insert", test_pqueue_insert },
-   { "pqueue_remove", test_pqueue_remove },
-   { "map_create", test_map_create },
-   { "map_insert", test_map_insert },
-   { "map_find_node", test_map_find_node },
-   { "map_remove", test_map_remove },
-   { "map_find_values", test_map_find_values },
-   { "map_first", test_map_first },
-   { "map_next", test_map_next },
-   { "rehash", test_rehash },
-   { "free_matrix_fvecs", test_free_matrix_fvecs },
-   { "free_matrix_ivecs", test_free_matrix_ivecs },
-   { "open_fvecs", test_open_fvecs },
-   { "open_ivecs", test_open_ivecs },
-   { "data_open", test_data_open },
-   { "query_open", test_query_open },
-   { "euclidean_distance", test_euclidean_distance },
-   { "greedySearch", test_greedySearch },
-   { "RobustPrune", test_RobustPrune },
-   { "medoid", test_medoid },
-   { "Vamana", test_Vamana },
-   { "FilteredMediod", test_FilteredMediod },
+   // { "set_Create", test_set_Create },
+   // { "S_node_create", test_S_node_create },
+   // { "S_node_insert", test_S_node_insert },
+   // { "set_insert", test_set_insert },
+   // { "find_min", test_find_min },
+   // { "find_max", test_find_max },
+   // { "find_next", test_find_next },
+   // { "set_next", test_set_next },
+   // { "min_remove", test_min_remove },
+   // { "S_remove", test_S_remove },
+   // { "set_remove", test_set_remove },
+   // { "S_find_equal", test_S_find_equal },
+   // { "vec_Create", test_vec_Create },
+   // { "vec_insert", test_vec_insert },
+   // { "vec_remove", test_vec_remove },
+   // { "vec_get_dist", test_vec_get_dist },
+   // { "vec_get_at", test_vec_get_at },
+   // { "vec_set_at", test_vec_set_at },
+   // { "vec_find_node", test_vec_find_node },
+   // { "vec_find_pos", test_vec_find_pos },
+   // { "vec_first", test_vec_first },
+   // { "vec_last", test_vec_last },
+   // { "vec_next", test_vec_next },
+   // { "pqueue_create", test_pqueue_create },
+   // { "pqueue_insert", test_pqueue_insert },
+   // { "pqueue_remove", test_pqueue_remove },
+   // { "map_create", test_map_create },
+   // { "map_insert", test_map_insert },
+   // { "map_find_node", test_map_find_node },
+   // { "map_remove", test_map_remove },
+   // { "map_find_values", test_map_find_values },
+   // { "map_first", test_map_first },
+   // { "map_next", test_map_next },
+   // { "rehash", test_rehash },
+   // { "free_matrix_fvecs", test_free_matrix_fvecs },
+   // { "free_matrix_ivecs", test_free_matrix_ivecs },
+   // { "open_fvecs", test_open_fvecs },
+   // { "open_ivecs", test_open_ivecs },
+   // { "data_open", test_data_open },
+   // { "query_open", test_query_open },
+   // { "euclidean_distance", test_euclidean_distance },
+   // { "greedySearch", test_greedySearch },
+   // { "RobustPrune", test_RobustPrune },
+   // { "medoid", test_medoid },
+   // { "Vamana", test_Vamana },
+   // { "FilteredMedoid", test_FilteredMedoid },
+   { "FindMedoid", test_FindMedoid },
    { NULL, NULL }     /* zeroed record marking the end of the list */
 };

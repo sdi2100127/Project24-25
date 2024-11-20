@@ -72,34 +72,49 @@ int FilteredMedoid(float** dataset, int vecs, int comps, float*** dist_m) {
     return min_p;
 }
 
-Map FindMedoid(float** dataset, int vecs, int comps, float*** dist_m, float min_f, float max_f, Map filtered_data, int t) {
-    // initialize M as an empty map
+Map FindMedoid(float** dataset, int vecs, float min_f, float max_f, Map filtered_data, int t) {    // initialize M as an empty map
     // M mapps filters to start nodes
     Map M = map_create(min_f, max_f);
 
     // initialize T as an empty map
     // T mapps point ids to how often they have been used as medoids
     Map T = map_create(0, vecs);
+    // and initialize it to 0
+    for (int i=0; i<vecs; i++) {
+        map_insert(T, i, 0);
+    }
 
-    Set R_f = set_Create();
+    srand((unsigned int)time(NULL));
+
     // for each different filter f
     for (MapNode node = map_first(filtered_data); node != MAP_EOF; node = map_next(filtered_data, node)) {
+        printf("filter %d\n", node->key);
         // let P_f denote the ids of all points matching filter f
         // (which are the contents of the corresponding bucket in the hash map)
         Vector P_f = node->values;
 
         // R_f holds t randomly sampled data point ids from P_f
-        while (R_f->size < t || R_f->size < P_f->size) {
-            int x = rand() % (P_f->size-1);
-            set_insert(R_f, vec_get_at(P_f, x));
+        Set R_f = set_Create();
+
+        if (t <= P_f->size) {
+            for (VecNode v_node = vec_first(P_f); v_node != VECTOR_EOF; v_node = vec_next(P_f, v_node)) { 
+                set_insert(R_f, v_node->value);
+            }
+        } else {
+            while (R_f->size < t) {
+                int x = rand() % (P_f->size-1);
+                set_insert(R_f, vec_get_at(P_f, x));
+            }
         }
 
         // find the point of the filter f(node) with the minimum uses as medoid
         int p_star;
         int min_T = max_f;
         for (set_Node s_node = find_min(R_f->root); s_node != SET_EOF; s_node = set_next(R_f, s_node)) { 
+            
             Vector val = map_find_values(T, s_node->value);
             int count = vec_get_at(val, 0);
+            
             if (count < min_T) {
                 p_star = s_node->value;
                 min_T = count;
@@ -107,7 +122,7 @@ Map FindMedoid(float** dataset, int vecs, int comps, float*** dist_m, float min_
         }
 
         // update it in map M 
-        map_insert(M, node, p_star);
+        map_insert(M, node->key, p_star);
 
         // and increase the count in map T
         // obtain current count
@@ -117,12 +132,16 @@ Map FindMedoid(float** dataset, int vecs, int comps, float*** dist_m, float min_
         // insert the key p_star again with the updated count
         map_insert(T, p_star, cur_count++);
 
+        set_destroy(R_f);
+
     }
+
+    map_destroy(T);
 
     return M;
 }
 
-Vector* FilteredVamanaIndexing(float** dataset, float min_f, float max_f, int vecs, int comps, int L, int R, int a, int* med) {
+Vector* FilteredVamanaIndexing(float** dataset, float min_f, float max_f, int vecs, int comps, int L, int R, int neigh, int a, int* med) {
     // first we initialize G to an empty graph
     Vector* G = (Vector*)malloc(vecs * sizeof(Vector));
    
@@ -169,6 +188,45 @@ Vector* FilteredVamanaIndexing(float** dataset, float min_f, float max_f, int ve
     //     printf("\n");
     // }
 
+
+    int x;
+    float* vec_x = (float*)malloc(comps * sizeof(float));
+    float* vec_j = (float*)malloc(comps * sizeof(float));
+
+    // for every vector in the dataset
+    for (int j = 0; j < vecs; j++) {
+        for (int i=0; i<comps; i++) {
+            vec_j[i] = dataset[i][j];
+        }
+        printf("vector %d:", j);
+
+        // find its filter
+        int filter = dataset[0][j];
+        Vector same_f_values = map_find_values(filtered_data, filter);
+
+        // for every one of its neigh neighbours, or until all the same filter points have been checked
+        int count_n = 0;
+        VecNode v_node = vec_first(same_f_values);
+        while (count_n < neigh || count_n < same_f_values->size) {
+            // insert them in the vector of out going neighbours of vector j
+            if (v_node->value != j) {
+                // temporarilly store the vectors j and x to compute their distance
+                for (int i=0; i<comps; i++) {
+                    vec_x[i] = dataset[i][x];
+                }
+                vec_insert(G[j], v_node->value, euclidean_distance(vec_j, vec_x, comps));
+                count_n++;
+            }
+            v_node = vec_next(same_f_values, v_node);
+            if (v_node == VECTOR_EOF) break;
+
+            printf(" %d, %f ", G[j]->array[count_n].value, G[j]->array[count_n].dist);
+            
+        }
+        printf("\n");
+    }
+    free(vec_x);
+    free(vec_j);
 
 
     map_destroy(filtered_data);

@@ -30,14 +30,14 @@ void FilteredRobustPrune(Vector** G, int p ,Set* V, int a, int R , int dim , int
 int FilteredMedoid(float** dataset, int vecs, int comps, float*** dist_m);
 
 // function to find the medoid of a dataset
-Map FindMedoid(float** dataset, int vecs, int comps, float*** dist_m, float min_f, float max_f, Map filtered_data, int t) ;
+Map FindMedoid(float** dataset, int vecs, float min_f, float max_f, Map filtered_data, int t);
 
 // We have created two implementation of the vamana algorithm, one for testing and one to use in the main program
 // This was done because in oreder to test vamana we had to have predetermined data, such as the permutation of the
 // vectors indexes and the neighbours in graph G, and that goes against the vamana's algorithm random initiallizations
 
 // Vamana algorithm for testing purposes
-Vector* FilteredVamanaIndexing(float** dataset, float min_f, float max_f, int vecs, int comps, int L, int R, int a, int* med);
+Vector* FilteredVamanaIndexing(float** dataset, float min_f, float max_f, int vecs, int comps, int L, int R, int neigh, int a, int* med);
 
 // Vamana algorithm
 Vector* StichedVamanaIndexing(float** dataset, int vecs, int comps, int L, int R, int a, int* med);
