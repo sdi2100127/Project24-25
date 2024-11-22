@@ -70,8 +70,8 @@ int main(int argc, char ** argv) {
     }
 
     int med;
-    int neigh = 5;
-    Vector* G = FilteredVamanaIndexing(vectors, min_f, max_f, vecs, d_base, L, R, neigh, a, &med);
+    int neigh = 5, t = 10;
+    Vector* G = FilteredVamanaIndexing(vectors, min_f, max_f, vecs, d_base, L, R, neigh, a, &med, t);
 
     // printf("G\n");
     // for (int j = 0; j < vecs; j++) {

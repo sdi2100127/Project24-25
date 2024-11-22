@@ -141,7 +141,7 @@ Map FindMedoid(float** dataset, int vecs, float min_f, float max_f, Map filtered
     return M;
 }
 
-Vector* FilteredVamanaIndexing(float** dataset, float min_f, float max_f, int vecs, int comps, int L, int R, int neigh, int a, int* med) {
+Vector* FilteredVamanaIndexing(float** dataset, float min_f, float max_f, int vecs, int comps, int L, int R, int neigh, int a, int* med, int t) {
     // first we initialize G to an empty graph
     Vector* G = (Vector*)malloc(vecs * sizeof(Vector));
    
@@ -178,16 +178,15 @@ Vector* FilteredVamanaIndexing(float** dataset, float min_f, float max_f, int ve
         map_insert(filtered_data, (int)dataset[0][j], j);
     }
 
-    // Set values;
-    // for (MapNode node = map_first(filtered_data); node != MAP_EOF; node = map_next(filtered_data, node)) {
-    //     printf("filter %d: ", node->key);
-    //     values = node->values;
-    //     for (set_Node s_node = find_min(values->root); s_node != SET_EOF; s_node = set_next(values, s_node)) {
-    //         printf("%d ", s_node->value);
-    //     }
-    //     printf("\n");
-    // }
-
+    Vector values;
+    for (MapNode node = map_first(filtered_data); node != MAP_EOF; node = map_next(filtered_data, node)) {
+        printf("filter %d: ", node->key);
+        values = node->values;
+        for (VecNode s_node = vec_first(values); s_node != VECTOR_EOF; s_node = vec_next(values, s_node)) {
+            printf("%d ", s_node->value);
+        }
+        printf("\n");
+    }
 
     int x;
     float* vec_x = (float*)malloc(comps * sizeof(float));
@@ -203,7 +202,7 @@ Vector* FilteredVamanaIndexing(float** dataset, float min_f, float max_f, int ve
         // find its filter
         int filter = dataset[0][j];
         Vector same_f_values = map_find_values(filtered_data, filter);
-
+    
         // for every one of its neigh neighbours, or until all the same filter points have been checked
         int count_n = 0;
         VecNode v_node = vec_first(same_f_values);
@@ -214,13 +213,14 @@ Vector* FilteredVamanaIndexing(float** dataset, float min_f, float max_f, int ve
                 for (int i=0; i<comps; i++) {
                     vec_x[i] = dataset[i][x];
                 }
-                vec_insert(G[j], v_node->value, euclidean_distance(vec_j, vec_x, comps));
+                float dist = euclidean_distance(vec_j, vec_x, comps);
+                vec_insert(G[j], v_node->value, dist);
+                printf(" %d, %f ", v_node->value, dist);
                 count_n++;
             }
             v_node = vec_next(same_f_values, v_node);
-            if (v_node == VECTOR_EOF) break;
 
-            printf(" %d, %f ", G[j]->array[count_n].value, G[j]->array[count_n].dist);
+            if (v_node == VECTOR_EOF) break;
             
         }
         printf("\n");
@@ -228,6 +228,44 @@ Vector* FilteredVamanaIndexing(float** dataset, float min_f, float max_f, int ve
     free(vec_x);
     free(vec_j);
 
+    Map filter_medoids = FindMedoid(dataset, vecs, min_f, max_f, filtered_data, t);
+
+    // create a random permutation of 1...vecs (really from 0 to vecs-1) 
+    // and store it in the array per
+    int* per = (int*)malloc(vecs * sizeof(int*));
+    for (int i=0; i<vecs; i++) {
+        per[i] = i;
+    }
+
+    srand((unsigned int)time(NULL));
+
+    // this is done by swaping the index in the ith position 
+    // with that in the position given by randIdx
+    for(int i=0; i<vecs; ++i){
+        int randIdx = rand() % (vecs - 1);
+        // swap per[i] with per[randIdx]
+        int t = per[i];
+        per[i] = per[randIdx];
+        per[randIdx] = t;
+    }
+
+    printf("random permutation:\n");
+    for (int i=0; i<vecs; i++) {
+        printf("%d ", per[i]);
+    }
+    printf("\n");
+
+    float* xq = (float*)malloc(comps * sizeof(float));
+    for (int i=0; i<vecs; i++) {
+        // find and store the query vector xq based on the point in the dataset indexed by per[i]
+        int query_pos = per[i];
+        printf("query vector %d: ", query_pos);
+        for (int i=0; i<comps; i++) {
+            xq[i] = dataset[i][query_pos];
+            printf("%f ", xq[i]);
+        }
+        printf("\n");
+    }
 
     map_destroy(filtered_data);
     free_matrix_fvecs(dist_matrix, vecs);
