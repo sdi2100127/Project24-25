@@ -397,7 +397,7 @@ Vector* FilteredVamanaIndexing(float** dataset, float min_f, float max_f, int ve
         int s = vec_get_at(map_find_values(filter_medoids, query_fltr), 0);
 
         Set V;
-        PQueue knn;
+        PQueue knn = FilteredGreedySearch(G, R, comps, vecs, dataset, xq, query_fltr, filter_medoids, L, 0, &V);
 
         set_destroy(V);
         pqueue_destroy(knn);
