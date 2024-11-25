@@ -1,13 +1,138 @@
 #include "filtered_algorithms.h"
 #include <float.h>
 
-PQueue FilteredGreedySearch(Vector* G, int R, int dim, int vecs, float** vectors, int s, float* xq, float fq, int L, int k, Set* V) {
+PQueue FilteredGreedySearch(Vector* G, int R, int dim, int vecs, float** vectors, float* xq, int fq, Map filter_med, int L, int k, Set* V) {
     
     // initialise knn and visited set as empty
     PQueue knn = pqueue_create(NULL);
-    Set visited_set = set_Create();
+    Set visited_nodes = set_Create();
 
+    // since the query xq has only one filter we can simply check which starting point corresponds with this flter in the map
+    int s = vec_get_at(map_find_values(filter_med, fq), 0);
+    // and insert it into the k-nearest-neighbours priority queue
+    float* vec_s = (float*)malloc((dim-2) * sizeof(float));
+    printf("vec_s: ");
+    int count = 0;
+    for (int i=2; i<dim; i++) {
+        vec_s[count] = vectors[i][s];
+        printf("%f ", vec_s[count]);
+        count++;
+    }
+    printf("\n");
+    pqueue_insert(knn, s, euclidean_distance(vec_s, xq, dim-2));
 
+    int flag = 1;
+    int node_value, xp = -1;
+    float min_dist;
+
+    float* vec_p = (float*)malloc((dim-2) * sizeof(float));
+
+    //create a distance matrix with the euclidean distance of each vector to xq and initiallize it to -1
+    float* dist_matrix = (float*)malloc(vecs * sizeof(float*));
+    for (int j = 0; j < vecs; j++) {
+        dist_matrix[j] = -1;
+    }
+
+    float prev_max; 
+    int prev_max_pos;
+
+    while(flag == 1) {
+        // we check the flag up front in case we do not have any unvisited nodes in the first iteration
+        flag = 0;
+        // for every iteration we have to reinitiallize the minimum
+        xp = -1;
+        // check for all the unvisited nodes in knn
+        Vector knn_vec = knn->vector;
+        for (VecNode node = vec_first(knn_vec); node != VECTOR_EOF; node = vec_next(knn_vec, node)) {
+            node_value = node->value;
+            //printf("node_value: %d\n", node_value);
+            if (S_find_equal(visited_nodes->root, node_value) == SET_EOF) {
+                flag = 1;   // unvisited nodes where indeed found              
+
+                // if the next node xp is not initialized yet initialize it with the first unvisited node you encounter
+                // otherwise check if its distance to xq is smaller than the current min_dist
+                if (dist_matrix[node_value] == -1) {    // if the distance has not been computed before, compute it
+                    count = 0;
+                    for (int i=2; i<dim; i++) {
+                        vec_p[count] = vectors[i][node_value];
+                        count++;
+                    }
+                    dist_matrix[node_value] = euclidean_distance(vec_p, xq, dim-2);
+                }
+                float dist = dist_matrix[node_value];
+
+                if (xp == -1 || dist <= min_dist) {
+                    xp = node_value;
+                    min_dist = dist;
+                }
+            }
+        }
+
+        // if there where no more unvisited nodes found there is no point in continuing with the loop
+        if (flag == 0) break; 
+
+        // add node xp to te visited_nodes set
+        set_insert(visited_nodes, xp);
+
+        // now we add all the outgoing neighbours of the node xp that also have the same filter as xq in knn
+        // the outgoing neighbours of a node are the one that are included in said node's column
+        // the incoming neighbours are the other node's columns that the node is part of
+        for (int i=0; i<G[xp]->size; i++) {
+            int point = vec_get_at(G[xp], i);
+
+            // if the point has a different filter than the query ignore it
+            int f = (int)vectors[0][point];
+            if (f != fq) continue;
+
+            // if the distance has not been computed before, compute it
+            if (dist_matrix[point] == -1) {
+                count = 0;
+                for (int i=2; i<dim; i++) {
+                    vec_p[count] = vectors[i][point];
+                    count++;
+                }
+                dist_matrix[point] = euclidean_distance(vec_p, xq, dim-2);
+            }
+            pqueue_insert(knn, point, dist_matrix[point]);
+        }
+
+        // if the knn_set is bigger than L
+        if (knn->vector->size > L) {
+            // remove the most distant neighbours of xq from knn_set until its equal to L
+            while(knn->vector->size > L) {
+                pqueue_remove(knn);
+            }
+        }
+
+    }
+
+    // now we have to prune the set again to only keep xq's k nearest neighbours
+    if (knn->vector->size > k) {
+        // remove the most distant neighbours of xq from knn_set until its equal to k
+        while(knn->vector->size > k) {
+            pqueue_remove(knn);
+        }
+    }
+
+    printf("knn_set: ");
+    for (VecNode node = vec_first(knn->vector); node != VECTOR_EOF; node = vec_next(knn->vector, node)) { 
+        printf("%d ", node->value);
+    }
+    printf("\n");
+
+    printf("visited_set: ");
+    for (set_Node node = find_min(visited_nodes->root); node != SET_EOF; node = set_next(visited_nodes, node)) { 
+        printf("%d ", node->value);
+    }
+    printf("\n");
+
+    *V = visited_nodes;
+
+    free(vec_s);
+    free(dist_matrix);
+    free(vec_p);
+
+    return knn;
 }
 
 void FilteredRobustPrune(Vector** G, int p ,Set* V, int a, int R , int dim , int vecs , float** vectors, float** dist_m) {
@@ -88,7 +213,6 @@ Map FindMedoid(float** dataset, int vecs, float min_f, float max_f, Map filtered
 
     // for each different filter f
     for (MapNode node = map_first(filtered_data); node != MAP_EOF; node = map_next(filtered_data, node)) {
-        printf("filter %d\n", node->key);
         // let P_f denote the ids of all points matching filter f
         // (which are the contents of the corresponding bucket in the hash map)
         Vector P_f = node->values;
@@ -257,6 +381,7 @@ Vector* FilteredVamanaIndexing(float** dataset, float min_f, float max_f, int ve
 
     float* xq = (float*)malloc(comps * sizeof(float));
     for (int i=0; i<vecs; i++) {
+
         // find and store the query vector xq based on the point in the dataset indexed by per[i]
         int query_pos = per[i];
         printf("query vector %d: ", query_pos);
@@ -265,10 +390,23 @@ Vector* FilteredVamanaIndexing(float** dataset, float min_f, float max_f, int ve
             printf("%f ", xq[i]);
         }
         printf("\n");
+
+        // find the filter of the vector with possition per[i]
+        int query_fltr = (int)dataset[0][query_pos];
+        // and retrieve the start node of said filter from the filter_medoids map
+        int s = vec_get_at(map_find_values(filter_medoids, query_fltr), 0);
+
+        Set V;
+        PQueue knn;
+
+        set_destroy(V);
+        pqueue_destroy(knn);
+
     }
 
     map_destroy(filtered_data);
     free_matrix_fvecs(dist_matrix, vecs);
+
 
     return G;
 }

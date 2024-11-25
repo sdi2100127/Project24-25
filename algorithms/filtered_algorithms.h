@@ -14,7 +14,7 @@
 // xq --> the query vector
 // k --> the result size/number of desired nearest neighbours
 // L --> the maximum size of the result set
-PQueue FilteredGreedySearch(Vector* G, int R, int dim, int vecs, float** vectors, int s, float* xq, float fq, int L, int k, Set* V);
+PQueue FilteredGreedySearch(Vector* G, int R, int dim, int vecs, float** vectors, float* xq, int fq, Map filter_med, int L, int k, Set* V);
 
 //robust prune is an algorithm that takes as input:
 //G --> the graph we have to modify and return, that sets at most R new neighboors for p
