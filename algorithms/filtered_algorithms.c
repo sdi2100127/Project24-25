@@ -136,7 +136,87 @@ PQueue FilteredGreedySearch(Vector* G, int R, int dim, int vecs, float** vectors
 }
 
 void FilteredRobustPrune(Vector** G, int p ,Set* V, int a, int R , int dim , int vecs , float** vectors, float** dist_m) {
+    
+    // we start out by creating some temporary structs to store the visited nodes set, as well as the graph G
+    Set temp = *V;
+    Vector* temp_G = *G;
 
+    // then we insert all the outgoing neighbours of p (Nout(p)) to the V set
+    printf("Nout(p): ");
+    for (int i = 0; i < temp_G[p]->size; i++){           
+        printf("%d ", vec_get_at(temp_G[p], i));
+        set_insert(temp, vec_get_at(temp_G[p], i));
+    }
+    printf("\n");
+    // And we check if we have inserted our p so that we remove it
+    set_remove(temp, p);   
+
+    printf("V: ");
+    for (set_Node node = find_min(temp->root); node != SET_EOF; node = set_next(temp, node)) {
+        printf("%d ", node->value);
+    }
+    printf("\n");                        
+
+    // Now we have to empty our Nout(p)
+    while(temp_G[p]->size != 0) vec_remove(temp_G[p]);
+    printf("removed\n"); 
+
+    while(temp->size != 0){
+        //Now we have to find which vector of V has minimum distance to our point p
+        float min_dist;        
+        int p_star = -1;
+
+        for (set_Node node = find_min(temp->root); node != SET_EOF; node = set_next(temp, node)) {
+            int node_value = node->value;
+            float dist = dist_m[node_value][p];
+            if (p_star == -1 || dist <= min_dist) {
+                p_star = node_value;
+                min_dist = dist;
+            }
+        }
+        
+        // insert p* to the outgoing neighbours of p
+        // vec_insert(temp_G[p], p_star, euclidean_distance(vec_of_p_star, vec_of_p, dim));
+        vec_insert(temp_G[p], p_star, min_dist);
+        set_remove(temp, p_star);
+
+        // if we found R neighbours --> stop
+        if(temp_G[p]->size == R)
+            break;
+
+        // for every point p' in V perform the necessary pruning by removing certain points
+        set_Node next = find_min(temp->root);
+        while(next != SET_EOF){
+            int node_value = next->value;
+            if(vectors[0][node_value] == vectors[0][p] && vectors[0][p] == vectors[0][p_star]) {
+                if(a * dist_m[node_value][p_star] <= dist_m[node_value][p]){
+                    next = set_next(temp, next);
+                    set_remove(temp,node_value);
+                } else {
+                    next = set_next(temp, next);
+                }
+            } else {next = set_next(temp, next);}
+        
+        }
+
+    }
+
+    printf("V: ");
+    for (set_Node node = find_min(temp->root); node != SET_EOF; node = set_next(temp, node)) {
+        printf("%d ", node->value);
+    }
+    printf("\n");
+
+    printf("Nout(%d): ", p);
+    for (int i=0; i<temp_G[p]->size; i++) {
+        printf("%d ", vec_get_at(temp_G[p], i));
+    }
+    printf("\n");
+
+    *V = temp;
+    *G = temp_G;
+    
+    return;
 }
 
 int FilteredMedoid(float** dataset, int vecs, int comps, float*** dist_m) {

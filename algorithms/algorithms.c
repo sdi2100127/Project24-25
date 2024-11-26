@@ -175,26 +175,6 @@ void RobustPrune(Vector** G, int p ,Set * V, int a, int R, int dim , int vecs , 
 
     int i_count = 0;    // to keep count of the Nout vector index
 
-    // float* dist_matrix_2 = (float*)malloc(vecs * sizeof(float*));
-    // float* vec_of_p_star = (float*)malloc(dim * sizeof(float));
-    // float* vec_p = (float*)malloc(dim * sizeof(float));             //And to do that we create a distance matrix with the euclidean distance
-    // float* vec_of_p = (float*)malloc(dim * sizeof(float));
-    // float* dist_matrix = (float*)malloc(vecs * sizeof(float*));
-
-    // temporarily store the vector corresponding to p
-    // for (int i=0; i<dim; i++) {
-    //     vec_of_p[i] = vectors[i][p];
-    // }
-
-    // in order to compute its distance from every point p in G
-    // this might be not needed, and taking too long !!!!
-    // for (int j = 0; j < vecs; j++) {
-    //     for (int i=0; i<dim; i++) {
-    //         vec_p[i] = vectors[i][j];
-    //     }
-    //     dist_matrix[j] = euclidean_distance(vec_p, vec_of_p, dim);
-    // }
-    
     while(temp->size != 0){
         //Now we have to find which vector of V has minimum distance to our point p
         float min_dist;        
@@ -211,11 +191,6 @@ void RobustPrune(Vector** G, int p ,Set * V, int a, int R, int dim , int vecs , 
 
         printf("p*: %d\n", p_star);
         
-        // temporarily store the vector corresponding to p*
-        // for (int i=0; i<dim; i++) {
-        //     vec_of_p_star[i] = vectors[i][p_star];
-        // }
-
         // insert p* to the outgoing neighbours of p
         // vec_insert(temp_G[p], p_star, euclidean_distance(vec_of_p_star, vec_of_p, dim));
         vec_insert(temp_G[p], p_star, min_dist);
@@ -225,16 +200,7 @@ void RobustPrune(Vector** G, int p ,Set * V, int a, int R, int dim , int vecs , 
         if(i_count == R)
             break;
 
-        // compute p* 's distance from every point p in G
-        // this might be not needed, and taking too long !!!!
-        // for (int j = 0; j < vecs; j++) {
-        //     for (int i=0; i<dim; i++) {
-        //         vec_p[i] = vectors[i][j];
-        //     }
-        //     dist_matrix_2[j] = euclidean_distance(vec_p, vec_of_p_star, dim);
-        // }
-
-        // for every point p in V perform the necessary pruning by removing certain points
+        // for every point p' in V perform the necessary pruning by removing certain points
         set_Node next = find_min(temp->root);
         while(next != SET_EOF){
             int node_value = next->value;
@@ -263,14 +229,7 @@ void RobustPrune(Vector** G, int p ,Set * V, int a, int R, int dim , int vecs , 
 
     *V = temp;
     *G = temp_G;
-
-    // free(dist_matrix);
-    // free(dist_matrix_2);
     
-    // free(vec_p);
-    // free(vec_of_p);
-    // free(vec_of_p_star);
-
     return;
 }
 

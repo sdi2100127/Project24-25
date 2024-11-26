@@ -1595,6 +1595,213 @@ void test_FilteredGreedySearch() {
    set_destroy(knn_test);
 }
 
+void test_FilteredRobustPrune() {
+   srand((unsigned int)time(NULL));
+
+   // run the test for a vector matrix of 5 vectors with 3 components each
+   int dim = 5; // 0 --> C, 1--> T, 2-4--> vector components
+   int vecs = 6;
+   float** vectors = (float**)malloc(dim * sizeof(float*));
+   for (int i = 0; i < dim; i++) {
+      vectors[i] = (float*)malloc(vecs * sizeof(float));
+   }
+
+   // randomly select T attribute
+   for(int j=0; j<vecs; j++) {
+      vectors[1][j] = (float)rand()/(float)(RAND_MAX/100);
+   }
+   
+   vectors[0][0] = 1.0;
+   vectors[0][1] = 1.0;
+   vectors[0][2] = 4.0;
+   vectors[0][3] = 2.0;
+   vectors[0][4] = 2.0;
+   vectors[0][5] = 2.0;
+
+   vectors[2][0] = 4.0; vectors[3][0] = 6.0; vectors[4][0] = 9.0;
+   vectors[2][1] = 4.0; vectors[3][1] = 5.0; vectors[4][1] = 4.0;
+   vectors[2][2] = 2.0; vectors[3][2] = 8.0; vectors[4][2] = 4.0;
+   vectors[2][3] = 1.0; vectors[3][3] = 5.0; vectors[4][3] = 8.0;
+   vectors[2][4] = 2.0; vectors[3][4] = 5.0; vectors[4][4] = 0.0;
+   vectors[2][5] = 3.0; vectors[3][5] = 5.0; vectors[4][5] = 1.0;
+
+   for (int j = 0; j < vecs; j++) {
+      printf("vector %d:", j);
+      for (int i = 0; i < dim; i++) {
+         printf("%f ",  vectors[i][j]);
+      }
+      printf("\n");
+   }
+
+   // create the filtered data map
+   float min_f = 1.0, max_f = 4.0;
+   Map filtered_data = map_create(min_f, max_f);
+
+   for (int j=0; j<vecs; j++) {
+      map_insert(filtered_data, (int)vectors[0][j], j);
+   }
+
+   Vector values;
+   for (MapNode node = map_first(filtered_data); node != MAP_EOF; node = map_next(filtered_data, node)) {
+      printf("filter %d: ", node->key);
+      values = node->values;
+      for (VecNode node = vec_first(values); node != VECTOR_EOF; node = vec_next(values, node)) {
+         printf("%d ", node->value);
+      }
+      printf("\n");
+   }
+
+   Map M = FindMedoid(vectors, vecs, min_f, max_f, filtered_data, 1);
+   int count = 0;
+   for (MapNode node = map_first(M); node != MAP_EOF; node = map_next(M, node)) {
+      printf("filter %d: ", node->key);
+      values = node->values;
+      for (VecNode node = vec_first(values); node != VECTOR_EOF; node = vec_next(values, node)) {
+         printf("%d ", node->value);
+      }
+      count++;
+      printf("\n");
+   }
+
+   int R = 3;
+
+   Vector* G = (Vector*)malloc(vecs * sizeof(Vector));
+   for (int i=0; i<vecs; i++) {
+      G[i] = vec_Create(0);
+   }
+
+   // we check the vamana for G:
+   // vector0: 1 2 3 
+   // vector1: 3 2 0
+   // vector2: 1 3 4
+   // vector3: 2 4 1
+   // vector4: 2 3 0
+   // vector5: 3 2 4
+
+   float* vec1 = (float*)malloc(dim * sizeof(float));
+   float* vec2 = (float*)malloc(dim * sizeof(float));
+
+   for (int i = 0; i < dim; i++) {
+      vec1[i] = vectors[i][0];
+   }
+   for(int j=0; j<vecs; j++) {
+      for (int i = 0; i < dim; i++) {
+         vec2[i] = vectors[i][j];
+      }
+      if (j == 1 || j==2 || j==3) vec_insert(G[0], j, euclidean_distance(vec1, vec2, dim));
+   }
+   
+   for (int i = 0; i < dim; i++) {
+      vec1[i] = vectors[i][1];
+   }
+   for(int j=0; j<vecs; j++) {
+      for (int i = 0; i < dim; i++) {
+         vec2[i] = vectors[i][j];
+      }
+      if (j ==2 || j==3 || j==0) vec_insert(G[1], j, euclidean_distance(vec1, vec2, dim));
+   }
+   
+
+   for (int i = 0; i < dim; i++) {
+      vec1[i] = vectors[i][2];
+   }
+   for(int j=0; j<vecs; j++) {
+      for (int i = 0; i < dim; i++) {
+         vec2[i] = vectors[i][j];
+      }
+      if (j ==3 || j==4 || j==1) vec_insert(G[2], j, euclidean_distance(vec1, vec2, dim));
+   }
+
+   for (int i = 0; i < dim; i++) {
+      vec1[i] = vectors[i][3];
+   }
+   for(int j=0; j<vecs; j++) {
+      for (int i = 0; i < dim; i++) {
+         vec2[i] = vectors[i][j];
+      }
+      if (j == 1 || j==4 || j==2) vec_insert(G[3], j, euclidean_distance(vec1, vec2, dim));
+   }
+
+   for (int i = 0; i < dim; i++) {
+      vec1[i] = vectors[i][4];
+   }
+   for(int j=0; j<vecs; j++) {
+      for (int i = 0; i < dim; i++) {
+         vec2[i] = vectors[i][j];
+      }
+      if (j ==2 || j==3 || j==0) vec_insert(G[4], j, euclidean_distance(vec1, vec2, dim));
+   }
+
+   for (int i = 0; i < dim; i++) {
+      vec1[i] = vectors[i][5];
+   }
+   for(int j=0; j<vecs; j++) {
+      for (int i = 0; i < dim; i++) {
+         vec2[i] = vectors[i][j];
+      }
+      if (j ==3 || j==2 || j==4) vec_insert(G[5], j, euclidean_distance(vec1, vec2, dim));
+   }
+
+   free(vec1);
+   free(vec2);
+
+   printf("neighbours\n");
+   for (int j = 0; j < vecs; j++) {
+      printf("vector %d:", j);
+      for (int i = 0; i < R; i++) {
+         printf(" %d",  vec_get_at(G[j], i));
+      }
+      printf("\n");
+   }
+
+   float* xq = (float*)malloc(dim * sizeof(float*));
+   xq[0] = 2.0; xq[1] = (float)rand()/(float)(RAND_MAX/100); xq[2] = 9.0; xq[3] = 4.0; xq[4] = 9.0;
+   printf("vector xq:");
+   for (int i = 0; i < dim; i++) {
+      printf(" %f", xq[i]);
+   }
+   printf("\n");
+
+   int L = 4, k = 1, p = 0, a = 1;
+   Set V;
+   PQueue knn = FilteredGreedySearch(G, R, dim, vecs, vectors, xq, (int)xq[0], M, L, k, &V);
+
+
+   // create a 2D distance matrix that will hold the euclidean distances between all vectors of the dataset
+   float** dist_matrix = (float**)malloc(vecs * sizeof(float*));
+   for (int i = 0; i < vecs; i++) {
+      dist_matrix[i] = (float*)malloc(vecs * sizeof(float));
+   }
+
+   for(int i=0; i<vecs; i++) {
+      for(int j=0; j<vecs; j++) {
+         dist_matrix[i][j] = 0;
+      }
+   }
+
+   int med = FilteredMedoid(vectors, vecs, dim, &dist_matrix);
+
+   FilteredRobustPrune(&G, p , &V,  a,  R,  dim ,  vecs , vectors, dist_matrix);
+   TEST_ASSERT(V->size == 1);
+
+   int* test_N_out = (int*)malloc(R * sizeof(int*));
+   test_N_out[0] = 3; test_N_out[1] = 1; test_N_out[2] = 2;
+
+
+   TEST_ASSERT(G[p]->size == 3);
+   for (int i=0; i<G[p]->size; i++) {
+      TEST_ASSERT(test_N_out[i] ==  vec_get_at(G[p], i));
+   }
+
+   free(xq);
+   free_matrix_fvecs(vectors, dim);
+   free_matrix_fvecs(dist_matrix, vecs);
+   set_destroy(V);
+   free(test_N_out);
+   pqueue_destroy(knn);
+   free_G(G, vecs);
+}
+
 TEST_LIST = {
    // { "set_Create", test_set_Create },
    // { "S_node_create", test_S_node_create },
@@ -1644,5 +1851,6 @@ TEST_LIST = {
    { "FilteredMedoid", test_FilteredMedoid },
    { "FindMedoid", test_FindMedoid },
    { "FilteredGreedySearch", test_FilteredGreedySearch },
+   { "FilteredRobustPrune", test_FilteredRobustPrune },
    { NULL, NULL }     /* zeroed record marking the end of the list */
 };
