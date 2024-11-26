@@ -48,8 +48,8 @@ int main(int argc, char ** argv) {
 
     // open query vectors file using query_open
     const char* query_file = "dummy-queries.bin";
-    int query_vectors, d_queries = 100;
-    float** posible_queries = query_open(query_file, &query_vectors, d_queries);
+    int query_vectors, count, d_queries = 100;
+    float** posible_queries = query_open(query_file, &query_vectors, d_queries, &count);
 
     printf("\n");
 

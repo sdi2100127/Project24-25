@@ -195,7 +195,7 @@ float** data_open(const char* filename, int* num_vectors, int vec_num_d, float* 
     return vectors;
 }
 
-float** query_open(const char* filename, int* num_q, int vec_num_d) {
+float** query_open(const char* filename, int* num_q, int vec_num_d, int * count) {
     // first we have to open the file in binary read mode using the correct file path
     FILE *fp = NULL;
     char path[100];
@@ -207,6 +207,7 @@ float** query_open(const char* filename, int* num_q, int vec_num_d) {
         exit(EXIT_FAILURE);
     }
 
+    int temp_count = 0;
     // read the number of queries off of the first 4 bytes of the file
     int num_queries;
     fread(&num_queries, sizeof(uint32_t), 1, fp);
@@ -228,16 +229,27 @@ float** query_open(const char* filename, int* num_q, int vec_num_d) {
 
     int vec_size = vec_dim * sizeof(float);
     float* vec = (float*)malloc(vec_size); 
+    int flag = 0;
     for (int j = 0; j < num_queries; j++) {
+        flag    =   1;
         // Read each vector and copy it
         fread(vec, vec_size, 1, fp);
         
         for (int i = 0; i < vec_dim; i++) {
+            if(vec[0] != 0.0 && vec[0] != 1.0) {
+                flag = 0;
+                break;
+            }
             vectors[i][j] = vec[i]; 
+        }
+        if (flag == 1){
+            temp_count++;
         }
     }
     free(vec);
 
     fclose(fp);
+
+    *count = temp_count;
     return vectors;
 }
