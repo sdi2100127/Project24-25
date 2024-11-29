@@ -155,7 +155,10 @@ void FilteredRobustPrune(Vector** G, int p ,Set* V, int a, int R , int dim , int
     for (set_Node node = find_min(temp->root); node != SET_EOF; node = set_next(temp, node)) {
         printf("%d ", node->value);
     }
-    printf("\n");                        
+    printf("\n");     
+
+    int prev_p_star = -1;
+    float prev_min_d = FLT_MIN;                   
 
     // Now we have to empty our Nout(p)
     while(temp_G[p]->size != 0) vec_remove(temp_G[p]);
@@ -170,18 +173,24 @@ void FilteredRobustPrune(Vector** G, int p ,Set* V, int a, int R , int dim , int
             int node_value = node->value;
             float dist = dist_m[node_value][p];
             if (p_star == -1 || dist <= min_dist) {
-                p_star = node_value;
-                min_dist = dist;
+                if (dist <= prev_min_d || node_value == prev_p_star) continue;
+                else {
+                    p_star = node_value;
+                    min_dist = dist;
+                }
             }
         }
+
+        prev_p_star = p_star;
+        prev_min_d = min_dist;
         
         // insert p* to the outgoing neighbours of p
         // vec_insert(temp_G[p], p_star, euclidean_distance(vec_of_p_star, vec_of_p, dim));
         vec_insert(temp_G[p], p_star, min_dist);
-        set_remove(temp, p_star);
+        //set_remove(temp, p_star);
 
         // if we found R neighbours --> stop
-        if(temp_G[p]->size == R)
+        if(temp_G[p]->size == R || temp_G[p]->size >= temp->size)
             break;
 
         // for every point p' in V perform the necessary pruning by removing certain points
@@ -460,6 +469,8 @@ Vector* FilteredVamanaIndexing(float** dataset, float min_f, float max_f, int ve
     printf("\n");
 
     float* xq = (float*)malloc(comps * sizeof(float));
+    float* point_vec = (float*)malloc(comps * sizeof(float));
+
     for (int i=0; i<vecs; i++) {
 
         // find and store the query vector xq based on the point in the dataset indexed by per[i]
@@ -478,11 +489,41 @@ Vector* FilteredVamanaIndexing(float** dataset, float min_f, float max_f, int ve
 
         Set V;
         PQueue knn = FilteredGreedySearch(G, R, comps, vecs, dataset, xq, query_fltr, filter_medoids, L, 0, &V);
+        FilteredRobustPrune(&G, query_pos, &V, a, R, comps, vecs, dataset, dist_matrix);
+
+        for (int j=0; j<G[query_pos]->size; j++) {
+            
+            // for each point j that is an outgoing neighbour of the query point
+            int point = vec_get_at(G[query_pos], j);
+            printf("Neighbour %d has %d neighbours\n", point, G[query_pos]->size);
+
+            // update Nout of j with the query point
+            vec_insert(G[point], query_pos, euclidean_distance(xq, point_vec, comps));
+
+            // now check the size of Nout
+            if (G[point]->size == R) {
+
+                // we create a set Nout_j with the outgoing neighbours of j as well as the current query point
+                Set Nout_j = set_Create();
+                for (int n=0; n<G[point]->size; n++) {
+                    set_insert(Nout_j, vec_get_at(G[point], n));
+                }
+                set_insert(Nout_j, query_pos);
+                // and we call robust prune
+                RobustPrune(&G, point, &Nout_j, a, R, comps, vecs, dataset, dist_matrix);
+
+                set_destroy(Nout_j);
+
+            } 
+        }
 
         set_destroy(V);
         pqueue_destroy(knn);
 
     }
+
+    free(xq);
+    free(point_vec);
 
     map_destroy(filtered_data);
     free_matrix_fvecs(dist_matrix, vecs);

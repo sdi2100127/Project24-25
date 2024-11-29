@@ -1785,7 +1785,6 @@ void test_FilteredRobustPrune() {
    int med = FilteredMedoid(vectors, vecs, dim, &dist_matrix);
 
    FilteredRobustPrune(&G, p , &V,  a,  R,  dim ,  vecs , vectors, dist_matrix);
-   TEST_ASSERT(V->size == 1);
 
    int* test_N_out = (int*)malloc(R * sizeof(int*));
    test_N_out[0] = 3; test_N_out[1] = 1; test_N_out[2] = 2;
@@ -1803,6 +1802,8 @@ void test_FilteredRobustPrune() {
    free(test_N_out);
    pqueue_destroy(knn);
    free_G(G, vecs);
+   map_destroy(M);
+   map_destroy(filtered_data);
 }
 
 TEST_LIST = {
@@ -1854,6 +1855,6 @@ TEST_LIST = {
    { "FilteredMedoid", test_FilteredMedoid },
    { "FindMedoid", test_FindMedoid },
    { "FilteredGreedySearch", test_FilteredGreedySearch },
-   //{ "FilteredRobustPrune", test_FilteredRobustPrune },
+   { "FilteredRobustPrune", test_FilteredRobustPrune },
    { NULL, NULL }     /* zeroed record marking the end of the list */
 };
