@@ -1,6 +1,26 @@
 #include "filtered_algorithms.h"
 #include <float.h>
 
+float euclidean_distance_f(float* vec1, float* vec2, int comps) {
+    float res = 0.0f;
+    for (int i = 2; i < comps; i++) {
+        float diff = vec1[i] - vec2[i];
+        res += diff*diff;
+    }
+    res = sqrt(res);
+    return res;
+}
+
+float squared_euclidean_distance_f(float* vec1, float* vec2, int comps) {
+    float res = 0.0f;
+    for (int i = 2; i < comps; i++) {
+        float diff = vec1[i] - vec2[i];
+        res += diff*diff;
+    }
+    
+    return res;
+}
+
 PQueue FilteredGreedySearch(Vector* G, int R, int dim, int vecs, float** vectors, float* xq, int fq, Map filter_med, int L, int k, Set* V) {
     
     // initialise knn and visited set as empty
@@ -401,51 +421,52 @@ Vector* FilteredVamanaIndexing(float** dataset, float min_f, float max_f, int ve
         printf("\n");
     }
 
-    int x;
-    float* vec_x = (float*)malloc(comps * sizeof(float));
-    float* vec_j = (float*)malloc(comps * sizeof(float));
+    // int x;
+    // float* vec_x = (float*)malloc(comps * sizeof(float));
+    // float* vec_j = (float*)malloc(comps * sizeof(float));
 
-    // for every vector in the dataset
-    for (int j = 0; j < vecs; j++) {
-        for (int i=0; i<comps; i++) {
-            vec_j[i] = dataset[i][j];
-        }
-        printf("vector %d:", j);
+    // // for every vector in the dataset
+    // for (int j = 0; j < vecs; j++) {
+    //     for (int i=0; i<comps; i++) {
+    //         vec_j[i] = dataset[i][j];
+    //     }
+    //     printf("vector %d:", j);
 
-        // find its filter
-        int filter = dataset[0][j];
-        Vector same_f_values = map_find_values(filtered_data, filter);
+    //     // find its filter
+    //     int filter = dataset[0][j];
+    //     Vector same_f_values = map_find_values(filtered_data, filter);
     
-        // for every one of its neigh neighbours, or until all the same filter points have been checked
-        int count_n = 0;
-        VecNode v_node = vec_first(same_f_values);
-        while (count_n < neigh || count_n < same_f_values->size) {
-            // insert them in the vector of out going neighbours of vector j
-            if (v_node->value != j) {
-                // temporarilly store the vectors j and x to compute their distance
-                for (int i=0; i<comps; i++) {
-                    vec_x[i] = dataset[i][x];
-                }
-                float dist = euclidean_distance(vec_j, vec_x, comps);
-                vec_insert(G[j], v_node->value, dist);
-                printf(" %d, %f ", v_node->value, dist);
-                count_n++;
-            }
-            v_node = vec_next(same_f_values, v_node);
+    //     // for every one of its neigh neighbours, or until all the same filter points have been checked
+    //     int count_n = 0;
+    //     VecNode v_node = vec_first(same_f_values);
+    //     while (count_n < neigh || count_n < same_f_values->size) {
+    //         // insert them in the vector of out going neighbours of vector j
+    //         if (v_node->value != j) {
+    //             // temporarilly store the vectors j and x to compute their distance
+    //             for (int i=0; i<comps; i++) {
+    //                 vec_x[i] = dataset[i][x];
+    //             }
+    //             float dist = euclidean_distance(vec_j, vec_x, comps);
+    //             vec_insert(G[j], v_node->value, dist);
+    //             printf(" %d, %f ", v_node->value, dist);
+    //             count_n++;
+    //         }
+    //         v_node = vec_next(same_f_values, v_node);
 
-            if (v_node == VECTOR_EOF) break;
+    //         if (v_node == VECTOR_EOF) break;
             
-        }
-        printf("\n");
-    }
-    free(vec_x);
-    free(vec_j);
+    //     }
+    //     printf("\n");
+    // }
+    // free(vec_x);
+    // free(vec_j);
 
     Map filter_medoids = FindMedoid(dataset, vecs, min_f, max_f, filtered_data, t);
+    printf("found starting points\n");
 
     // create a random permutation of 1...vecs (really from 0 to vecs-1) 
     // and store it in the array per
-    int* per = (int*)malloc(vecs * sizeof(int*));
+    int* per = (int*)malloc(vecs * sizeof(int));
     for (int i=0; i<vecs; i++) {
         per[i] = i;
     }
@@ -491,14 +512,23 @@ Vector* FilteredVamanaIndexing(float** dataset, float min_f, float max_f, int ve
         PQueue knn = FilteredGreedySearch(G, R, comps, vecs, dataset, xq, query_fltr, filter_medoids, L, 0, &V);
         FilteredRobustPrune(&G, query_pos, &V, a, R, comps, vecs, dataset, dist_matrix);
 
+        set_destroy(V);
+        pqueue_destroy(knn);
+
         for (int j=0; j<G[query_pos]->size; j++) {
             
             // for each point j that is an outgoing neighbour of the query point
             int point = vec_get_at(G[query_pos], j);
             printf("Neighbour %d has %d neighbours\n", point, G[query_pos]->size);
 
+            int c_i = 0;
+            for (int i=2; i<comps; i++) {
+                point_vec[c_i] = dataset[i][point];
+                c_i++;
+            }
+
             // update Nout of j with the query point
-            vec_insert(G[point], query_pos, euclidean_distance(xq, point_vec, comps));
+            vec_insert(G[point], query_pos, euclidean_distance(xq, point_vec, comps-2));
 
             // now check the size of Nout
             if (G[point]->size == R) {
@@ -517,15 +547,13 @@ Vector* FilteredVamanaIndexing(float** dataset, float min_f, float max_f, int ve
             } 
         }
 
-        set_destroy(V);
-        pqueue_destroy(knn);
-
     }
 
     free(xq);
     free(point_vec);
-
+    free(per);
     map_destroy(filtered_data);
+    map_destroy(filter_medoids);
     free_matrix_fvecs(dist_matrix, vecs);
 
 

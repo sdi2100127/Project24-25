@@ -229,9 +229,9 @@ float** query_open(const char* filename, int* num_q, int vec_num_d, int * count)
 
     int vec_size = vec_dim * sizeof(float);
     float* vec = (float*)malloc(vec_size); 
-    int flag = 0;
+    int flag = 0, j_count = 0;
     for (int j = 0; j < num_queries; j++) {
-        flag    =   1;
+        flag = 1;
         // Read each vector and copy it
         fread(vec, vec_size, 1, fp);
         
@@ -240,7 +240,7 @@ float** query_open(const char* filename, int* num_q, int vec_num_d, int * count)
                 flag = 0;
                 break;
             }
-            vectors[i][j] = vec[i]; 
+            vectors[i][temp_count] = vec[i]; 
         }
         if (flag == 1){
             temp_count++;
@@ -251,5 +251,14 @@ float** query_open(const char* filename, int* num_q, int vec_num_d, int * count)
     fclose(fp);
 
     *count = temp_count;
+
+    for (int j = 0; j<temp_count && j < 20; j++) {
+        printf("vector %d: ", j);
+        for (int i = 0; i<vec_dim && i < 5; i++) {
+            printf("%f ", vectors[i][j]);
+        }
+        printf("\n");
+    }
+
     return vectors;
 }
