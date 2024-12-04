@@ -1856,7 +1856,7 @@ void test_FilteredVamanaIndexing(void) {
    printf("\n");
 
    int L = 4, k = 1, p = 0, a = 1, neigh = 5, t = 1;
-   int med;
+   Map med;
    Vector* G = FilteredVamanaIndexing(vectors, min_f, max_f, vecs, dim, L, R, neigh, a, &med, t);
 
    int** G_test = (int**)malloc(R * sizeof(int*));
@@ -1907,9 +1907,11 @@ void test_Groundtruth() {
 
    int vecs = 100, k = 100;
 
-   Vector* groundtruth = Groundtruth(dataset, vecs, data_dim, posible_queries, query_vectors, queries_dim, k);
+   printf("query_vectors that will be used: %d\n", count);
 
-   for (int j=0; j<query_vectors && j<20; j++) {
+   Vector* groundtruth = Groundtruth(dataset, vecs, data_dim, posible_queries, count, queries_dim, k);
+
+   for (int j=0; j<count && j<20; j++) {
       // make sure the correct amount of neighbours has been found
       TEST_ASSERT(groundtruth[j]->size <= k);
       for (VecNode node = vec_first(groundtruth[j]); node != VECTOR_EOF; node = vec_next(groundtruth[j], node)) {
@@ -1920,51 +1922,51 @@ void test_Groundtruth() {
       }
    }
 
-   free_G(groundtruth, query_vectors);
-   free_matrix_fvecs(posible_queries, d_queries);
-   free_matrix_fvecs(dataset, d_base);
+   free_G(groundtruth, count);
+   free_matrix_fvecs(posible_queries, queries_dim);
+   free_matrix_fvecs(dataset, data_dim);
 }
 
 TEST_LIST = {
-   // { "set_Create", test_set_Create },
-   // { "S_node_create", test_S_node_create },
-   // { "S_node_insert", test_S_node_insert },
-   // { "set_insert", test_set_insert },
-   // { "find_min", test_find_min },
-   // { "find_max", test_find_max },
-   // { "find_next", test_find_next },
-   // { "set_next", test_set_next },
-   // { "min_remove", test_min_remove },
-   // { "S_remove", test_S_remove },
-   // { "set_remove", test_set_remove },
-   // { "S_find_equal", test_S_find_equal },
-   // { "vec_Create", test_vec_Create },
-   // { "vec_insert", test_vec_insert },
-   // { "vec_remove", test_vec_remove },
-   // { "vec_get_dist", test_vec_get_dist },
-   // { "vec_get_at", test_vec_get_at },
-   // { "vec_set_at", test_vec_set_at },
-   // { "vec_find_node", test_vec_find_node },
-   // { "vec_find_pos", test_vec_find_pos },
-   // { "vec_first", test_vec_first },
-   // { "vec_last", test_vec_last },
-   // { "vec_next", test_vec_next },
-   // { "pqueue_create", test_pqueue_create },
-   // { "pqueue_insert", test_pqueue_insert },
-   // { "pqueue_remove", test_pqueue_remove },
-   // { "map_create", test_map_create },
-   // { "map_insert", test_map_insert },
-   // { "map_find_node", test_map_find_node },
-   // { "map_remove", test_map_remove },
-   // { "map_find_values", test_map_find_values },
-   // { "map_first", test_map_first },
-   // { "map_next", test_map_next },
-   // { "rehash", test_rehash },
-   // { "free_matrix_fvecs", test_free_matrix_fvecs },
-   // { "free_matrix_ivecs", test_free_matrix_ivecs },
-   // { "open_fvecs", test_open_fvecs },
-   // { "open_ivecs", test_open_ivecs },
-   // { "data_open", test_data_open },
+   { "set_Create", test_set_Create },
+   { "S_node_create", test_S_node_create },
+   { "S_node_insert", test_S_node_insert },
+   { "set_insert", test_set_insert },
+   { "find_min", test_find_min },
+   { "find_max", test_find_max },
+   { "find_next", test_find_next },
+   { "set_next", test_set_next },
+   { "min_remove", test_min_remove },
+   { "S_remove", test_S_remove },
+   { "set_remove", test_set_remove },
+   { "S_find_equal", test_S_find_equal },
+   { "vec_Create", test_vec_Create },
+   { "vec_insert", test_vec_insert },
+   { "vec_remove", test_vec_remove },
+   { "vec_get_dist", test_vec_get_dist },
+   { "vec_get_at", test_vec_get_at },
+   { "vec_set_at", test_vec_set_at },
+   { "vec_find_node", test_vec_find_node },
+   { "vec_find_pos", test_vec_find_pos },
+   { "vec_first", test_vec_first },
+   { "vec_last", test_vec_last },
+   { "vec_next", test_vec_next },
+   { "pqueue_create", test_pqueue_create },
+   { "pqueue_insert", test_pqueue_insert },
+   { "pqueue_remove", test_pqueue_remove },
+   { "map_create", test_map_create },
+   { "map_insert", test_map_insert },
+   { "map_find_node", test_map_find_node },
+   { "map_remove", test_map_remove },
+   { "map_find_values", test_map_find_values },
+   { "map_first", test_map_first },
+   { "map_next", test_map_next },
+   { "rehash", test_rehash },
+   { "free_matrix_fvecs", test_free_matrix_fvecs },
+   { "free_matrix_ivecs", test_free_matrix_ivecs },
+   { "open_fvecs", test_open_fvecs },
+   { "open_ivecs", test_open_ivecs },
+   { "data_open", test_data_open },
    { "query_open", test_query_open },
    { "euclidean_distance", test_euclidean_distance },
    { "greedySearch", test_greedySearch },
