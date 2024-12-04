@@ -30,8 +30,9 @@ int main(int argc, char ** argv) {
     int num_vectors, d_base = 100;
     float min_f, max_f;
     float** dataset = data_open(base_file, &num_vectors, d_base, &min_f, &max_f);
+    int data_dim = d_base+2;
 
-    int vecs = 10000;
+    int vecs = 100;
     float** vectors = (float**)malloc(d_base * sizeof(float*));
     for (int i = 0; i < d_base; i++) {
         vectors[i] = (float*)malloc(vecs * sizeof(float));
@@ -50,12 +51,13 @@ int main(int argc, char ** argv) {
     const char* query_file = "dummy-queries.bin";
     int query_vectors, count, d_queries = 100;
     float** posible_queries = query_open(query_file, &query_vectors, d_queries, &count);
+    int queries_dim = d_queries+4;
+
 
     printf("\n");
 
-    
-    
-    // WE HAVE TO CREATE AND STORE OUR OWN GROUNDTRUTH FILE ONCE!!
+    // we create and store the groundtruth
+    Vector* groundtruth = Groundtruth(dataset, vecs, data_dim, posible_queries, query_vectors, queries_dim, k);
 
     // create a 2D distance matrix that will hold the euclidean distances between all vectors of the dataset
     float** dist_matrix = (float**)malloc(vecs * sizeof(float*));
@@ -71,7 +73,7 @@ int main(int argc, char ** argv) {
 
     int med;
     int neigh = 5, t = 10;
-    Vector* G = FilteredVamanaIndexing(vectors, min_f, max_f, vecs, d_base, L, R, neigh, a, &med, t);
+    //Vector* G = FilteredVamanaIndexing(vectors, min_f, max_f, vecs, data_dim, L, R, neigh, a, &med, t);
 
     // printf("G\n");
     // for (int j = 0; j < vecs; j++) {
@@ -98,11 +100,12 @@ int main(int argc, char ** argv) {
     //Calculation of accuracy  
 
     // frees
+    free_G(groundtruth, query_vectors);
     free_matrix_fvecs(dataset, d_base);
     free_matrix_fvecs(vectors, d_base);
     free_matrix_fvecs(posible_queries, d_queries);
     free_matrix_fvecs(dist_matrix, vecs);
-    free_G(G, vecs);
+    //free_G(G, vecs);
     free(xq);
 
     end = time(NULL);

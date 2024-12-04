@@ -560,4 +560,94 @@ Vector* FilteredVamanaIndexing(float** dataset, float min_f, float max_f, int ve
     return G;
 }
 
+Vector* Groundtruth(float** dataset, int vecs, int comps, float** queries, int vecs_q, int comps_q, int k) {
+    if ((comps-2) != (comps_q-4)) {
+        printf("Error: queries and data vectors have different number of components!\n");
+        return NULL;
+    }
+
+    // int** groundtruth = (int**)malloc(k * sizeof(int*));
+    // for (int i = 0; i < k; i++) {
+    //     groundtruth[i] = (int*)malloc(vecs_q * sizeof(int));
+    // }
+    Vector* groundtruth = (Vector*)malloc(vecs_q * sizeof(Vector));
+    for (int i=0; i<vecs_q; i++) {
+        groundtruth[i] = vec_Create(0);
+    }
+
+    float* vec_q = (float*)malloc((comps-2) * sizeof(float));
+    float* vec_p2 = (float*)malloc((comps-2) * sizeof(float));
+
+    float min_sum = FLT_MAX;
+    int min_p = -1;
+    float dist;
+
+    // for each vector in the queries dataset
+    for (int j=0; j<vecs_q; j++) {
+
+        PQueue knn = pqueue_create(NULL);
+
+        int count = 0;
+        for (int i=4; i<comps_q; i++) {
+            vec_q[count] = queries[i][j];
+            count++;
+        }
+
+        
+        // compute its distance to all other vectors in the dataset
+        for (int z=0; z<vecs; z++) {
+            count = 0;
+            for (int i=2; i<comps; i++) {
+                vec_p2[count] = dataset[i][z];
+                count++;
+            }
+
+            // and add them to a priority queue based on their distance AND filter
+            if (queries[0][j] == 0) {
+                // if query type is zero, take into account vectors of all filters
+                pqueue_insert(knn, z, squared_euclidean_distance(vec_q, vec_p2, comps-2));
+            } else if (queries[0][j] == 1) {
+                // its one, check the vector's filter so that it matches
+                if (queries[1][j] == dataset[0][z]) pqueue_insert(knn, z, squared_euclidean_distance(vec_q, vec_p2, comps-2));
+            }
+            
+        }
+
+        // remove the most distant neighbours of the query from knn until its equal to k
+        while (knn->vector->size > k) {
+            pqueue_remove(knn);
+        }
+
+        // then finally add the k nearest nodes to the grountruth matrix
+        // count = 0;
+        // for (VecNode node = vec_first(knn->vector); node != VECTOR_EOF; node = vec_next(knn->vector, node)) {
+        //     groundtruth[count][j] = node->value;
+        //     count++;
+        //     if (count >= k) break;
+        // }
+
+        for (VecNode node = vec_first(knn->vector); node != VECTOR_EOF; node = vec_next(knn->vector, node)) {
+            //printf("value: %d, dist: %f\n", node->value, node->dist);
+            vec_insert(groundtruth[j], node->value, node->dist);
+        }
+        
+        pqueue_destroy(knn);
+
+    }
+
+    free(vec_q);
+    free(vec_p2);
+
+    for (int j=0; j<vecs_q && j<20; j++) {
+        printf("query %d with filter %f:", j, queries[1][j]);
+        for (VecNode node = vec_first(groundtruth[j]); node != VECTOR_EOF; node = vec_next(groundtruth[j], node)) {
+            int idx = node->value;
+            printf("%d - %f, ", idx, dataset[0][idx]);
+        }
+        printf("\n");
+    }
+
+    return groundtruth;
+}
+
 

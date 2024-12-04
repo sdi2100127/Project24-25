@@ -36,8 +36,11 @@ Map FindMedoid(float** dataset, int vecs, float min_f, float max_f, Map filtered
 // This was done because in oreder to test vamana we had to have predetermined data, such as the permutation of the
 // vectors indexes and the neighbours in graph G, and that goes against the vamana's algorithm random initiallizations
 
-// Vamana algorithm for testing purposes
+// Vamana algorithm
 Vector* FilteredVamanaIndexing(float** dataset, float min_f, float max_f, int vecs, int comps, int L, int R, int neigh, int a, int* med, int t);
 
-// Vamana algorithm
+// Stiched Vamana algorithm
 Vector* StichedVamanaIndexing(float** dataset, int vecs, int comps, int L, int R, int a, int* med);
+
+// function to compute the groundtruth on which the results will be based 
+Vector* Groundtruth(float** dataset, int vecs, int comps, float** queries, int vecs_q, int comps_q, int k);

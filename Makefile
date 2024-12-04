@@ -49,8 +49,8 @@ run: app
 
 # Run the filtered program
 run_filter: filtered_app
-	./filtered_app -k 100 -L 125  -R 40
+	valgrind ./filtered_app -k 100 -L 125  -R 40
 
 # Run the unit tests
 run_test: test
-	valgrind ./test 
+	./test 

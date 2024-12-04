@@ -236,6 +236,7 @@ float** query_open(const char* filename, int* num_q, int vec_num_d, int * count)
         fread(vec, vec_size, 1, fp);
         
         for (int i = 0; i < vec_dim; i++) {
+            // but only keep queries of types 0 and 1
             if(vec[0] != 0.0 && vec[0] != 1.0) {
                 flag = 0;
                 break;

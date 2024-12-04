@@ -1864,7 +1864,7 @@ void test_FilteredVamanaIndexing(void) {
       G_test[i] = (int*)malloc(vecs * sizeof(int));
    }
 
-   G_test[0][0] = 3; G_test[1][0] = -1;  G_test[2][0] = -1;
+   G_test[0][0] = 1; G_test[1][0] = -1;  G_test[2][0] = -1;
    G_test[0][1] = 2; G_test[1][1] = 4;  G_test[2][1] = 3;
    G_test[0][2] = 1; G_test[1][2] = -1;  G_test[2][2] = -1;
    G_test[0][3] = 0; G_test[1][3] = 1;  G_test[2][3] = -1;
@@ -1889,6 +1889,40 @@ void test_FilteredVamanaIndexing(void) {
    free_G(G, vecs);
    free_matrix_ivecs(G_test, R);
 
+}
+
+void test_Groundtruth() {
+   // open base vectors file using data_open
+   const char* base_file = "dummy-data.bin";
+   int num_vectors, d_base = 100;
+   float min_f, max_f;
+   float** dataset = data_open(base_file, &num_vectors, d_base, &min_f, &max_f);
+   int data_dim = d_base+2;
+
+   // open query vectors file using query_open
+   const char* query_file = "dummy-queries.bin";
+   int query_vectors, count, d_queries = 100;
+   float** posible_queries = query_open(query_file, &query_vectors, d_queries, &count);
+   int queries_dim = d_queries+4;
+
+   int vecs = 100, k = 100;
+
+   Vector* groundtruth = Groundtruth(dataset, vecs, data_dim, posible_queries, query_vectors, queries_dim, k);
+
+   for (int j=0; j<query_vectors && j<20; j++) {
+      // make sure the correct amount of neighbours has been found
+      TEST_ASSERT(groundtruth[j]->size <= k);
+      for (VecNode node = vec_first(groundtruth[j]); node != VECTOR_EOF; node = vec_next(groundtruth[j], node)) {
+         int idx = node->value;
+         // check that the filters of all the neighbours selected are the same
+         if (posible_queries[1][j] != -1)
+            TEST_ASSERT(dataset[0][idx] == posible_queries[1][j]);
+      }
+   }
+
+   free_G(groundtruth, query_vectors);
+   free_matrix_fvecs(posible_queries, d_queries);
+   free_matrix_fvecs(dataset, d_base);
 }
 
 TEST_LIST = {
@@ -1942,5 +1976,6 @@ TEST_LIST = {
    { "FilteredGreedySearch", test_FilteredGreedySearch },
    { "FilteredRobustPrune", test_FilteredRobustPrune },
    { "FilteredVamanaIndexing", test_FilteredVamanaIndexing },
+   { "Groundtruth", test_Groundtruth },
    { NULL, NULL }     /* zeroed record marking the end of the list */
 };
