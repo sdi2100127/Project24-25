@@ -53,4 +53,4 @@ run_filter: filtered_app
 
 # Run the unit tests
 run_test: test
-	valgrind ./test 
+	./test 

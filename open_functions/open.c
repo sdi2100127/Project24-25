@@ -222,25 +222,18 @@ float** query_open(const char* filename, int* num_q, int vec_num_d, int * count)
 
     int vec_dim = vec_num_d+4;
 
-    float** vectors = (float**)malloc(vec_dim * sizeof(float*));
-    for (int i = 0; i < vec_dim; i++) {
-        vectors[i] = (float*)malloc(num_queries * sizeof(float));
-    }
-
     int vec_size = vec_dim * sizeof(float);
+    // first do an iteration to determine how many queries we will keep
     float* vec = (float*)malloc(vec_size); 
-    int flag = 0, j_count = 0;
+    int flag = 0;
     for (int j = 0; j < num_queries; j++) {
         flag = 1;
-        // Read each vector and copy it
+        // Read each vector
         fread(vec, vec_size, 1, fp);
         
-        for (int i = 0; i < vec_dim; i++) {
-            if(vec[0] != 0.0 && vec[0] != 1.0) {
-                flag = 0;
-                break;
-            }
-            vectors[i][temp_count] = vec[i]; 
+        // but only keep queries of types 0 and 1
+        if(vec[0] != 0.0 && vec[0] != 1.0) {
+            flag = 0;
         }
         if (flag == 1){
             temp_count++;
@@ -248,17 +241,50 @@ float** query_open(const char* filename, int* num_q, int vec_num_d, int * count)
     }
     free(vec);
 
+    // then malloc the necessary memory
+    float** vectors = (float**)malloc(vec_dim * sizeof(float*));
+    for (int i = 0; i < vec_dim; i++) {
+        vectors[i] = (float*)malloc(temp_count * sizeof(float));
+    }
+
+    // reset the file pointer before actually copying the data
+    fseek(fp, sizeof(uint32_t), SEEK_SET); 
+
+    float* vec2 = (float*)malloc(vec_size); 
+    flag = 0;
+    int temp_count2 = 0;
+    for (int j = 0; j < num_queries; j++) {
+        flag = 1;
+        // Read each vector and copy it
+        fread(vec2, vec_size, 1, fp);
+        
+        // but only keep queries of types 0 and 1
+        if(vec2[0] != 0.0 && vec2[0] != 1.0) {
+            flag = 0;
+        }
+
+        if (flag == 1) {
+            for (int i = 0; i < vec_dim; i++) {
+                vectors[i][temp_count2] = vec2[i]; 
+            }
+            temp_count2++;
+        }
+    }
+    free(vec2);
+
     fclose(fp);
 
-    *count = temp_count;
+    *count = temp_count2;
 
-    for (int j = 0; j<temp_count && j < 20; j++) {
-        printf("vector %d: ", j);
-        for (int i = 0; i<vec_dim && i < 5; i++) {
-            printf("%f ", vectors[i][j]);
-        }
-        printf("\n");
-    }
+    // PRINTS FOR TESTING !!!
+
+    // for (int j = 0; j<temp_count && j < 20; j++) {
+    //     printf("vector %d: ", j);
+    //     for (int i = 0; i<vec_dim && i < 5; i++) {
+    //         printf("%f ", vectors[i][j]);
+    //     }
+    //     printf("\n");
+    // }
 
     return vectors;
 }

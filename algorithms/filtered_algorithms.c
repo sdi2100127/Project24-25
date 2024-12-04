@@ -65,7 +65,6 @@ PQueue FilteredGreedySearch(Vector* G, int R, int dim, int vecs, float** vectors
         Vector knn_vec = knn->vector;
         for (VecNode node = vec_first(knn_vec); node != VECTOR_EOF; node = vec_next(knn_vec, node)) {
             node_value = node->value;
-            //printf("node_value: %d\n", node_value);
             if (S_find_equal(visited_nodes->root, node_value) == SET_EOF) {
                 flag = 1;   // unvisited nodes where indeed found              
 
@@ -182,7 +181,6 @@ void FilteredRobustPrune(Vector** G, int p ,Set* V, int a, int R , int dim , int
 
     // Now we have to empty our Nout(p)
     while(temp_G[p]->size != 0) vec_remove(temp_G[p]);
-    printf("removed\n"); 
 
     while(temp->size != 0){
         //Now we have to find which vector of V has minimum distance to our point p
@@ -205,9 +203,7 @@ void FilteredRobustPrune(Vector** G, int p ,Set* V, int a, int R , int dim , int
         prev_min_d = min_dist;
         
         // insert p* to the outgoing neighbours of p
-        // vec_insert(temp_G[p], p_star, euclidean_distance(vec_of_p_star, vec_of_p, dim));
         vec_insert(temp_G[p], p_star, min_dist);
-        //set_remove(temp, p_star);
 
         // if we found R neighbours --> stop
         if(temp_G[p]->size == R || temp_G[p]->size >= temp->size)
@@ -374,7 +370,7 @@ Map FindMedoid(float** dataset, int vecs, float min_f, float max_f, Map filtered
     return M;
 }
 
-Vector* FilteredVamanaIndexing(float** dataset, float min_f, float max_f, int vecs, int comps, int L, int R, int neigh, int a, int* med, int t) {
+Vector* FilteredVamanaIndexing(float** dataset, float min_f, float max_f, int vecs, int comps, int L, int R, int neigh, int a, Map* med, int t) {
     // first we initialize G to an empty graph
     Vector* G = (Vector*)malloc(vecs * sizeof(Vector));
    
@@ -398,7 +394,6 @@ Vector* FilteredVamanaIndexing(float** dataset, float min_f, float max_f, int ve
     // now we find the medoid of the dataset that will be our starting point s
     int s = FilteredMedoid(dataset, vecs, comps, &dist_matrix);
     printf("vamana found medoid: %d\n", s);
-    *med = s;
 
     // now we will have to map each point of the dataset to each corresponding filter
     // we will do that by using a hashmap structure(filter --> key) that has an array big enough
@@ -420,6 +415,8 @@ Vector* FilteredVamanaIndexing(float** dataset, float min_f, float max_f, int ve
         }
         printf("\n");
     }
+
+    // CODE TO CREATE A RANDOM STARTING GRAPH !!!
 
     // int x;
     // float* vec_x = (float*)malloc(comps * sizeof(float));
@@ -463,6 +460,7 @@ Vector* FilteredVamanaIndexing(float** dataset, float min_f, float max_f, int ve
 
     Map filter_medoids = FindMedoid(dataset, vecs, min_f, max_f, filtered_data, t);
     printf("found starting points\n");
+    *med = filter_medoids;
 
     // create a random permutation of 1...vecs (really from 0 to vecs-1) 
     // and store it in the array per
@@ -558,6 +556,99 @@ Vector* FilteredVamanaIndexing(float** dataset, float min_f, float max_f, int ve
 
 
     return G;
+}
+
+Vector* Groundtruth(float** dataset, int vecs, int comps, float** queries, int vecs_q, int comps_q, int k) {
+    if ((comps-2) != (comps_q-4)) {
+        printf("Error: queries and data vectors have different number of components!\n");
+        return NULL;
+    }
+
+    // int** groundtruth = (int**)malloc(k * sizeof(int*));
+    // for (int i = 0; i < k; i++) {
+    //     groundtruth[i] = (int*)malloc(vecs_q * sizeof(int));
+    // }
+    Vector* groundtruth = (Vector*)malloc(vecs_q * sizeof(Vector));
+    for (int i=0; i<vecs_q; i++) {
+        groundtruth[i] = vec_Create(0);
+    }
+
+    float* vec_q = (float*)malloc((comps-2) * sizeof(float));
+    float* vec_p2 = (float*)malloc((comps-2) * sizeof(float));
+
+    float min_sum = FLT_MAX;
+    int min_p = -1;
+    float dist;
+
+    // for each vector in the queries dataset
+    for (int j=0; j<vecs_q; j++) {
+
+        PQueue knn = pqueue_create(NULL);
+
+        int count = 0;
+        for (int i=4; i<comps_q; i++) {
+            vec_q[count] = queries[i][j];
+            count++;
+        }
+
+        
+        // compute its distance to all other vectors in the dataset
+        for (int z=0; z<vecs; z++) {
+            count = 0;
+            for (int i=2; i<comps; i++) {
+                vec_p2[count] = dataset[i][z];
+                count++;
+            }
+            //printf("cond jump\n");
+            // and add them to a priority queue based on their distance AND filter
+            if (queries[0][j] == 0) {
+                //printf("cond jump\n");
+                // if query type is zero, take into account vectors of all filters
+                pqueue_insert(knn, z, squared_euclidean_distance(vec_q, vec_p2, comps-2));
+            } else if (queries[0][j] == 1) {
+                // its one, check the vector's filter so that it matches
+                if (queries[1][j] == dataset[0][z]) pqueue_insert(knn, z, squared_euclidean_distance(vec_q, vec_p2, comps-2));
+            }
+            
+        }
+
+        // remove the most distant neighbours of the query from knn until its equal to k
+        while (knn->vector->size > k) {
+            pqueue_remove(knn);
+        }
+
+        // then finally add the k nearest nodes to the grountruth matrix
+        // count = 0;
+        // for (VecNode node = vec_first(knn->vector); node != VECTOR_EOF; node = vec_next(knn->vector, node)) {
+        //     groundtruth[count][j] = node->value;
+        //     count++;
+        //     if (count >= k) break;
+        // }
+
+        for (VecNode node = vec_first(knn->vector); node != VECTOR_EOF; node = vec_next(knn->vector, node)) {
+            //printf("value: %d, dist: %f\n", node->value, node->dist);
+            vec_insert(groundtruth[j], node->value, node->dist);
+        }
+        
+        pqueue_destroy(knn);
+
+    }
+
+    free(vec_q);
+    free(vec_p2);
+
+    // PRINTS FOR TESTING !!!
+
+    // for (int j=0; j<vecs_q && j<20; j++) {
+    //     printf("query %d with filter %f:", j, queries[1][j]);
+    //     for (VecNode node = vec_first(groundtruth[j]); node != VECTOR_EOF; node = vec_next(groundtruth[j], node)) {
+    //         int idx = node->value;
+    //         printf("%d - %f, ", idx, dataset[0][idx]);
+    //     }
+    //     printf("\n");
+    // }
+
+    return groundtruth;
 }
 
 
