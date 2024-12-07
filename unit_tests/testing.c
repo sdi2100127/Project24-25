@@ -1566,8 +1566,21 @@ void test_FilteredGreedySearch() {
    printf("\n");
 
    int L = 4, k = 1;
+   // create a 2D distance matrix that will hold the euclidean distances between all vectors of the dataset
+   float** dist_matrix = (float**)malloc(vecs * sizeof(float*));
+   for (int i = 0; i < vecs; i++) {
+      dist_matrix[i] = (float*)malloc(vecs * sizeof(float));
+   }
+
+   // and initiallize it with zeros
+   for(int i=0; i<vecs; i++) {
+      for(int j=0; j<vecs; j++) {
+         dist_matrix[i][j] = 0;
+      }
+   }
+   int medoid = FilteredMedoid(vectors, vecs, dim, &dist_matrix);
    Set V;
-   PQueue knn = FilteredGreedySearch(G, R, dim, vecs, vectors, xq, (int)xq[0], M, L, k, &V);
+   PQueue knn = FilteredGreedySearch(G, R, dim, vecs, vectors, xq, (int)xq[0], M, medoid, L, k, &V);
 
    TEST_ASSERT(V->size == 2);
    TEST_ASSERT(knn->vector->size == 1);
@@ -1764,10 +1777,7 @@ void test_FilteredRobustPrune() {
    printf("\n");
 
    int L = 4, k = 1, p = 0, a = 1;
-   Set V;
-   PQueue knn = FilteredGreedySearch(G, R, dim, vecs, vectors, xq, (int)xq[0], M, L, k, &V);
-
-
+   
    // create a 2D distance matrix that will hold the euclidean distances between all vectors of the dataset
    float** dist_matrix = (float**)malloc(vecs * sizeof(float*));
    for (int i = 0; i < vecs; i++) {
@@ -1781,6 +1791,9 @@ void test_FilteredRobustPrune() {
    }
 
    int med = FilteredMedoid(vectors, vecs, dim, &dist_matrix);
+
+   Set V;
+   PQueue knn = FilteredGreedySearch(G, R, dim, vecs, vectors, xq, (int)xq[0], M, med, L, k, &V);
 
    FilteredRobustPrune(&G, p , &V,  a,  R,  dim ,  vecs , vectors, dist_matrix);
 
@@ -1855,9 +1868,9 @@ void test_FilteredVamanaIndexing(void) {
    }
    printf("\n");
 
-   int L = 4, k = 1, p = 0, a = 1, neigh = 5, t = 1;
+   int L = 4, k = 1, p = 0, a = 1, neigh = 5, t = 1, medoid;
    Map med;
-   Vector* G = FilteredVamanaIndexing(vectors, min_f, max_f, vecs, dim, L, R, neigh, a, &med, t);
+   Vector* G = FilteredVamanaIndexing(vectors, min_f, max_f, vecs, dim, L, R, neigh, a, &med, &medoid, t);
 
    int** G_test = (int**)malloc(R * sizeof(int*));
    for (int i = 0; i < R; i++) {
@@ -1898,6 +1911,10 @@ void test_Groundtruth() {
    float min_f, max_f;
    float** dataset = data_open(base_file, &num_vectors, d_base, &min_f, &max_f);
    int data_dim = d_base+2;
+
+   for (int j = 0; j < num_vectors; j++) {
+      if (dataset[0][j] == 18) {printf("filter %f found in vec: %d\n", dataset[0][j], j);}
+   }
 
    // open query vectors file using query_open
    const char* query_file = "dummy-queries.bin";

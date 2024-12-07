@@ -180,9 +180,9 @@ float** data_open(const char* filename, int* num_vectors, int vec_num_d, float* 
         for (int i = 0; i < vec_dim; i++) {
             vectors[i][j] = vec[i]; // vec[0] = C(filter), vec[1] = T(timestamp), the rest are the vector components
             if (i == 0) {
-            if (vectors[i][j] <= min_filter) min_filter = vectors[i][j];
-            if (vectors[i][j] >= max_filter) max_filter = vectors[i][j];
-         }
+                if (vectors[i][j] <= min_filter) min_filter = vectors[i][j];
+                if (vectors[i][j] >= max_filter) max_filter = vectors[i][j];
+            }
         }
     }
     free(vec);

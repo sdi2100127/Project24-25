@@ -14,7 +14,7 @@
 // xq --> the query vector
 // k --> the result size/number of desired nearest neighbours
 // L --> the maximum size of the result set
-PQueue FilteredGreedySearch(Vector* G, int R, int dim, int vecs, float** vectors, float* xq, int fq, Map filter_med, int L, int k, Set* V);
+PQueue FilteredGreedySearch(Vector* G, int R, int dim, int vecs, float** vectors, float* xq, int fq, Map filter_med, int med, int L, int k, Set* V);
 
 //robust prune is an algorithm that takes as input:
 //G --> the graph we have to modify and return, that sets at most R new neighboors for p
@@ -37,7 +37,7 @@ Map FindMedoid(float** dataset, int vecs, float min_f, float max_f, Map filtered
 // vectors indexes and the neighbours in graph G, and that goes against the vamana's algorithm random initiallizations
 
 // Vamana algorithm
-Vector* FilteredVamanaIndexing(float** dataset, float min_f, float max_f, int vecs, int comps, int L, int R, int neigh, int a, Map* med, int t);
+Vector* FilteredVamanaIndexing(float** dataset, float min_f, float max_f, int vecs, int comps, int L, int R, int neigh, int a, Map* med, int* medoid, int t);
 
 // Stiched Vamana algorithm
 Vector* StichedVamanaIndexing(float** dataset, int vecs, int comps, int L, int R, int a, int* med);

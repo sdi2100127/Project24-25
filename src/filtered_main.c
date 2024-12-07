@@ -33,19 +33,6 @@ int main(int argc, char ** argv) {
     int data_dim = d_base+2;
 
     int vecs = 10000;
-    float** vectors = (float**)malloc(d_base * sizeof(float*));
-    for (int i = 0; i < d_base; i++) {
-        vectors[i] = (float*)malloc(vecs * sizeof(float));
-    }
-
-    for (int j = 0; j<num_vectors && j < vecs; j++) {
-        //printf("vector %d: ", j);
-        for (int i = 0; i<d_base; i++) {
-        vectors[i][j] = dataset[i][j];
-        //printf("%f ", vectors[i][j]);
-        }
-    }
-    printf("\n");
 
     // open query vectors file using query_open
     const char* query_file = "dummy-queries.bin";
@@ -57,21 +44,47 @@ int main(int argc, char ** argv) {
     printf("\n");
 
     // we create and store the groundtruth
-    Vector* groundtruth = Groundtruth(dataset, vecs, data_dim, posible_queries, count, queries_dim, k);
+    Vector* groundtruth;
+    const char* grtrth_file = "groundtruth.dat";
+
+    char path[100];
+    sprintf(path, "groundtruth/%s", grtrth_file);
+    FILE *file = fopen(path, "rb");
+    // if it already exists load it from memory
+    if (file) {
+        groundtruth = (Vector*)malloc(count * sizeof(Vector));
+
+        fread(groundtruth, sizeof(Vector), count, file);
+        fclose(file);
+    } else {    // otherwise, compute it and store it
+        groundtruth = Groundtruth(dataset, vecs, data_dim, posible_queries, count, queries_dim, k);
+
+        file = fopen(path, "wb");
+        if (file == NULL) {
+            perror("Error opening file for writing");
+            exit(EXIT_FAILURE);
+        }
+        fwrite(groundtruth, sizeof(Vector), count, file);
+        fclose(file);
+    }
+
+    printf("found Groundtruth\n");
 
     Map med;
-    int neigh = 5, t = 10;
-    Vector* G = FilteredVamanaIndexing(vectors, min_f, max_f, vecs, data_dim, L, R, neigh, a, &med, t);
+    int neigh = 5, t = 10, medoid;
+    Vector* G = FilteredVamanaIndexing(dataset, min_f, max_f, vecs, data_dim, L, R, neigh, a, &med, &medoid, t);
 
     printf("G\n");
     for (int j = 0; j < vecs; j++) {
         printf("vector %d:", j);
-        for (int i = 0; i < R; i++) {
+        for (int i = 0; i < G[j]->size; i++) {
         printf(" %d",  vec_get_at(G[j], i));
             
         }
         printf("\n");
     }
+
+    srand((unsigned int)time(NULL));
 
     // randomly select a query vector
     int xq_pos = rand() % (count - 1);
@@ -79,11 +92,14 @@ int main(int argc, char ** argv) {
     for (int i=0; i<queries_dim; i++) {
         xq[i] = posible_queries[i][xq_pos];
     }
-    printf("%d\n", xq_pos);
+    printf("query: %d with filter: %f\n", xq_pos, xq[1]);
 
     // run the greedysearch algorithm to find its k nearest neighbours based on G
     Set V;
-    PQueue knn = FilteredGreedySearch(G, R, data_dim, vecs, dataset, xq, xq[1], med, L, k, &V);
+    PQueue knn = FilteredGreedySearch(G, R, data_dim, vecs, dataset, xq, xq[1], med, medoid, L, k, &V);
+    if (knn == NULL) {
+        printf("there are no other vectors with filter %f in the dataset\n NO NEIGHBOURS WHERE FOUND\n", xq[1]);
+    }
 
     //Calculation of accuracy  
     int* test_knn = (int*)malloc(k * sizeof(int));
@@ -104,7 +120,6 @@ int main(int argc, char ** argv) {
     pqueue_destroy(knn);
     free_G(groundtruth, query_vectors);
     free_matrix_fvecs(dataset, data_dim);
-    free_matrix_fvecs(vectors, data_dim);
     free_matrix_fvecs(posible_queries, queries_dim);
     free_G(G, vecs);
     free(xq);

@@ -21,24 +21,43 @@ float squared_euclidean_distance_f(float* vec1, float* vec2, int comps) {
     return res;
 }
 
-PQueue FilteredGreedySearch(Vector* G, int R, int dim, int vecs, float** vectors, float* xq, int fq, Map filter_med, int L, int k, Set* V) {
-    
+PQueue FilteredGreedySearch(Vector* G, int R, int dim, int vecs, float** vectors, float* xq, int fq, Map filter_med, int med, int L, int k, Set* V) {
+    printf("GREEDY SEARCH\n");
+
     // initialise knn and visited set as empty
     PQueue knn = pqueue_create(NULL);
     Set visited_nodes = set_Create();
 
     // since the query xq has only one filter we can simply check which starting point corresponds with this flter in the map
-    int s = vec_get_at(map_find_values(filter_med, fq), 0);
-    // and insert it into the k-nearest-neighbours priority queue
+    Vector values = map_find_values(filter_med, fq);
+    int s;
+
+    // if the filter of the query is -1 (query has no filter)
+    int filter = 1;
+    if (fq == -1) {
+        // start greedy search from the medoid of the dataset
+        s = med;
+        filter = 0;
+    } else {
+        // if the filter of the query is not in the dataset map return NULL 
+        // as there are not any nodes with the same filter in the dataset
+        if (values == NULL) {
+            return NULL;
+        }
+
+        s = vec_get_at(values, 0);
+    }
+
+    // then insert it into the k-nearest-neighbours priority queue
     float* vec_s = (float*)malloc((dim-2) * sizeof(float));
-    printf("vec_s: ");
+    //printf("vec_s: ");
     int count = 0;
     for (int i=2; i<dim; i++) {
         vec_s[count] = vectors[i][s];
-        printf("%f ", vec_s[count]);
+        //printf("%f ", vec_s[count]);
         count++;
     }
-    printf("\n");
+    //printf("\n");
     pqueue_insert(knn, s, euclidean_distance(vec_s, xq, dim-2));
 
     int flag = 1;
@@ -94,14 +113,18 @@ PQueue FilteredGreedySearch(Vector* G, int R, int dim, int vecs, float** vectors
         set_insert(visited_nodes, xp);
 
         // now we add all the outgoing neighbours of the node xp that also have the same filter as xq in knn
+        // (or all if xq has no filter)
         // the outgoing neighbours of a node are the one that are included in said node's column
         // the incoming neighbours are the other node's columns that the node is part of
         for (int i=0; i<G[xp]->size; i++) {
             int point = vec_get_at(G[xp], i);
 
-            // if the point has a different filter than the query ignore it
-            int f = (int)vectors[0][point];
-            if (f != fq) continue;
+            // if the query has a filter
+            if (filter == 1)  {
+                // if the point has a different filter than the query ignore it
+                int f = (int)vectors[0][point];
+                if (f != fq) continue;
+            }
 
             // if the distance has not been computed before, compute it
             if (dist_matrix[point] == -1) {
@@ -155,18 +178,19 @@ PQueue FilteredGreedySearch(Vector* G, int R, int dim, int vecs, float** vectors
 }
 
 void FilteredRobustPrune(Vector** G, int p ,Set* V, int a, int R , int dim , int vecs , float** vectors, float** dist_m) {
-    
+    printf("ROBUST PRUNE\n");
+
     // we start out by creating some temporary structs to store the visited nodes set, as well as the graph G
     Set temp = *V;
     Vector* temp_G = *G;
 
     // then we insert all the outgoing neighbours of p (Nout(p)) to the V set
-    printf("Nout(p): ");
+    //printf("Nout(p): ");
     for (int i = 0; i < temp_G[p]->size; i++){           
-        printf("%d ", vec_get_at(temp_G[p], i));
+        //printf("%d ", vec_get_at(temp_G[p], i));
         set_insert(temp, vec_get_at(temp_G[p], i));
     }
-    printf("\n");
+    //printf("\n");
     // And we check if we have inserted our p so that we remove it
     set_remove(temp, p);   
 
@@ -265,9 +289,9 @@ int FilteredMedoid(float** dataset, int vecs, int comps, float*** dist_m) {
             count++;
         }
 
-        
         // compute its distance to all other vectors
         for (int z=0; z<vecs; z++) {
+
             count = 0;
             for (int i=2; i<comps; i++) {
                 vec_p2[count] = dataset[i][z];
@@ -302,8 +326,11 @@ int FilteredMedoid(float** dataset, int vecs, int comps, float*** dist_m) {
     return min_p;
 }
 
-Map FindMedoid(float** dataset, int vecs, float min_f, float max_f, Map filtered_data, int t) {    // initialize M as an empty map
-    // M mapps filters to start nodes
+Map FindMedoid(float** dataset, int vecs, float min_f, float max_f, Map filtered_data, int t) {   
+    printf("FIND MEDOID\n");
+
+    // initialize M as an empty map
+    // M maps filters to start nodes
     Map M = map_create(min_f, max_f);
 
     // initialize T as an empty map
@@ -325,14 +352,19 @@ Map FindMedoid(float** dataset, int vecs, float min_f, float max_f, Map filtered
         // R_f holds t randomly sampled data point ids from P_f
         Set R_f = set_Create();
 
-        if (t <= P_f->size) {
+        if (t >= P_f->size) {
             for (VecNode v_node = vec_first(P_f); v_node != VECTOR_EOF; v_node = vec_next(P_f, v_node)) { 
                 set_insert(R_f, v_node->value);
             }
         } else {
             while (R_f->size < t) {
-                int x = rand() % (P_f->size-1);
-                set_insert(R_f, vec_get_at(P_f, x));
+                if (P_f->size > 1) {
+                    int x = rand() % (P_f->size - 1);
+                    set_insert(R_f, vec_get_at(P_f, x));
+                } else {
+                    set_insert(R_f, vec_get_at(P_f, 0));
+                }
+
             }
         }
 
@@ -365,12 +397,13 @@ Map FindMedoid(float** dataset, int vecs, float min_f, float max_f, Map filtered
 
     }
 
-    map_destroy(T);
+    //map_destroy(T);
 
     return M;
 }
 
-Vector* FilteredVamanaIndexing(float** dataset, float min_f, float max_f, int vecs, int comps, int L, int R, int neigh, int a, Map* med, int t) {
+Vector* FilteredVamanaIndexing(float** dataset, float min_f, float max_f, int vecs, int comps, int L, int R, int neigh, int a, Map* med, int* medoid, int t) {
+    
     // first we initialize G to an empty graph
     Vector* G = (Vector*)malloc(vecs * sizeof(Vector));
    
@@ -391,9 +424,10 @@ Vector* FilteredVamanaIndexing(float** dataset, float min_f, float max_f, int ve
         }
     }
 
-    // now we find the medoid of the dataset that will be our starting point s
-    int s = FilteredMedoid(dataset, vecs, comps, &dist_matrix);
-    printf("vamana found medoid: %d\n", s);
+    // now we find the medoid of the dataset
+    int fmedoid = FilteredMedoid(dataset, vecs, comps, &dist_matrix);
+    printf("vamana found medoid: %d\n", fmedoid);
+    *medoid = fmedoid;
 
     // now we will have to map each point of the dataset to each corresponding filter
     // we will do that by using a hashmap structure(filter --> key) that has an array big enough
@@ -507,7 +541,7 @@ Vector* FilteredVamanaIndexing(float** dataset, float min_f, float max_f, int ve
         int s = vec_get_at(map_find_values(filter_medoids, query_fltr), 0);
 
         Set V;
-        PQueue knn = FilteredGreedySearch(G, R, comps, vecs, dataset, xq, query_fltr, filter_medoids, L, 0, &V);
+        PQueue knn = FilteredGreedySearch(G, R, comps, vecs, dataset, xq, query_fltr, filter_medoids, fmedoid, L, 0, &V);
         FilteredRobustPrune(&G, query_pos, &V, a, R, comps, vecs, dataset, dist_matrix);
 
         set_destroy(V);
@@ -538,7 +572,7 @@ Vector* FilteredVamanaIndexing(float** dataset, float min_f, float max_f, int ve
                 }
                 set_insert(Nout_j, query_pos);
                 // and we call robust prune
-                RobustPrune(&G, point, &Nout_j, a, R, comps, vecs, dataset, dist_matrix);
+                FilteredRobustPrune(&G, point, &Nout_j, a, R, comps, vecs, dataset, dist_matrix);
 
                 set_destroy(Nout_j);
 
@@ -559,6 +593,8 @@ Vector* FilteredVamanaIndexing(float** dataset, float min_f, float max_f, int ve
 }
 
 Vector* Groundtruth(float** dataset, int vecs, int comps, float** queries, int vecs_q, int comps_q, int k) {
+    printf("GROUDTRUTH\n");
+
     if ((comps-2) != (comps_q-4)) {
         printf("Error: queries and data vectors have different number of components!\n");
         return NULL;
@@ -582,6 +618,7 @@ Vector* Groundtruth(float** dataset, int vecs, int comps, float** queries, int v
 
     // for each vector in the queries dataset
     for (int j=0; j<vecs_q; j++) {
+        //printf("query %d\n", j);
 
         PQueue knn = pqueue_create(NULL);
 
