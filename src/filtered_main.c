@@ -96,19 +96,29 @@ int main(int argc, char ** argv) {
 
     // run the greedysearch algorithm to find its k nearest neighbours based on G
     Set V;
-    PQueue knn = FilteredGreedySearch(G, R, data_dim, vecs, dataset, xq, xq[1], med, medoid, L, k, &V);
+    PQueue knn = FilteredGreedySearch(G, R, data_dim, vecs, dataset, xq, (int)xq[1], med, medoid, L, k, &V);
+    
     if (knn == NULL) {
         printf("there are no other vectors with filter %f in the dataset\n NO NEIGHBOURS WHERE FOUND\n", xq[1]);
     }
 
     //Calculation of accuracy  
-    int* test_knn = (int*)malloc(k * sizeof(int));
+    for (int i=0; i<count; i++) {
+        printf("vector: %d", i);
+        for (VecNode node = vec_first(groundtruth[i]); node != VECTOR_EOF; node = vec_next(groundtruth[i], node)) {
+            printf("%d ", node->value);
+        }
+        printf("\n");
+    }
 
     int found = 0;
     for (int i=0; i<k; i++) {
+        if (i >= groundtruth[xq_pos]->size) break;
         int n_point = vec_get_at(groundtruth[xq_pos], i);
+        printf("n_point: %d\n", n_point);
         if (vec_find_node(knn->vector,n_point) != VECTOR_EOF) {
-        found++;
+            printf("exists\n");
+            found++;
         }
         if (found == k) break;
     }
@@ -123,6 +133,7 @@ int main(int argc, char ** argv) {
     free_matrix_fvecs(posible_queries, queries_dim);
     free_G(G, vecs);
     free(xq);
+    map_destroy(med);
 
     end = time(NULL);
     printf("The programm has taken %.f seconds \n", difftime(end,start));

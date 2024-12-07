@@ -48,6 +48,8 @@ PQueue FilteredGreedySearch(Vector* G, int R, int dim, int vecs, float** vectors
         s = vec_get_at(values, 0);
     }
 
+    printf("s: %d\n", s);
+
     // then insert it into the k-nearest-neighbours priority queue
     float* vec_s = (float*)malloc((dim-2) * sizeof(float));
     //printf("vec_s: ");
@@ -585,7 +587,7 @@ Vector* FilteredVamanaIndexing(float** dataset, float min_f, float max_f, int ve
     free(point_vec);
     free(per);
     map_destroy(filtered_data);
-    map_destroy(filter_medoids);
+    //map_destroy(filter_medoids);
     free_matrix_fvecs(dist_matrix, vecs);
 
 
