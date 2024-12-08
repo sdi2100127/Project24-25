@@ -106,7 +106,7 @@ set_Node S_find_equal(set_Node, int);
 int compare (int , int );
 
 // VECTOR
-typedef struct vector* Vector;
+typedef struct vector* Vector; 
 typedef struct vector_node* VecNode;
 
 #define VECTOR_BOF (VecNode)0

@@ -7,6 +7,27 @@
 #include "../algorithms/filtered_algorithms.h"
 #include "../open_functions/open.h"
 
+void serialize_vector(FILE *fp, Vector vec) {
+    // first we have to store each vector's size
+    fwrite(&(vec->size), sizeof(int), 1, fp);
+
+    // then the elements of the actual array
+    fwrite(vec->array, sizeof(VecNode), vec->size, fp);
+}
+
+void deserialize_vector(FILE *fp, Vector vec) {
+    printf("hi\n");
+    // first we have to read each vector's size
+    fread(&(vec->size), sizeof(int), 1, fp);
+    printf("size: %d\n", vec->size);
+
+    // then we allocate memory for the array
+    vec->array = (VecNode)realloc(vec->array, vec->size * sizeof(VecNode));
+
+    // and we fill it with the required elements
+    fread(vec->array, sizeof(VecNode), vec->size, fp);
+}
+
 int main(int argc, char ** argv) {
     srand((unsigned int)time(NULL));
 
@@ -53,8 +74,12 @@ int main(int argc, char ** argv) {
     // if it already exists load it from memory
     if (file) {
         groundtruth = (Vector*)malloc(count * sizeof(Vector));
+        // for each vector of groundtruth, deserialize it 
+        for (int i = 0; i < count; ++i) {
+            printf("vector %d: ", i);
+            deserialize_vector(file, groundtruth[i]);
+        }
 
-        fread(groundtruth, sizeof(Vector), count, file);
         fclose(file);
     } else {    // otherwise, compute it and store it
         groundtruth = Groundtruth(dataset, vecs, data_dim, posible_queries, count, queries_dim, k);
@@ -64,7 +89,12 @@ int main(int argc, char ** argv) {
             perror("Error opening file for writing");
             exit(EXIT_FAILURE);
         }
-        fwrite(groundtruth, sizeof(Vector), count, file);
+        
+        // for each vector in the dataset, serialize it
+        for (int i = 0; i < count; ++i) {
+            serialize_vector(file, groundtruth[i]);
+        }
+
         fclose(file);
     }
 
@@ -103,23 +133,24 @@ int main(int argc, char ** argv) {
     }
 
     //Calculation of accuracy  
-    for (int i=0; i<count; i++) {
-        printf("vector: %d", i);
-        for (VecNode node = vec_first(groundtruth[i]); node != VECTOR_EOF; node = vec_next(groundtruth[i], node)) {
-            printf("%d ", node->value);
-        }
-        printf("\n");
-    }
+    // for (int i=0; i<count; i++) {
+    //     printf("vector %d: ", i);
+    //     for (VecNode node = vec_first(groundtruth[i]); node != VECTOR_EOF; node = vec_next(groundtruth[i], node)) {
+    //         printf("%d ", node->value);
+    //     }
+    //     printf("\n");
+    // }
 
     int found = 0;
     for (int i=0; i<k; i++) {
         if (i >= groundtruth[xq_pos]->size) break;
         int n_point = vec_get_at(groundtruth[xq_pos], i);
-        printf("n_point: %d\n", n_point);
+        printf("n_point: %d ", n_point);
         if (vec_find_node(knn->vector,n_point) != VECTOR_EOF) {
-            printf("exists\n");
+            printf("exists");
             found++;
         }
+        printf("\n");
         if (found == k) break;
     }
     float accuracy = found* 100 / k;
@@ -128,7 +159,7 @@ int main(int argc, char ** argv) {
     // frees
     set_destroy(V);
     pqueue_destroy(knn);
-    free_G(groundtruth, query_vectors);
+    free_G(groundtruth, count);
     free_matrix_fvecs(dataset, data_dim);
     free_matrix_fvecs(posible_queries, queries_dim);
     free_G(G, vecs);
