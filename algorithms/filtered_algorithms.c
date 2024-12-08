@@ -38,6 +38,11 @@ PQueue FilteredGreedySearch(Vector* G, int R, int dim, int vecs, float** vectors
         // start greedy search from the medoid of the dataset
         s = med;
         filter = 0;
+
+        // Set V_nf;
+        // PQueue knn_nf = greedySearch(G, R, dim, vecs, vectors, s, xq, L, k, &V_nf);
+        // *V = V_nf;
+        // return knn_nf;
     } else {
         // if the filter of the query is not in the dataset map return NULL 
         // as there are not any nodes with the same filter in the dataset
@@ -160,7 +165,7 @@ PQueue FilteredGreedySearch(Vector* G, int R, int dim, int vecs, float** vectors
 
     printf("knn_set: ");
     for (VecNode node = vec_first(knn->vector); node != VECTOR_EOF; node = vec_next(knn->vector, node)) { 
-        printf("%d ", node->value);
+        printf("%d -> %f  ", node->value , vectors[0][node->value]);
     }
     printf("\n");
 
@@ -347,6 +352,7 @@ Map FindMedoid(float** dataset, int vecs, float min_f, float max_f, Map filtered
 
     // for each different filter f
     for (MapNode node = map_first(filtered_data); node != MAP_EOF; node = map_next(filtered_data, node)) {
+        
         // let P_f denote the ids of all points matching filter f
         // (which are the contents of the corresponding bucket in the hash map)
         Vector P_f = node->values;

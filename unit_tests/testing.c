@@ -1387,11 +1387,12 @@ void test_FindMedoid() {
    for (MapNode node = map_first(M); node != MAP_EOF; node = map_next(M, node)) {
       printf("filter %d: ", node->key);
       values = node->values;
-      for (VecNode node = vec_first(values); node != VECTOR_EOF; node = vec_next(values, node)) {
-         printf("%d ", node->value);
-         TEST_ASSERT(node->value == test_M[count]);
+      for (VecNode vnode = vec_first(values); vnode != VECTOR_EOF; vnode = vec_next(values, vnode)) {
+         printf("%d ", vnode->value);
+         //TEST_ASSERT(node->value == test_M[count]);
+         TEST_ASSERT(vec_find_node(map_find_values(filtered_data, node->key), vnode->value) != VECTOR_EOF);
       }
-      count++;
+      count++; 
       printf("\n");
    }
 

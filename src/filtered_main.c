@@ -7,27 +7,6 @@
 #include "../algorithms/filtered_algorithms.h"
 #include "../open_functions/open.h"
 
-void serialize_vector(FILE *fp, Vector vec) {
-    // first we have to store each vector's size
-    fwrite(&(vec->size), sizeof(int), 1, fp);
-
-    // then the elements of the actual array
-    fwrite(vec->array, sizeof(VecNode), vec->size, fp);
-}
-
-void deserialize_vector(FILE *fp, Vector vec) {
-    printf("hi\n");
-    // first we have to read each vector's size
-    fread(&(vec->size), sizeof(int), 1, fp);
-    printf("size: %d\n", vec->size);
-
-    // then we allocate memory for the array
-    vec->array = (VecNode)realloc(vec->array, vec->size * sizeof(VecNode));
-
-    // and we fill it with the required elements
-    fread(vec->array, sizeof(VecNode), vec->size, fp);
-}
-
 int main(int argc, char ** argv) {
     srand((unsigned int)time(NULL));
 
@@ -73,11 +52,20 @@ int main(int argc, char ** argv) {
     FILE *file = fopen(path, "rb");
     // if it already exists load it from memory
     if (file) {
+
         groundtruth = (Vector*)malloc(count * sizeof(Vector));
         // for each vector of groundtruth, deserialize it 
         for (int i = 0; i < count; ++i) {
-            printf("vector %d: ", i);
-            deserialize_vector(file, groundtruth[i]);
+            groundtruth[i] = vec_Create(0);
+
+            // first we have to read each vector's size
+            fread(&(groundtruth[i]->size), sizeof(int), 1, file);
+
+            // then we allocate memory for the array
+            groundtruth[i]->array = (VecNode)malloc(groundtruth[i]->size * sizeof(VecNode));
+
+            // and we fill it with the required elements
+            fread(groundtruth[i]->array, sizeof(VecNode), groundtruth[i]->size, file);
         }
 
         fclose(file);
@@ -92,7 +80,11 @@ int main(int argc, char ** argv) {
         
         // for each vector in the dataset, serialize it
         for (int i = 0; i < count; ++i) {
-            serialize_vector(file, groundtruth[i]);
+            // first we have to store each vector's size
+            fwrite(&(groundtruth[i]->size), sizeof(int), 1, file);
+
+            // then the elements of the actual array
+            fwrite(groundtruth[i]->array, sizeof(VecNode), groundtruth[i]->size, file);
         }
 
         fclose(file);
@@ -117,7 +109,13 @@ int main(int argc, char ** argv) {
     srand((unsigned int)time(NULL));
 
     // randomly select a query vector
-    int xq_pos = rand() % (count - 1);
+    int fflag = 0, xq_pos;
+    while (fflag == 0) {
+        fflag = 1;
+        xq_pos = rand() % (count - 1);
+        if (posible_queries[1][xq_pos] != -1) fflag = 0;
+    }
+    // int xq_pos = rand() % (count - 1);
     float* xq = (float*)malloc(queries_dim * sizeof(float));
     for (int i=0; i<queries_dim; i++) {
         xq[i] = posible_queries[i][xq_pos];
@@ -133,28 +131,28 @@ int main(int argc, char ** argv) {
     }
 
     //Calculation of accuracy  
-    // for (int i=0; i<count; i++) {
-    //     printf("vector %d: ", i);
-    //     for (VecNode node = vec_first(groundtruth[i]); node != VECTOR_EOF; node = vec_next(groundtruth[i], node)) {
-    //         printf("%d ", node->value);
-    //     }
-    //     printf("\n");
-    // }
+    printf("query groundtruth %d with filter %f: ", xq_pos, posible_queries[1][xq_pos]);
+    for (VecNode node = vec_first(groundtruth[xq_pos]); node != VECTOR_EOF; node = vec_next(groundtruth[xq_pos], node)) {
+        printf("%d -> %f  ", node->value , dataset[0][node->value]);
+    }
+    printf("\n");
+
+    printf("medoid: %d with filter: %f\n", medoid, dataset[0][medoid]);
 
     int found = 0;
     for (int i=0; i<k; i++) {
         if (i >= groundtruth[xq_pos]->size) break;
         int n_point = vec_get_at(groundtruth[xq_pos], i);
-        printf("n_point: %d ", n_point);
+        //printf("n_point: %d ", n_point);
         if (vec_find_node(knn->vector,n_point) != VECTOR_EOF) {
-            printf("exists");
+            //printf("exists");
+            printf("n_point: %d -> %f exists\n", n_point, dataset[0][n_point]);
             found++;
         }
-        printf("\n");
-        if (found == k) break;
+        //printf("\n");
     }
-    float accuracy = found* 100 / k;
-    printf("Our programm calculates the data with an accuracy of : %f \n",accuracy); 
+    float accuracy = found* 100 / groundtruth[xq_pos]->size;
+    printf("Our program calculates the data with an accuracy of : %f \n",accuracy); 
 
     // frees
     set_destroy(V);
