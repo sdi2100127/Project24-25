@@ -620,7 +620,7 @@ Vector* Groundtruth(float** dataset, int vecs, int comps, float** queries, int v
 
     // for each vector in the queries dataset
     for (int j=0; j<vecs_q; j++) {
-        printf("query %d\n", j);
+        //printf("query %d\n", j);
 
         PQueue knn = pqueue_create(NULL);
 
