@@ -315,6 +315,7 @@ Vector* Vamana_main(float** dataset, int vecs, int comps, int L, int R, int a, i
             int stop = 1;
             while (stop == 1) {
                 x = rand() % (vecs - 1);    // pick another vector randomly
+                //printf("%d\n", x);
                 stop = 0;
                 // as long as that vector is not a neighbour already and it is not the same as our current vector
                 if (vec_find_node(G[j], x) != VECTOR_EOF || x == j) {   

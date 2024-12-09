@@ -3,7 +3,7 @@
 #include <time.h>
 
 #include "../algorithms/algorithms.h"
-#include "../open_functions/open.h"
+//#include "../open_functions/open.h"
 
 int main(int argc, char ** argv) {
   srand((unsigned int)time(NULL));

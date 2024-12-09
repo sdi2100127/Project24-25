@@ -650,9 +650,6 @@ Vector** StichedVamanaIndexing(float** dataset, float min_f, float max_f, Set fi
         // int f = node->value; 
         int f_size = map_find_values(filtered_data, f)->size;
         if (f_size == 1) continue;
-        else if (f_size == 2) {
-            
-        }
 
         Vector f_values = map_find_values(filtered_data, f);
 
@@ -690,9 +687,30 @@ Vector** StichedVamanaIndexing(float** dataset, float min_f, float max_f, Set fi
         }
 
         int Vmedoid;
-        G_f[f] = Vamana_main(data_f, f_size, comps-2, L, R_stitched, a, &Vmedoid);
 
-
+        if (f_size == 2) {
+            int pos = 1;
+            for (int j = 0; j < f_size; j++) {
+                float* vec_x = (float*)malloc(c * sizeof(float));
+                float* vec_j = (float*)malloc(c * sizeof(float));
+                for (int i=0; i<c; i++) {
+                    vec_x[i] = data_f[i][j];
+                    vec_j[i] = data_f[i][pos];
+                }
+                
+                vec_insert(G_f[f][j], vec_get_at(per[f], j), euclidean_distance(vec_x, vec_j, c));
+                pos--;
+            }
+        } else {
+            if (R_stitched > f_size) {
+                printf("R: %d\n", f_size);
+                G_f[f] = Vamana_main(data_f, f_size, comps-2, L, f_size-1, a, &Vmedoid);
+            } else {
+                printf("R: %d\n", R_stitched);
+                G_f[f] = Vamana_main(data_f, f_size, comps-2, L, R_stitched, a, &Vmedoid);
+            }
+        }
+    
         // for (int j = 0; j < f_size; j++) {
         //     for (int i = 0; i < G_f[f][j]->size; i++) {
         //         int value = vec_get_at(per[f], j);
