@@ -63,7 +63,7 @@ run_filter: filtered_app
 
 # Run the stitched program
 run_stitch: stitched_app
-	valgrind ./stitched_app -k 10 -L 12  -R 4
+	./stitched_app -k 10 -L 12  -R 4
 
 # Run the unit tests
 run_test: test

@@ -649,6 +649,11 @@ Vector** StichedVamanaIndexing(float** dataset, float min_f, float max_f, Set fi
         // keep the current filter, the values associated with it, and how many there are
         // int f = node->value; 
         int f_size = map_find_values(filtered_data, f)->size;
+        if (f_size == 1) continue;
+        else if (f_size == 2) {
+            
+        }
+
         Vector f_values = map_find_values(filtered_data, f);
 
         // next keep the permutation of the original indices of the points vs the indices in the filtered dataset
@@ -656,55 +661,47 @@ Vector** StichedVamanaIndexing(float** dataset, float min_f, float max_f, Set fi
             vec_insert(per[f], vec_get_at(f_values, j), vec_get_dist(f_values, j));
         }
 
-        printf("random permutation:\n");
+        printf("filter: %d\n", f);
+
+        printf("random stitched permutation:\n");
         for (int j=0; j<f_size; j++) {
             printf("%d ", vec_get_at(per[f], j));
         }
         printf("\n");
 
         // and store them in the new dataset
-        float** data_f = (float**)malloc(comps-2 * sizeof(float*));
-        for (int i = 0; i < comps-2; i++) {
+        int c = comps-2;
+        float** data_f = (float**)malloc(c * sizeof(float*));
+        for (int i = 0; i < c; i++) {
             data_f[i] = (float*)malloc(f_size * sizeof(float));
-            printf("%d\n", i);
         }
 
-        printf("filter: %d\n", f);
+        //printf("filter: %d\n", f);
         for (int j = 0; j < f_size; j++) {
-            printf("vector %d -> %d: ", j, vec_get_at(per[f], j));
+            //printf("vector %d -> %d: ", j, vec_get_at(per[f], j));
             int count = 0;
             for (int i = 2; i < comps; i++) {
-                printf("%f ", dataset[i][vec_get_at(per[f], j)]);
+                //printf("%f ", dataset[i][vec_get_at(per[f], j)]);
                 data_f[count][j] = dataset[i][vec_get_at(per[f], j)];
-                printf("%f ", data_f[count][j]);
+                //printf("%f ", data_f[count][j]);
                 count++;
             }
-            printf("\n");
+            //printf("\n");
         }
-        printf("segfault\n");
-
-        // for (int j = 0; j < f_size; j++) {
-        //     printf("vector %d -> %d: ", j, vec_get_at(per[f], j));
-        //     for (int i = 0; i < comps-2; i++) {
-        //         printf("%f ", data_f[i][j]);
-        //     }
-        //     printf("\n");
-        // }
-
 
         int Vmedoid;
         G_f[f] = Vamana_main(data_f, f_size, comps-2, L, R_stitched, a, &Vmedoid);
 
-        for (int j = 0; j < f_size; j++) {
-            for (int i = 0; i < G_f[f][j]->size; i++) {
-                int value = vec_get_at(per[f], j);
-                float dist = vec_get_dist(G_f[f][j], i);
-                vec_set_at(G_f[f][j], i, value, dist);
-            }
-            printf("\n");
-        }
 
-        free_matrix_fvecs(data_f, comps);
+        // for (int j = 0; j < f_size; j++) {
+        //     for (int i = 0; i < G_f[f][j]->size; i++) {
+        //         int value = vec_get_at(per[f], j);
+        //         float dist = vec_get_dist(G_f[f][j], i);
+        //         vec_set_at(G_f[f][j], i, value, dist);
+        //     }
+        // }
+
+        free_matrix_fvecs(data_f, comps-2);
 
     }
 

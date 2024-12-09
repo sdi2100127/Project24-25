@@ -98,6 +98,8 @@ int main(int argc, char ** argv) {
     Vector* per;
     Vector** G = StichedVamanaIndexing(dataset, min_f, max_f, filters, vecs, data_dim, L, R, a, &med, &medoid, t, &filtered_data, &per);
 
+    printf("in main\n");
+    
     printf("G: \n");
     for (int f=0; f<filters->size; f++) {
         Vector df = map_find_values(filtered_data, f);
