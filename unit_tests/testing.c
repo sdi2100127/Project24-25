@@ -2,7 +2,7 @@
 #include <time.h>
 #include <float.h>
 
-#include "../open_functions/open.h"
+//#include "../open_functions/open.h"
 //#include "../algorithms/algorithms.h"
 #include "../algorithms/filtered_algorithms.h"
 
@@ -797,7 +797,9 @@ void test_data_open(void) {
    // call fvecs_open
    int num_vectors;
    float min, max;
-   float** vectors = data_open(filename, &num_vectors, vec_num_d, &min, &max);
+   Set filters;
+   float** vectors = data_open(filename, &num_vectors, vec_num_d, &min, &max, &filters);
+   printf("we have %d different filters\n", filters->size);
 
    TEST_ASSERT(vectors != NULL); // check if the vectors matrix was created
    TEST_ASSERT(num_vectors == vecs); // check if the number of vectors is the same
@@ -829,6 +831,7 @@ void test_data_open(void) {
 
    // Free the allocated memory
    free_matrix_fvecs(vectors, vec_num_d+2);
+   set_destroy(filters);
 }
 
 void test_query_open(void) {
@@ -1599,6 +1602,7 @@ void test_FilteredGreedySearch() {
       TEST_ASSERT(vec_find_node(knn->vector, node->value) != VECTOR_EOF);
    }
 
+   free_matrix_fvecs(dist_matrix, vecs);
    free_matrix_fvecs(vectors, dim);
    free(xq);
    map_destroy(M);
@@ -1898,11 +1902,11 @@ void test_FilteredVamanaIndexing(void) {
       }
    }
 
+   map_destroy(med);
    free(xq);
    free_matrix_fvecs(vectors, dim);
    free_G(G, vecs);
    free_matrix_ivecs(G_test, R);
-
 }
 
 void test_Groundtruth() {
@@ -1910,7 +1914,8 @@ void test_Groundtruth() {
    const char* base_file = "dummy-data.bin";
    int num_vectors, d_base = 100;
    float min_f, max_f;
-   float** dataset = data_open(base_file, &num_vectors, d_base, &min_f, &max_f);
+   Set filters;
+   float** dataset = data_open(base_file, &num_vectors, d_base, &min_f, &max_f, &filters);
    int data_dim = d_base+2;
 
    for (int j = 0; j < num_vectors; j++) {
@@ -1943,6 +1948,7 @@ void test_Groundtruth() {
    free_G(groundtruth, count);
    free_matrix_fvecs(posible_queries, queries_dim);
    free_matrix_fvecs(dataset, data_dim);
+   set_destroy(filters);
 }
 
 TEST_LIST = {

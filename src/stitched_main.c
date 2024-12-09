@@ -93,19 +93,25 @@ int main(int argc, char ** argv) {
 
     printf("found Groundtruth\n");
 
-    Map med;
-    int neigh = 5, t = 10, medoid;
-    Vector* G = FilteredVamanaIndexing(dataset, min_f, max_f, vecs, data_dim, L, R, neigh, a, &med, &medoid, t);
+    int t = 10, medoid;
+    Map med, filtered_data;
+    Vector* per;
+    Vector** G = StichedVamanaIndexing(dataset, min_f, max_f, filters, vecs, data_dim, L, R, a, &med, &medoid, t, &filtered_data, &per);
 
-    printf("G\n");
-    for (int j = 0; j < vecs; j++) {
-        printf("vector %d:", j);
-        for (int i = 0; i < G[j]->size; i++) {
-        printf(" %d",  vec_get_at(G[j], i));
-            
+    printf("G: \n");
+    for (int f=0; f<filters->size; f++) {
+        Vector df = map_find_values(filtered_data, f);
+        for (int j = 0; j < df->size; j++) {
+            int vec = vec_get_at(per[f], j);
+            printf("vector %d:", vec);
+            for (int i = 0; i < G[f][j]->size; i++) {
+                printf(" %d",  vec_get_at(G[f][j], i));   
+            }
+            printf("\n");
         }
-        printf("\n");
     }
+    printf("G\n");
+
 
     srand((unsigned int)time(NULL));
 
@@ -125,11 +131,17 @@ int main(int argc, char ** argv) {
 
     // run the greedysearch algorithm to find its k nearest neighbours based on G
     Set V;
-    PQueue knn = FilteredGreedySearch(G, R, data_dim, vecs, dataset, xq, (int)xq[1], med, medoid, L, k, &V);
-    
-    if (knn == NULL) {
-        printf("there are no other vectors with filter %f in the dataset\n NO NEIGHBOURS WHERE FOUND\n", xq[1]);
+    PQueue knn;
+    if (xq[1]>= min_f && xq[1]<= max_f) {
+        knn = FilteredGreedySearch(G[(int)xq[1]], R, data_dim, vecs, dataset, xq, (int)xq[1], med, medoid, L, k, &V);
+    } else if ( xq[1] == -1) {
+        printf("filter was -1\n");
+        return 0;
+    } else {
+        printf("we do not have any queries of that filter\n");
+        return 0;
     }
+    
 
     //Calculation of accuracy  
     printf("query groundtruth %d with filter %f: ", xq_pos, posible_queries[1][xq_pos]);
@@ -137,8 +149,6 @@ int main(int argc, char ** argv) {
         printf("%d -> %f  ", node->value , dataset[0][node->value]);
     }
     printf("\n");
-
-    printf("medoid: %d with filter: %f\n", medoid, dataset[0][medoid]);
 
     int found = 0;
     for (int i=0; i<k; i++) {
@@ -156,12 +166,17 @@ int main(int argc, char ** argv) {
     printf("Our program calculates the data with an accuracy of : %f \n",accuracy); 
 
     // frees
+    free_G_f(G, filters->size, filtered_data);
+    map_destroy(filtered_data);
+    map_destroy(med);
+    free_G(per, filters->size);
+    set_destroy(filters);
+
     set_destroy(V);
     pqueue_destroy(knn);
     free_G(groundtruth, count);
     free_matrix_fvecs(dataset, data_dim);
     free_matrix_fvecs(posible_queries, queries_dim);
-    free_G(G, vecs);
     free(xq);
     map_destroy(med);
 

@@ -138,7 +138,7 @@ void free_matrix_ivecs(int** matrix, int d) {
     free(matrix);
 }
 
-float** data_open(const char* filename, int* num_vectors, int vec_num_d, float* min_f, float* max_f) {
+float** data_open(const char* filename, int* num_vectors, int vec_num_d, float* min_f, float* max_f, Set* filters) {
     // first we have to open the file in binary read mode using the correct file path
     FILE *fp = NULL;
     char path[100];
@@ -169,6 +169,8 @@ float** data_open(const char* filename, int* num_vectors, int vec_num_d, float* 
         vectors[i] = (float*)malloc(num_vecs * sizeof(float));
     }
 
+    Set filt = set_Create();
+
     int vec_size = vec_dim * sizeof(float);
     float* vec = (float*)malloc(vec_size); 
     float max_filter = FLT_MIN;
@@ -182,6 +184,8 @@ float** data_open(const char* filename, int* num_vectors, int vec_num_d, float* 
             if (i == 0) {
                 if (vectors[i][j] <= min_filter) min_filter = vectors[i][j];
                 if (vectors[i][j] >= max_filter) max_filter = vectors[i][j];
+
+                set_insert(filt, (int)vectors[i][j]);
             }
         }
     }
@@ -190,6 +194,13 @@ float** data_open(const char* filename, int* num_vectors, int vec_num_d, float* 
     *min_f = min_filter;
     *max_f = max_filter;
     printf("min: %f , max: %f\n", min_filter, max_filter);
+
+    *filters = filt;
+    printf("filters: ");
+    for (set_Node node = find_min(filt->root); node != SET_EOF; node = set_next(filt, node)) { 
+        printf("%d ", node->value);
+    }
+    printf("\n");
 
     fclose(fp);
     return vectors;

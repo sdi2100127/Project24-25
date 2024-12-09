@@ -30,6 +30,16 @@ filtered_main.o: src/filtered_main.c open_functions/open.h algorithms/filtered_a
 filtered_app: filtered_main.o open.o algorithms.o filtered_algorithms.o Data_Structs.o
 	gcc filtered_main.o open.o algorithms.o filtered_algorithms.o Data_Structs.o -g -o filtered_app -lm -ggdb
 
+
+# STITCHED MAIN PROGRAM:
+stitched_main.o: src/stitched_main.c open_functions/open.h algorithms/filtered_algorithms.h
+	gcc -c src/stitched_main.c -o stitched_main.o 
+
+# Executable
+stitched_app: stitched_main.o open.o algorithms.o filtered_algorithms.o Data_Structs.o
+	gcc stitched_main.o open.o algorithms.o filtered_algorithms.o Data_Structs.o -g -o stitched_app -lm -ggdb
+
+
 # UNIT TESTS:
 
 # Object files
@@ -50,6 +60,10 @@ run: app
 # Run the filtered program
 run_filter: filtered_app
 	./filtered_app -k 100 -L 125  -R 40
+
+# Run the stitched program
+run_stitch: stitched_app
+	valgrind ./stitched_app -k 10 -L 12  -R 4
 
 # Run the unit tests
 run_test: test

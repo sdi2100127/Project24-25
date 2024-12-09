@@ -289,6 +289,7 @@ int medoid(float** dataset, int vecs, int comps, float*** dist_m) {
 }
 
 Vector* Vamana_main(float** dataset, int vecs, int comps, int L, int R, int a, int* med) {
+    printf("VAMANA\n");
     // first we have to initialize G to a random R-regular directed graph
 
     Vector* G = (Vector*)malloc(vecs * sizeof(Vector));

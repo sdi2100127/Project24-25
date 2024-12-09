@@ -405,7 +405,7 @@ Map FindMedoid(float** dataset, int vecs, float min_f, float max_f, Map filtered
 
     }
 
-    //map_destroy(T);
+    map_destroy(T);
 
     return M;
 }
@@ -600,6 +600,126 @@ Vector* FilteredVamanaIndexing(float** dataset, float min_f, float max_f, int ve
     return G;
 }
 
+Vector** StichedVamanaIndexing(float** dataset, float min_f, float max_f, Set filters, int vecs, int comps, int L, int R_stitched, int a, Map* med, int* medoid, int t, Map* filt_data, Vector** permutation) {
+    int num_filters = filters->size;
+
+    // create an array of graphs, a graph for each filter of the dataset
+    Vector** G_f = (Vector**)malloc(num_filters * sizeof(Vector*));
+    for (int i = 0; i < num_filters; ++i) {
+        G_f[i] = (Vector*)malloc(vecs * sizeof(Vector));
+        for (int j=0; j<vecs; j++) {
+            G_f[i][j] = vec_Create(0);
+        }
+    }
+
+    // now we will have to map each point of the dataset to each corresponding filter
+    // we will do that by using a hashmap structure(filter --> key) that has an array big enough
+    // so that every key-filter hashes to a different position
+    // by doing that we ensure that every position in the hash map only holds the points
+    // corresponding to a certain filter f(values --> set of points with filter f)
+    Map filtered_data = map_create(min_f, max_f);
+
+    for (int j=0; j<vecs; j++) {
+        map_insert(filtered_data, (int)dataset[0][j], j);
+    }
+
+    Vector values;
+    for (MapNode node = map_first(filtered_data); node != MAP_EOF; node = map_next(filtered_data, node)) {
+        printf("filter %d: ", node->key);
+        values = node->values;
+        for (VecNode s_node = vec_first(values); s_node != VECTOR_EOF; s_node = vec_next(values, s_node)) {
+            printf("%d ", s_node->value);
+        }
+        printf("\n");
+    }
+
+    *filt_data = filtered_data;
+
+    Map filter_medoids = FindMedoid(dataset, vecs, min_f, max_f, filtered_data, t);
+    printf("found starting points\n");
+    *med = filter_medoids;
+
+    Vector* per = (Vector*)malloc(num_filters * sizeof(Vector));
+    for (int i=0; i<num_filters; i++) {
+        per[i] = vec_Create(0);
+    }
+
+    //for (set_Node node = find_min(filters->root); node != SET_EOF; node = set_next(filters, node)) { 
+    for (int f=0; f<num_filters; f++) {
+        // keep the current filter, the values associated with it, and how many there are
+        // int f = node->value; 
+        int f_size = map_find_values(filtered_data, f)->size;
+        Vector f_values = map_find_values(filtered_data, f);
+
+        // next keep the permutation of the original indices of the points vs the indices in the filtered dataset
+        for (int j=0; j<f_size; j++) {
+            vec_insert(per[f], vec_get_at(f_values, j), vec_get_dist(f_values, j));
+        }
+
+        printf("random permutation:\n");
+        for (int j=0; j<f_size; j++) {
+            printf("%d ", vec_get_at(per[f], j));
+        }
+        printf("\n");
+
+        // and store them in the new dataset
+        float** data_f = (float**)malloc(comps-2 * sizeof(float*));
+        for (int i = 0; i < comps-2; i++) {
+            data_f[i] = (float*)malloc(f_size * sizeof(float));
+            printf("%d\n", i);
+        }
+
+        printf("filter: %d\n", f);
+        for (int j = 0; j < f_size; j++) {
+            printf("vector %d -> %d: ", j, vec_get_at(per[f], j));
+            int count = 0;
+            for (int i = 2; i < comps; i++) {
+                printf("%f ", dataset[i][vec_get_at(per[f], j)]);
+                data_f[count][j] = dataset[i][vec_get_at(per[f], j)];
+                printf("%f ", data_f[count][j]);
+                count++;
+            }
+            printf("\n");
+        }
+        printf("segfault\n");
+
+        // for (int j = 0; j < f_size; j++) {
+        //     printf("vector %d -> %d: ", j, vec_get_at(per[f], j));
+        //     for (int i = 0; i < comps-2; i++) {
+        //         printf("%f ", data_f[i][j]);
+        //     }
+        //     printf("\n");
+        // }
+
+
+        int Vmedoid;
+        G_f[f] = Vamana_main(data_f, f_size, comps-2, L, R_stitched, a, &Vmedoid);
+
+        for (int j = 0; j < f_size; j++) {
+            for (int i = 0; i < G_f[f][j]->size; i++) {
+                int value = vec_get_at(per[f], j);
+                float dist = vec_get_dist(G_f[f][j], i);
+                vec_set_at(G_f[f][j], i, value, dist);
+            }
+            printf("\n");
+        }
+
+        free_matrix_fvecs(data_f, comps);
+
+    }
+
+    // for (int j=0; j<vecs; j++) {
+    //     FilteredRobustPrune()
+    // }
+
+    *medoid = -1;
+
+    *permutation = per;
+    return G_f;
+
+    map_destroy(filtered_data);
+}
+
 Vector* Groundtruth(float** dataset, int vecs, int comps, float** queries, int vecs_q, int comps_q, int k) {
     printf("GROUDTRUTH\n");
 
@@ -696,4 +816,15 @@ Vector* Groundtruth(float** dataset, int vecs, int comps, float** queries, int v
     return groundtruth;
 }
 
-
+void free_G_f(Vector** G_f, int num_filters, Map filtered_data) {
+    for (int i = 0; i < num_filters; ++i) {
+        int vecs = map_find_values(filtered_data, i)->size;
+        for (int j = 0; j < vecs; ++j) {
+            vec_destroy(G_f[i][j]);
+        }
+        
+        free(G_f[i]);
+    }
+    
+    free(G_f);
+}

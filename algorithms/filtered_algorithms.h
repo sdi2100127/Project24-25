@@ -40,7 +40,9 @@ Map FindMedoid(float** dataset, int vecs, float min_f, float max_f, Map filtered
 Vector* FilteredVamanaIndexing(float** dataset, float min_f, float max_f, int vecs, int comps, int L, int R, int neigh, int a, Map* med, int* medoid, int t);
 
 // Stiched Vamana algorithm
-Vector* StichedVamanaIndexing(float** dataset, int vecs, int comps, int L, int R, int a, int* med);
+Vector** StichedVamanaIndexing(float** dataset, float min_f, float max_f, Set filters, int vecs, int comps, int L, int R, int a, Map* med, int* medoid, int t, Map* filt_data, Vector** permutation);
 
 // function to compute the groundtruth on which the results will be based 
 Vector* Groundtruth(float** dataset, int vecs, int comps, float** queries, int vecs_q, int comps_q, int k);
+
+void free_G_f(Vector** G_f, int num_filters, Map filtered_data);
