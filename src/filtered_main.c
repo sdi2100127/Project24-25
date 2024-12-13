@@ -114,7 +114,7 @@ int main(int argc, char ** argv) {
     while (fflag == 0) {
         fflag = 1;
         xq_pos = rand() % (count - 1);
-        if (posible_queries[1][xq_pos] == -1) fflag = 0;
+        if (posible_queries[1][xq_pos] != -1) fflag = 0;
     }
     // int xq_pos = rand() % (count - 1);
     float* xq = (float*)malloc(queries_dim * sizeof(float));
@@ -125,8 +125,56 @@ int main(int argc, char ** argv) {
 
     // run the greedysearch algorithm to find its k nearest neighbours based on G
     Set V;
-    PQueue knn = FilteredGreedySearch(G, R, data_dim, vecs, dataset, xq, (int)xq[1], med, medoid, L, k, &V);
-    
+    PQueue knn;
+    // if the query has a filter, run greedysearch as normal
+    if (xq[1] != -1) {
+       knn = FilteredGreedySearch(G, R, data_dim, vecs, dataset, xq, (int)xq[1], med, medoid, L, k, &V);
+    } else {
+        // otherwise, run greedysearch to find its nearest neighbours from every filter
+        PQueue knn_q = pqueue_create(0);
+        PQueue knn_g;
+        for (MapNode node = map_first(med); node != MAP_EOF; node = map_next(med, node)) {
+            knn_g = FilteredGreedySearch(G, R, data_dim, vecs, dataset, xq, node->key, med, medoid, L, k, &V);
+            for (VecNode vnode = vec_first(knn_g->vector); vnode != VECTOR_EOF; vnode = vec_next(knn_g->vector, vnode)) {
+                pqueue_insert(knn_q, vnode->value, vnode->dist);    // add them to a priority queue
+            }
+        }
+        
+        printf("size: %d\n", knn_q->vector->size);
+        // and then keep only the k nearest of them
+        if (knn_q->vector->size > k) {
+            // remove the most distant neighbours of xq from knn_set until its equal to k
+            while(knn_q->vector->size > k) {
+                pqueue_remove(knn_q);
+            }
+        }
+        printf("done pruning\n");
+
+        printf("size: %d\n", knn->vector->size);
+        while (knn->vector->size > 0) {
+            pqueue_remove(knn);
+        }
+        printf("size: %d\n", knn->vector->size);
+        for (VecNode vnode = vec_first(knn_q->vector); vnode != VECTOR_EOF; vnode = vec_next(knn_q->vector, vnode)) {
+            pqueue_insert(knn, vnode->value, vnode->dist);
+        }
+
+        printf("knn_q: ");
+        for (VecNode vnode = vec_first(knn_q->vector); vnode != VECTOR_EOF; vnode = vec_next(knn_q->vector, vnode)) {
+            printf("%d ", vnode->value);
+        }
+        printf("\n");
+        knn = knn_q;
+        printf("knn: ");
+        for (VecNode vnode = vec_first(knn_g->vector); vnode != VECTOR_EOF; vnode = vec_next(knn_g->vector, vnode)) {
+            printf("%d ", vnode->value);
+        }
+        printf("\n");
+
+        pqueue_destroy(knn_q);
+    }
+    printf("done\n");
+
     if (knn == NULL) {
         printf("there are no other vectors with filter %f in the dataset\n NO NEIGHBOURS WHERE FOUND\n", xq[1]);
     }
@@ -144,6 +192,7 @@ int main(int argc, char ** argv) {
     for (int i=0; i<k; i++) {
         if (i >= groundtruth[xq_pos]->size) break;
         int n_point = vec_get_at(groundtruth[xq_pos], i);
+        printf("seg\n");
         //printf("n_point: %d ", n_point);
         if (vec_find_node(knn->vector,n_point) != VECTOR_EOF) {
             //printf("exists");
