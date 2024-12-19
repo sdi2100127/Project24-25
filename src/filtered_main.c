@@ -93,6 +93,18 @@ int main(int argc, char ** argv) {
 
     printf("found Groundtruth\n");
 
+    // printf("queries: %d\n", count);
+    // for (int j=0; j<count && j<20; j++) {
+    //     printf("query %d with filter %f:", j, posible_queries[1][j]);
+    //     for (VecNode node = vec_first(groundtruth[j]); node != VECTOR_EOF; node = vec_next(groundtruth[j], node)) {
+    //         int idx = node->value;
+    //         printf("%d - %f, ", idx, dataset[0][idx]);
+    //     }
+    //     printf("\n");
+    // }
+
+    // return 0;
+
     Map med;
     int neigh = 5, t = 10, medoid;
     Vector* G = FilteredVamanaIndexing(dataset, min_f, max_f, vecs, data_dim, L, R, neigh, a, &med, &medoid, t);
@@ -114,7 +126,7 @@ int main(int argc, char ** argv) {
     while (fflag == 0) {
         fflag = 1;
         xq_pos = rand() % (count - 1);
-        if (posible_queries[1][xq_pos] != -1) fflag = 0;
+        if (posible_queries[1][xq_pos] == -1) fflag = 0;
     }
     // int xq_pos = rand() % (count - 1);
     float* xq = (float*)malloc(queries_dim * sizeof(float));
@@ -171,8 +183,6 @@ int main(int argc, char ** argv) {
         printf("%d -> %f  ", node->value , dataset[0][node->value]);
     }
     printf("\n");
-
-    printf("medoid: %d with filter: %f\n", medoid, dataset[0][medoid]);
 
     int found = 0;
     for (int i=0; i<k; i++) {

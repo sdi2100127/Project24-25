@@ -32,26 +32,13 @@ PQueue FilteredGreedySearch(Vector* G, int R, int dim, int vecs, float** vectors
     Vector values = map_find_values(filter_med, fq);
     int s;
 
-    // if the filter of the query is -1 (query has no filter)
-    int filter = 1;
-    if (fq == -1) {
-        // start greedy search from the medoid of the dataset
-        s = med;
-        filter = 0;
-
-        // Set V_nf;
-        // PQueue knn_nf = greedySearch(G, R, dim, vecs, vectors, s, xq, L, k, &V_nf);
-        // *V = V_nf;
-        // return knn_nf;
-    } else {
-        // if the filter of the query is not in the dataset map return NULL 
-        // as there are not any nodes with the same filter in the dataset
-        if (values == NULL) {
-            return NULL;
-        }
-
-        s = vec_get_at(values, 0);
+    // if the filter of the query is not in the dataset map return NULL 
+    // as there are not any nodes with the same filter in the dataset
+    if (values == NULL) {
+        return NULL;
     }
+
+    s = vec_get_at(values, 0);
 
     printf("s: %d\n", s);
 
@@ -65,7 +52,8 @@ PQueue FilteredGreedySearch(Vector* G, int R, int dim, int vecs, float** vectors
         count++;
     }
     //printf("\n");
-    pqueue_insert(knn, s, euclidean_distance(vec_s, xq, dim-2));
+    float dist_s = euclidean_distance(vec_s, xq, dim-2);
+    pqueue_insert(knn, s, dist_s);
 
     int flag = 1;
     int node_value, xp = -1;
@@ -126,12 +114,9 @@ PQueue FilteredGreedySearch(Vector* G, int R, int dim, int vecs, float** vectors
         for (int i=0; i<G[xp]->size; i++) {
             int point = vec_get_at(G[xp], i);
 
-            // if the query has a filter
-            if (filter == 1)  {
-                // if the point has a different filter than the query ignore it
-                int f = (int)vectors[0][point];
-                if (f != fq) continue;
-            }
+            // if the point has a different filter than the query ignore it
+            int f = (int)vectors[0][point];
+            if (f != fq) continue;
 
             // if the distance has not been computed before, compute it
             if (dist_matrix[point] == -1) {
@@ -162,6 +147,8 @@ PQueue FilteredGreedySearch(Vector* G, int R, int dim, int vecs, float** vectors
             pqueue_remove(knn);
         }
     }
+
+    if (vec_find_node(knn->vector, s) == VECTOR_EOF) pqueue_insert(knn, s, dist_s);
 
     printf("knn_set: ");
     for (VecNode node = vec_first(knn->vector); node != VECTOR_EOF; node = vec_next(knn->vector, node)) { 
@@ -561,16 +548,36 @@ Vector* FilteredVamanaIndexing(float** dataset, float min_f, float max_f, int ve
             int point = vec_get_at(G[query_pos], j);
             printf("Neighbour %d has %d neighbours\n", point, G[query_pos]->size);
 
-            int c_i = 0;
-            for (int i=2; i<comps; i++) {
-                point_vec[c_i] = dataset[i][point];
-                c_i++;
-            }
+            // int c_i = 0;
+            // for (int i=2; i<comps; i++) {
+            //     point_vec[c_i] = dataset[i][point];
+            //     c_i++;
+            // }
 
-            // update Nout of j with the query point
-            vec_insert(G[point], query_pos, euclidean_distance(xq, point_vec, comps-2));
+            // // update Nout of j with the query point
+            // vec_insert(G[point], query_pos, euclidean_distance(xq, point_vec, comps-2));
 
-            // now check the size of Nout
+            // // now check the size of Nout
+            // if (G[point]->size == R) {
+
+            //     // we create a set Nout_j with the outgoing neighbours of j as well as the current query point
+            //     Set Nout_j = set_Create();
+            //     for (int n=0; n<G[point]->size; n++) {
+            //         set_insert(Nout_j, vec_get_at(G[point], n));
+            //     }
+            //     set_insert(Nout_j, query_pos);
+            //     // and we call robust prune
+            //     FilteredRobustPrune(&G, point, &Nout_j, a, R, comps, vecs, dataset, dist_matrix);
+
+            //     set_destroy(Nout_j);
+
+            // } 
+
+            // OLD WAY
+            // check if it has less outgoing neighbours than R 
+            // so that we can also add the query point as a neighbour
+
+            // if we cannot
             if (G[point]->size == R) {
 
                 // we create a set Nout_j with the outgoing neighbours of j as well as the current query point
@@ -581,10 +588,24 @@ Vector* FilteredVamanaIndexing(float** dataset, float min_f, float max_f, int ve
                 set_insert(Nout_j, query_pos);
                 // and we call robust prune
                 FilteredRobustPrune(&G, point, &Nout_j, a, R, comps, vecs, dataset, dist_matrix);
-
                 set_destroy(Nout_j);
 
-            } 
+            } else {    // if the query point fits and is not already included
+                // add it to the neighbours of j
+                int flag = 1;
+                for (int n=0; n<G[point]->size; n++) {
+                    if (vec_get_at(G[point], n) == query_pos) {flag = 0; break;}
+                }
+
+                for (int i=0; i<comps; i++) {
+                    point_vec[i] = dataset[i][point];
+                }
+
+                if (flag == 1) vec_insert(G[point], query_pos, euclidean_distance(xq, point_vec, comps));
+                
+            }
+
+
         }
 
     }
@@ -764,7 +785,7 @@ Vector* Groundtruth(float** dataset, int vecs, int comps, float** queries, int v
         //printf("query %d\n", j);
 
         PQueue knn = pqueue_create(NULL);
-
+ 
         int count = 0;
         for (int i=4; i<comps_q; i++) {
             vec_q[count] = queries[i][j];
@@ -779,10 +800,8 @@ Vector* Groundtruth(float** dataset, int vecs, int comps, float** queries, int v
                 vec_p2[count] = dataset[i][z];
                 count++;
             }
-            //printf("cond jump\n");
             // and add them to a priority queue based on their distance AND filter
             if (queries[0][j] == 0) {
-                //printf("cond jump\n");
                 // if query type is zero, take into account vectors of all filters
                 pqueue_insert(knn, z, squared_euclidean_distance(vec_q, vec_p2, comps-2));
             } else if (queries[0][j] == 1) {
