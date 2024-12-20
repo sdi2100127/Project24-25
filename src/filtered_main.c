@@ -41,7 +41,6 @@ int main(int argc, char ** argv) {
     float** posible_queries = query_open(query_file, &query_vectors, d_queries, &count);
     int queries_dim = d_queries+4;
 
-
     printf("\n");
 
     // we create and store the groundtruth
@@ -93,6 +92,30 @@ int main(int argc, char ** argv) {
 
     printf("found Groundtruth\n");
 
+    // CODE FOR CROSS REFERENCING GROUNDTRUTH
+
+    // int size_m = groundtruth[7]->size;
+    // int* arr = (int*)malloc(sizeof(int) * size_m);
+    // for (int i=0; i<size_m; i++) {
+    //     arr[i] = vec_get_at(groundtruth[7], i);
+    // }
+
+    // for (int i = 0; i < size_m; i++) {
+    //     for (int j = i + 1; j < size_m; j++) {
+    //         if (arr[i] > arr[j]) {
+    //             int temp = arr[i];
+    //             arr[i] = arr[j];
+    //             arr[j] = temp;
+    //         }
+    //     }
+    // }
+
+    // printf("grountruth for query 0: \n");
+    // for (int i=0; i<size_m; i++) {
+    //     printf("%d ", arr[i]);
+    // }
+    // printf("\n");
+
     // printf("queries: %d\n", count);
     // for (int j=0; j<count && j<20; j++) {
     //     printf("query %d with filter %f:", j, posible_queries[1][j]);
@@ -107,7 +130,7 @@ int main(int argc, char ** argv) {
 
     Map med;
     int neigh = 5, t = 10, medoid;
-    Vector* G = FilteredVamanaIndexing(dataset, min_f, max_f, vecs, data_dim, L, R, neigh, a, &med, &medoid, t);
+    Vector* G = FilteredVamanaIndexing(dataset, min_f, max_f, vecs, data_dim, queries_dim, L, R, neigh, a, &med, &medoid, t);
 
     printf("G\n");
     for (int j = 0; j < vecs; j++) {
@@ -126,22 +149,25 @@ int main(int argc, char ** argv) {
     while (fflag == 0) {
         fflag = 1;
         xq_pos = rand() % (count - 1);
-        if (posible_queries[1][xq_pos] == -1) fflag = 0;
+        //if (posible_queries[1][xq_pos] != -1) fflag = 0;
     }
     // int xq_pos = rand() % (count - 1);
-    float* xq = (float*)malloc(queries_dim * sizeof(float));
-    for (int i=0; i<queries_dim; i++) {
-        xq[i] = posible_queries[i][xq_pos];
+    int xq_size = queries_dim-4;
+    float* xq = (float*)malloc(xq_size * sizeof(float));
+    int c = 4, xq_f = (int)posible_queries[1][xq_pos];
+    for (int i=0; i<xq_size; i++) {
+        xq[i] = posible_queries[c][xq_pos];
+        c++;
     }
-    printf("query: %d with filter: %f\n", xq_pos, xq[1]);
+    printf("query: %d with filter: %d\n", xq_pos, xq_f);
 
     // run the greedysearch algorithm to find its k nearest neighbours based on G
     Set V;
     PQueue knn;
     PQueue knn_q;
     // if the query has a filter, run greedysearch as normal
-    if (xq[1] != -1) {
-       knn = FilteredGreedySearch(G, R, data_dim, vecs, dataset, xq, (int)xq[1], med, medoid, L, k, &V);
+    if (xq_f != -1) {
+       knn = FilteredGreedySearch(G, R, data_dim, vecs, dataset, xq, xq_f, med, medoid, L, k, &V);
     } else {
         // otherwise, run greedysearch to find its nearest neighbours from every filter
         knn_q = pqueue_create(0);
@@ -162,7 +188,6 @@ int main(int argc, char ** argv) {
         }
 
         knn = knn_q;
-        printf("size knn: %d\n", knn->vector->size);
         
         printf("knn: ");
         for (VecNode vnode = vec_first(knn->vector); vnode != VECTOR_EOF; vnode = vec_next(knn->vector, vnode)) {
@@ -171,10 +196,9 @@ int main(int argc, char ** argv) {
         printf("\n");
 
     }
-    printf("done\n");
 
     if (knn == NULL) {
-        printf("there are no other vectors with filter %f in the dataset\n NO NEIGHBOURS WHERE FOUND\n", xq[1]);
+        printf("there are no other vectors with filter %d in the dataset\n NO NEIGHBOURS WHERE FOUND\n", xq_f);
     }
 
     //Calculation of accuracy  
@@ -188,13 +212,10 @@ int main(int argc, char ** argv) {
     for (int i=0; i<k; i++) {
         if (i >= groundtruth[xq_pos]->size) break;
         int n_point = vec_get_at(groundtruth[xq_pos], i);
-        //printf("n_point: %d ", n_point);
         if (vec_find_node(knn->vector,n_point) != VECTOR_EOF) {
-            //printf("exists");
             printf("n_point: %d -> %f exists\n", n_point, dataset[0][n_point]);
             found++;
         }
-        //printf("\n");
     }
     float accuracy = found* 100 / groundtruth[xq_pos]->size;
     printf("Our program calculates the data with an accuracy of : %f \n",accuracy); 

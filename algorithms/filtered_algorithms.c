@@ -40,7 +40,7 @@ PQueue FilteredGreedySearch(Vector* G, int R, int dim, int vecs, float** vectors
 
     s = vec_get_at(values, 0);
 
-    printf("s: %d\n", s);
+    //printf("s: %d\n", s);
 
     // then insert it into the k-nearest-neighbours priority queue
     float* vec_s = (float*)malloc((dim-2) * sizeof(float));
@@ -148,7 +148,7 @@ PQueue FilteredGreedySearch(Vector* G, int R, int dim, int vecs, float** vectors
         }
     }
 
-    if (vec_find_node(knn->vector, s) == VECTOR_EOF) pqueue_insert(knn, s, dist_s);
+    //if (vec_find_node(knn->vector, s) == VECTOR_EOF) pqueue_insert(knn, s, dist_s);
 
     printf("knn_set: ");
     for (VecNode node = vec_first(knn->vector); node != VECTOR_EOF; node = vec_next(knn->vector, node)) { 
@@ -156,10 +156,10 @@ PQueue FilteredGreedySearch(Vector* G, int R, int dim, int vecs, float** vectors
     }
     printf("\n");
 
-    printf("visited_set: ");
-    for (set_Node node = find_min(visited_nodes->root); node != SET_EOF; node = set_next(visited_nodes, node)) { 
-        printf("%d ", node->value);
-    }
+    // printf("visited_set: ");
+    // for (set_Node node = find_min(visited_nodes->root); node != SET_EOF; node = set_next(visited_nodes, node)) { 
+    //     printf("%d ", node->value);
+    // }
     printf("\n");
 
     *V = visited_nodes;
@@ -188,11 +188,11 @@ void FilteredRobustPrune(Vector** G, int p ,Set* V, int a, int R , int dim , int
     // And we check if we have inserted our p so that we remove it
     set_remove(temp, p);   
 
-    printf("V: ");
-    for (set_Node node = find_min(temp->root); node != SET_EOF; node = set_next(temp, node)) {
-        printf("%d ", node->value);
-    }
-    printf("\n");     
+    // printf("V: ");
+    // for (set_Node node = find_min(temp->root); node != SET_EOF; node = set_next(temp, node)) {
+    //     printf("%d ", node->value);
+    // }
+    // printf("\n");     
 
     int prev_p_star = -1;
     float prev_min_d = FLT_MIN;                   
@@ -244,11 +244,11 @@ void FilteredRobustPrune(Vector** G, int p ,Set* V, int a, int R , int dim , int
 
     }
 
-    printf("V: ");
-    for (set_Node node = find_min(temp->root); node != SET_EOF; node = set_next(temp, node)) {
-        printf("%d ", node->value);
-    }
-    printf("\n");
+    // printf("V: ");
+    // for (set_Node node = find_min(temp->root); node != SET_EOF; node = set_next(temp, node)) {
+    //     printf("%d ", node->value);
+    // }
+    // printf("\n");
 
     printf("Nout(%d): ", p);
     for (int i=0; i<temp_G[p]->size; i++) {
@@ -397,7 +397,7 @@ Map FindMedoid(float** dataset, int vecs, float min_f, float max_f, Map filtered
     return M;
 }
 
-Vector* FilteredVamanaIndexing(float** dataset, float min_f, float max_f, int vecs, int comps, int L, int R, int neigh, int a, Map* med, int* medoid, int t) {
+Vector* FilteredVamanaIndexing(float** dataset, float min_f, float max_f, int vecs, int comps, int q_comps, int L, int R, int neigh, int a, Map* med, int* medoid, int t) {
     
     // first we initialize G to an empty graph
     Vector* G = (Vector*)malloc(vecs * sizeof(Vector));
@@ -516,16 +516,19 @@ Vector* FilteredVamanaIndexing(float** dataset, float min_f, float max_f, int ve
     }
     printf("\n");
 
-    float* xq = (float*)malloc(comps * sizeof(float));
-    float* point_vec = (float*)malloc(comps * sizeof(float));
+    //int query_size = q_comps-4;
+    float* xq = (float*)malloc((comps-2) * sizeof(float));
+    float* point_vec = (float*)malloc((comps-2) * sizeof(float));
 
     for (int i=0; i<vecs; i++) {
 
         // find and store the query vector xq based on the point in the dataset indexed by per[i]
         int query_pos = per[i];
         printf("query vector %d: ", query_pos);
-        for (int i=0; i<comps; i++) {
-            xq[i] = dataset[i][query_pos];
+        int c = 0;
+        for (int i=2; i<comps; i++) {
+            xq[c] = dataset[i][query_pos];
+            c++;
             printf("%f ", xq[i]);
         }
         printf("\n");
@@ -597,11 +600,11 @@ Vector* FilteredVamanaIndexing(float** dataset, float min_f, float max_f, int ve
                     if (vec_get_at(G[point], n) == query_pos) {flag = 0; break;}
                 }
 
-                for (int i=0; i<comps; i++) {
+                for (int i=2; i<comps; i++) {
                     point_vec[i] = dataset[i][point];
                 }
 
-                if (flag == 1) vec_insert(G[point], query_pos, euclidean_distance(xq, point_vec, comps));
+                if (flag == 1) vec_insert(G[point], query_pos, euclidean_distance(xq, point_vec, comps-2));
                 
             }
 

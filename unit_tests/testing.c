@@ -1865,8 +1865,8 @@ void test_FilteredVamanaIndexing(void) {
 
    int R = 3;
 
-   float* xq = (float*)malloc(dim * sizeof(float*));
-   xq[0] = 2.0; xq[1] = (float)rand()/(float)(RAND_MAX/100); xq[2] = 9.0; xq[3] = 4.0; xq[4] = 9.0;
+   float* xq = (float*)malloc((dim+2) * sizeof(float*));
+   xq[0] = 1.0; xq[1] = 2.0; xq[2] = -1.0;  xq[3] = -1.0;xq[4] = 9.0; xq[5] = 4.0; xq[6] = 9.0;
    printf("vector xq:");
    for (int i = 0; i < dim; i++) {
       printf(" %f", xq[i]);
@@ -1875,18 +1875,18 @@ void test_FilteredVamanaIndexing(void) {
 
    int L = 4, k = 1, p = 0, a = 1, neigh = 5, t = 1, medoid;
    Map med;
-   Vector* G = FilteredVamanaIndexing(vectors, min_f, max_f, vecs, dim, L, R, neigh, a, &med, &medoid, t);
+   Vector* G = FilteredVamanaIndexing(vectors, min_f, max_f, vecs, dim, dim+2, L, R, neigh, a, &med, &medoid, t);
 
    int** G_test = (int**)malloc(R * sizeof(int*));
    for (int i = 0; i < R; i++) {
       G_test[i] = (int*)malloc(vecs * sizeof(int));
    }
 
-   G_test[0][0] = 1; G_test[1][0] = -1;  G_test[2][0] = -1;
-   G_test[0][1] = 2; G_test[1][1] = 4;  G_test[2][1] = 3;
-   G_test[0][2] = 1; G_test[1][2] = -1;  G_test[2][2] = -1;
-   G_test[0][3] = 0; G_test[1][3] = 1;  G_test[2][3] = -1;
-   G_test[0][4] = 1; G_test[1][4] = -1;  G_test[2][4] = -1;
+   // G_test[0][0] = 1; G_test[1][0] = -1;  G_test[2][0] = -1;
+   // G_test[0][1] = 2; G_test[1][1] = 4;  G_test[2][1] = 3;
+   // G_test[0][2] = 1; G_test[1][2] = -1;  G_test[2][2] = -1;
+   // G_test[0][3] = 0; G_test[1][3] = 1;  G_test[2][3] = -1;
+   // G_test[0][4] = 1; G_test[1][4] = -1;  G_test[2][4] = -1;
 
    for (int j=0; j<vecs; j++) {
       printf("Nout(%d): ", j);
@@ -1896,11 +1896,11 @@ void test_FilteredVamanaIndexing(void) {
       printf("\n");
    }
 
-   for (int j=0; j<vecs; j++) {
-      for (int i=0; i<G[j]->size; i++) {
-         //TEST_ASSERT(vec_get_at(G[j], i) == G_test[i][j]);
-      }
-   }
+   // for (int j=0; j<vecs; j++) {
+   //    for (int i=0; i<G[j]->size; i++) {
+   //       TEST_ASSERT(vec_get_at(G[j], i) == G_test[i][j]);
+   //    }
+   // }
 
    map_destroy(med);
    free(xq);
