@@ -102,15 +102,25 @@ int main(int argc, char ** argv) {
     
     printf("G: \n");
     for (int f=0; f<filters->size; f++) {
+    //for (set_Node node = find_min(filters->root); node != SET_EOF; node = set_next(filters, node)) { 
+        //int f = node->value;
         Vector df = map_find_values(filtered_data, f);
-        for (int j = 0; j < df->size; j++) {
+        printf("filter %d with size %d: \n", f, df->size);
+        int c_f = 0;
+        //for (int j = 0; j < df->size; j++) {
+        for (VecNode s_node = vec_first(df); s_node != VECTOR_EOF; s_node = vec_next(df, s_node)) {
+            int j = s_node->value;
             int vec = vec_get_at(per[f], j);
             printf("vector %d:", vec);
-            for (int i = 0; i < G[f][j]->size; i++) {
-                printf(" %d",  vec_get_at(G[f][j], i));   
-            }
+            // for (int i = 0; i < G[f][j]->size; i++) {
+            //     printf(" %d",  vec_get_at(G[f][j], i));   
+            // }
             printf("\n");
+            c_f++;
         }
+        printf("%d \n", c_f);
+        printf("done with filter %d\n", f);
+        break;
     }
     printf("G\n");
 

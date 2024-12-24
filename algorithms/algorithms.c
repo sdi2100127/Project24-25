@@ -290,6 +290,8 @@ int medoid(float** dataset, int vecs, int comps, float*** dist_m) {
 
 Vector* Vamana_main(float** dataset, int vecs, int comps, int L, int R, int a, int* med) {
     printf("VAMANA\n");
+
+    printf("vecs: %d\n", vecs);
     // first we have to initialize G to a random R-regular directed graph
 
     Vector* G = (Vector*)malloc(vecs * sizeof(Vector));
@@ -309,18 +311,22 @@ Vector* Vamana_main(float** dataset, int vecs, int comps, int L, int R, int a, i
             vec_j[i] = dataset[i][j];
         }
         printf("vector %d:", j);
+
+        int limit = vecs-1, min = 0;
         // for every one of its R neighbours
         for (int i = 0; i < R; i++) {
 
             int stop = 1;
             while (stop == 1) {
-                x = rand() % (vecs - 1);    // pick another vector randomly
+                x = rand() % (limit-min+1)+min;    // pick another vector randomly
                 //printf("%d\n", x);
                 stop = 0;
                 // as long as that vector is not a neighbour already and it is not the same as our current vector
                 if (vec_find_node(G[j], x) != VECTOR_EOF || x == j) {   
                     stop = 1;
                 }
+                if (x == limit) limit--;
+                if (x == min) min++;
                 // for (int z = 0; z < i; z++) {
                 //     // as long as that vector is not a neighbour already and it is not the same as our current vector
                 //     if (vec_find_node(G[j], x) != VECTOR_EOF || x != j) {   
