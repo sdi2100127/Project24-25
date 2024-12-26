@@ -662,18 +662,16 @@ Vector** StichedVamanaIndexing(float** dataset, float min_f, float max_f, Set fi
 
     Vector values;
     for (MapNode node = map_first(filtered_data); node != MAP_EOF; node = map_next(filtered_data, node)) {
-        printf("filter %d: ", node->key);
+        //printf("filter %d: ", node->key);
         values = node->values;
         int c_f = 0;
         for (VecNode s_node = vec_first(values); s_node != VECTOR_EOF; s_node = vec_next(values, s_node)) {
-            printf("%d ", s_node->value);
+            //printf("%d ", s_node->value);
             c_f++;
         }
-        printf("filter %d: %d\n",node->key, c_f);
-        printf("\n");
+        //printf("filter %d: %d\n",node->key, c_f);
+        //printf("\n");
     }
-
-    printf("filter 0: %d\n", map_find_values(filtered_data, 0)->size);
 
     printf("vamana filtered data\n\n");
     
@@ -721,8 +719,6 @@ Vector** StichedVamanaIndexing(float** dataset, float min_f, float max_f, Set fi
             printf("%d ", vec_get_at(per[f], j));
         }
         printf("\n");
-
-        return NULL;
 
         // and store them in the new dataset
         int c = comps-2;
@@ -793,8 +789,6 @@ Vector** StichedVamanaIndexing(float** dataset, float min_f, float max_f, Set fi
 
     *permutation = per;
     return G_f;
-
-    map_destroy(filtered_data);
 }
 
 Vector* Groundtruth(float** dataset, int vecs, int comps, float** queries, int vecs_q, int comps_q, int k) {
@@ -892,9 +886,9 @@ Vector* Groundtruth(float** dataset, int vecs, int comps, float** queries, int v
 }
 
 void free_G_f(Vector** G_f, int num_filters, Map filtered_data) {
-    for (int i = 0; i < num_filters; ++i) {
+    for (int i = 0; i < num_filters; i++) {
         int vecs = map_find_values(filtered_data, i)->size;
-        for (int j = 0; j < vecs; ++j) {
+        for (int j = 0; j < vecs; j++) {
             vec_destroy(G_f[i][j]);
         }
         

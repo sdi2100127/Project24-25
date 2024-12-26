@@ -63,7 +63,7 @@ run_filter: filtered_app
 
 # Run the stitched program
 run_stitch: stitched_app
-	./stitched_app -k 10 -L 12  -R 4
+	./stitched_app -k 100 -L 125  -R 40
 
 # Run the unit tests
 run_test: test
