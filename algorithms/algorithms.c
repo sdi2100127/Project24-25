@@ -81,7 +81,7 @@ PQueue greedySearch(Vector* G, int R, int dim, int vecs, float** vectors, int s,
             }
             
         }
-        //printf("min_dist: %f, xp: %d\n", min_dist, xp);
+        //printf("xp: %d, flag: %d\n", xp, flag);
 
         // if there where no more unvisited nodes found there is no point in continuing with the loop
         if (flag == 0) break; 
@@ -89,14 +89,17 @@ PQueue greedySearch(Vector* G, int R, int dim, int vecs, float** vectors, int s,
         // now we add all the outgoing neighbours of the node xp in the knn_set
         // the outgoing neighbours of a node are the one that are included in said node's column
         // the incoming neighbours are the other node's columns that the node is part of
+        //printf("G[%d].size: %d\n", xp, G[xp]->size);
         for (int i=0; i<G[xp]->size; i++) {
             int point = vec_get_at(G[xp], i);
+            //printf("point: %d\n", point);
             // if the distance has not been computed before, compute it
             if (dist_matrix[point] == -1) {
                 for (int i=0; i<dim; i++) {
                     vec_p[i] = vectors[i][point];
                 }
                 dist_matrix[point] = euclidean_distance(vec_p, xq, dim);
+                //printf("dist: %f\n", dist_matrix[point]);
             }
             pqueue_insert(knn, point, dist_matrix[point]);
         }
@@ -128,11 +131,11 @@ PQueue greedySearch(Vector* G, int R, int dim, int vecs, float** vectors, int s,
     }
     printf("\n");
 
-    printf("visited_set: ");
-    for (set_Node node = find_min(visited_nodes->root); node != SET_EOF; node = set_next(visited_nodes, node)) { 
-        printf("%d ", node->value);
-    }
-    printf("\n");
+    // printf("visited_set: ");
+    // for (set_Node node = find_min(visited_nodes->root); node != SET_EOF; node = set_next(visited_nodes, node)) { 
+    //     printf("%d ", node->value);
+    // }
+    // printf("\n");
     
     *V = visited_nodes;
     

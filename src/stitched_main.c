@@ -124,7 +124,7 @@ int main(int argc, char ** argv) {
     while (fflag == 0) {
         fflag = 1;
         xq_pos = rand() % (count - 1);
-        if (posible_queries[1][xq_pos] != -1) fflag = 0;
+        if (posible_queries[1][xq_pos] == -1) fflag = 0;
     }
     // int xq_pos = rand() % (count - 1);
     int xq_size = queries_dim-4;
@@ -201,8 +201,10 @@ int main(int argc, char ** argv) {
             printf("found data_f\n");
 
             int f_med = vec_first(map_find_values(med, node->key))->value;
+            printf("f_med: %d\n", f_med);
 
             knn_g = greedySearch(G[node->key], R, data_dim-2, f_size, data_f, f_med, xq, L, k, &V);
+            
             for (VecNode vnode = vec_first(knn_g->vector); vnode != VECTOR_EOF; vnode = vec_next(knn_g->vector, vnode)) {
                 pqueue_insert(knn_q, vnode->value, vnode->dist);    // add them to a priority queue
             }
