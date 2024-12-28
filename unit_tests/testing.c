@@ -1875,7 +1875,7 @@ void test_FilteredVamanaIndexing(void) {
 
    int L = 4, k = 1, p = 0, a = 1, neigh = 5, t = 1, medoid;
    Map med;
-   Vector* G = FilteredVamanaIndexing(vectors, min_f, max_f, vecs, dim, dim+2, L, R, neigh, a, &med, &medoid, t);
+   Vector* G = FilteredVamanaIndexing(vectors, min_f, max_f, vecs, dim, dim+2, L, R, a, &med, &medoid, t);
 
    int** G_test = (int**)malloc(R * sizeof(int*));
    for (int i = 0; i < R; i++) {
