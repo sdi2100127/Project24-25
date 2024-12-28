@@ -37,10 +37,16 @@ Map FindMedoid(float** dataset, int vecs, float min_f, float max_f, Map filtered
 // vectors indexes and the neighbours in graph G, and that goes against the vamana's algorithm random initiallizations
 
 // Vamana algorithm
-Vector* FilteredVamanaIndexing(float** dataset, float min_f, float max_f, int vecs, int comps, int q_comps, int L, int R, int neigh, int a, Map* med, int* medoid, int t);
+Vector* FilteredVamanaIndexing(float** dataset, float min_f, float max_f, int vecs, int comps, int q_comps, int L, int R, int a, Map* med, int* medoid, int t);
+
+// Vamana algorithm with random graph
+Vector* FilteredVamanaIndexing_randomG(float** dataset, float min_f, float max_f, int vecs, int comps, int q_comps, int L, int R, int neigh, int a, Map* med, int* medoid, int t);
 
 // Stiched Vamana algorithm
 Vector** StichedVamanaIndexing(float** dataset, float min_f, float max_f, Set filters, int vecs, int comps, int L, int R, int a, Map* med, int* medoid, int t, Map* filt_data, Vector** permutation);
+
+// Stiched Vamana algorithm with random graph
+Vector** StichedVamanaIndexing_randomG(float** dataset, float min_f, float max_f, Set filters, int vecs, int comps, int L, int R, int a, Map* med, int* medoid, int t, int neigh, Map* filt_data, Vector** permutation);
 
 // function to compute the groundtruth on which the results will be based 
 Vector* Groundtruth(float** dataset, int vecs, int comps, float** queries, int vecs_q, int comps_q, int k);

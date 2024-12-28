@@ -93,11 +93,12 @@ int main(int argc, char ** argv) {
 
     printf("found Groundtruth\n");
 
-    int t = 10, medoid;
+    int t = 10, medoid, neigh = 5;
     Map med, filtered_data;
     Vector* per;
-    Vector** G = StichedVamanaIndexing(dataset, min_f, max_f, filters, vecs, data_dim, L, R, a, &med, &medoid, t, &filtered_data, &per);
-    
+    Vector** G = StichedVamanaIndexing_randomG(dataset, min_f, max_f, filters, vecs, data_dim, L, R, a, &med, &medoid, t, neigh, &filtered_data, &per);
+    //Vector** G = StichedVamanaIndexing(dataset, min_f, max_f, filters, vecs, data_dim, L, R, a, &med, &medoid, t, &filtered_data, &per);
+
     // printf("G: \n");
     // for (int f=0; f<filters->size; f++) {
     //     Vector G_f = G[f];
@@ -124,7 +125,7 @@ int main(int argc, char ** argv) {
     while (fflag == 0) {
         fflag = 1;
         xq_pos = rand() % (count - 1);
-        if (posible_queries[1][xq_pos] == -1) fflag = 0;
+        if (posible_queries[1][xq_pos] != 0) fflag = 0;
     }
     // int xq_pos = rand() % (count - 1);
     int xq_size = queries_dim-4;
@@ -176,6 +177,8 @@ int main(int argc, char ** argv) {
             printf("%d ", vnode->value);
         }
         printf("\n");
+
+        free_matrix_fvecs(data_f, c);
     } else {
         // otherwise, run greedysearch to find its nearest neighbours from every filter
         knn_q = pqueue_create(0);
@@ -208,6 +211,8 @@ int main(int argc, char ** argv) {
             for (VecNode vnode = vec_first(knn_g->vector); vnode != VECTOR_EOF; vnode = vec_next(knn_g->vector, vnode)) {
                 pqueue_insert(knn_q, vnode->value, vnode->dist);    // add them to a priority queue
             }
+
+            free_matrix_fvecs(data_f, c);
         }
         
         // and then keep only the k nearest of them
@@ -259,7 +264,6 @@ int main(int argc, char ** argv) {
     // frees
     free_G_f(G, filters->size, filtered_data);
     map_destroy(filtered_data);
-    map_destroy(med);
     free_G(per, filters->size);
     set_destroy(filters);
 

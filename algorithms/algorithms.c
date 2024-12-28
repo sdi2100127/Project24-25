@@ -24,6 +24,8 @@ float squared_euclidean_distance(float* vec1, float* vec2, int comps) {
 PQueue greedySearch(Vector* G, int R, int dim, int vecs, float** vectors, int s, float* xq, int L, int k, Set* V) {
     //printf("GREEDY SEARCH\n");
 
+    //printf("G[%d].size: %d\n", s, G[s]->size);
+
     // initializing the knn set with the starting point s
     PQueue knn = pqueue_create(NULL);
     float* vec_s = (float*)malloc(dim * sizeof(float));
