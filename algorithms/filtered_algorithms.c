@@ -946,10 +946,10 @@ Vector** StichedVamanaIndexing(float** dataset, float min_f, float max_f, Set fi
         } else {
             if (R_stitched >= f_size) {
                 printf("R: %d\n", f_size);
-                G_f[f] = Vamana_main(data_f, f_size, comps-2, L, f_size-1, a, &Vmedoid);
+                G_f[f] = Vamana_random_medoid(data_f, f_size, comps-2, L, f_size-1, a, &Vmedoid);
             } else {
                 printf("R: %d\n", R_stitched);
-                G_f[f] = Vamana_main(data_f, f_size, comps-2, L, R_stitched, a, &Vmedoid);
+                G_f[f] = Vamana_random_medoid(data_f, f_size, comps-2, L, R_stitched, a, &Vmedoid);
             }
         }
 

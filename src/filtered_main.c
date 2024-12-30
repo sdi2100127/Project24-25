@@ -13,6 +13,8 @@ int main(int argc, char ** argv) {
     time_t start,end;
     start = time(NULL);
     int k , L , R , a = 1;
+    char* filter = NULL;
+    const char* idx_file = NULL;
     for (int i = 0; i< argc; i++){
         if(strcmp(argv[i], "-k") == 0){
         k = atoi(argv[i+1]);
@@ -22,6 +24,12 @@ int main(int argc, char ** argv) {
         }
         if(strcmp(argv[i], "-R") == 0){
         R = atoi(argv[i+1]);
+        }
+        if(strcmp(argv[i], "-filtered") == 0){
+        filter = argv[i+1];
+        }
+        if(strcmp(argv[i], "-index_fname") == 0){
+        idx_file = argv[i+1];
         }
     }
 
@@ -130,7 +138,55 @@ int main(int argc, char ** argv) {
 
     Map med;
     int neigh = 5, t = 10, medoid;
-    Vector* G = FilteredVamanaIndexing(dataset, min_f, max_f, vecs, data_dim, queries_dim, L, R, neigh, a, &med, &medoid, t);
+
+    // we create and store the vamana index
+    Vector* G;
+
+    char G_path[100];
+    sprintf(G_path, "filtered/%s.dat", idx_file);
+    FILE *G_file = fopen(G_path, "rb");
+    // if it already exists load it from memory
+    if (G_file) {
+
+        G = (Vector*)malloc(vecs * sizeof(Vector));
+        // for each vector of groundtruth, deserialize it 
+        for (int i = 0; i < vecs; ++i) {
+        G[i] = vec_Create(0);
+
+        // first we have to read each vector's size
+        fread(&(G[i]->size), sizeof(int), 1, G_file);
+
+        // then we allocate memory for the array
+        G[i]->array = (VecNode)realloc(G[i]->array, G[i]->size * sizeof(VecNode));
+
+        // and we fill it with the required elements
+        fread(G[i]->array, sizeof(VecNode), G[i]->size, G_file);
+        }
+
+        fclose(G_file);
+    } else {    // otherwise, compute it and store it
+
+        G = FilteredVamanaIndexing(dataset, min_f, max_f, vecs, data_dim, queries_dim, L, R, a, &med, &medoid, t);
+
+        G_file = fopen(G_path, "wb");
+        if (G_file == NULL) {
+        perror("Error opening file for writing");
+        exit(EXIT_FAILURE);         
+        }
+        
+        // for each vector in the dataset, serialize it
+        for (int i = 0; i < vecs; ++i) {
+            // first we have to store each vector's size
+            fwrite(&(G[i]->size), sizeof(int), 1, G_file);
+
+            // then the elements of the actual array
+            fwrite(G[i]->array, sizeof(VecNode), G[i]->size, G_file);
+        }
+
+        fclose(G_file);
+    }
+
+    printf("found Vamana index\n");
 
     printf("G\n");
     for (int j = 0; j < vecs; j++) {
@@ -149,7 +205,9 @@ int main(int argc, char ** argv) {
     while (fflag == 0) {
         fflag = 1;
         xq_pos = rand() % (count - 1);
-        //if (posible_queries[1][xq_pos] != -1) fflag = 0;
+        // make sure its filtered or unfiltered
+        if (strcmp(filter, "no")) if (posible_queries[1][xq_pos] != -1) fflag = 0;
+        if (strcmp(filter, "yes")) if (posible_queries[1][xq_pos] == -1) fflag = 0;
     }
     // int xq_pos = rand() % (count - 1);
     int xq_size = queries_dim-4;

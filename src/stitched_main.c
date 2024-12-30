@@ -13,6 +13,8 @@ int main(int argc, char ** argv) {
     time_t start,end;
     start = time(NULL);
     int k , L , R , a = 1;
+    char* filter = NULL;
+    const char* idx_file = NULL;
     for (int i = 0; i< argc; i++){
         if(strcmp(argv[i], "-k") == 0){
         k = atoi(argv[i+1]);
@@ -22,6 +24,12 @@ int main(int argc, char ** argv) {
         }
         if(strcmp(argv[i], "-R") == 0){
         R = atoi(argv[i+1]);
+        }
+        if(strcmp(argv[i], "-filtered") == 0){
+        filter = argv[i+1];
+        }
+        if(strcmp(argv[i], "-index_fname") == 0){
+        idx_file = argv[i+1];
         }
     }
 
@@ -96,8 +104,8 @@ int main(int argc, char ** argv) {
     int t = 10, medoid, neigh = 5;
     Map med, filtered_data;
     Vector* per;
-    Vector** G = StichedVamanaIndexing_randomG(dataset, min_f, max_f, filters, vecs, data_dim, L, R, a, &med, &medoid, t, neigh, &filtered_data, &per);
-    //Vector** G = StichedVamanaIndexing(dataset, min_f, max_f, filters, vecs, data_dim, L, R, a, &med, &medoid, t, &filtered_data, &per);
+    
+    Vector** G = StichedVamanaIndexing(dataset, min_f, max_f, filters, vecs, data_dim, L, R, a, &med, &medoid, t, &filtered_data, &per);
 
     // printf("G: \n");
     // for (int f=0; f<filters->size; f++) {

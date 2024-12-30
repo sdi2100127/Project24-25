@@ -293,6 +293,68 @@ int medoid(float** dataset, int vecs, int comps, float*** dist_m) {
     return min_p;
 }
 
+int random_medoid(float** dataset, int vecs, int comps, float*** dist_m) {
+    srand((unsigned int)time(NULL));
+
+    float** temp_m =  *dist_m;
+
+    float* vec_p1 = (float*)malloc(comps * sizeof(float));
+    float* vec_p2 = (float*)malloc(comps * sizeof(float));
+
+    float min_sum = FLT_MAX;
+    int min_p = -1;
+    float dist;
+    float dist_sum;
+
+    // for each vector in the dataset
+    for (int j=0; j<vecs; j++) {
+
+        dist_sum = 0.0f;
+        for (int i=0; i<comps; i++) {
+            vec_p1[i] = dataset[i][j];
+        }
+
+        
+        // compute its distance to all other vectors
+        for (int z=0; z<vecs; z++) {
+            
+            for (int i=0; i<comps; i++) {
+                vec_p2[i] = dataset[i][z];
+            }
+
+            // and add it to the total sum
+            if (j != z)  {
+                // compute the distance only if it has not been computed before
+                if (temp_m[j][z] == 0) {
+                    dist = squared_euclidean_distance(vec_p1, vec_p2, comps);
+                    temp_m[j][z] = dist;
+                    temp_m[z][j] = dist;
+                }
+                dist_sum = dist_sum + temp_m[j][z];
+            }
+        }
+
+        int x = rand() % (vecs - 1);
+        if (x%2 == 0) {
+            // if its an even number let it contribute to the medoid search
+            // then find which vector has the lowest total sum
+            if (dist_sum <= min_sum) {
+                min_sum = dist_sum;
+                min_p = j;
+            }
+        }
+    
+    }
+
+    free(vec_p1);
+    free(vec_p2);
+
+    *dist_m = temp_m;
+
+    printf("medoid sum: %f\n", min_sum);
+    return min_p;
+}
+
 Vector* Vamana_main(float** dataset, int vecs, int comps, int L, int R, int a, int* med) {
     printf("VAMANA\n");
 
@@ -397,6 +459,361 @@ Vector* Vamana_main(float** dataset, int vecs, int comps, int L, int R, int a, i
     printf("\n");
 
     //return;
+
+    float* xq = (float*)malloc(comps * sizeof(float));
+    float* point_vec = (float*)malloc(comps * sizeof(float));
+
+    for (int i=0; i<vecs; i++) {
+        // find and store the query vector xq based on the point in the dataset indexed by per[i]
+        int query_pos = per[i];
+        printf("query vector %d: ", query_pos);
+        for (int i=0; i<comps; i++) {
+            xq[i] = dataset[i][query_pos];
+            printf("%f ", xq[i]);
+        }
+        printf("\n");
+        
+        // call greedysearch for xq
+        Set V;
+        PQueue knn = greedySearch(G, R, comps, vecs, dataset, s, xq, L, 1, &V);
+        // then run robust prune
+        RobustPrune(&G, query_pos, &V, a, R, comps, vecs, dataset, dist_matrix);
+
+        set_destroy(V);
+        pqueue_destroy(knn);
+
+        for (int j=0; j<G[query_pos]->size; j++) {
+            
+            // for each point j that is an outgoing neighbour of the query point
+            int point = vec_get_at(G[query_pos], j);
+            printf("Neighbour %d has %d neighbours\n", point, G[query_pos]->size);
+
+            // check if it has less outgoing neighbours than R 
+            // so that we can also add the query point as a neighbour
+
+            // if we cannot
+            if (G[point]->size == R) {
+
+                // we create a set Nout_j with the outgoing neighbours of j as well as the current query point
+                Set Nout_j = set_Create();
+                for (int n=0; n<G[point]->size; n++) {
+                    set_insert(Nout_j, vec_get_at(G[point], n));
+                }
+                set_insert(Nout_j, query_pos);
+                // and we call robust prune
+                RobustPrune(&G, point, &Nout_j, a, R, comps, vecs, dataset, dist_matrix);
+
+                set_destroy(Nout_j);
+
+            } else {    // if the query point fits and is not already included
+                // add it to the neighbours of j
+                int flag = 1;
+                for (int n=0; n<G[point]->size; n++) {
+                    if (vec_get_at(G[point], n) == query_pos) {flag = 0; break;}
+                }
+
+                for (int i=0; i<comps; i++) {
+                    point_vec[i] = dataset[i][point];
+                }
+
+                if (flag == 1) vec_insert(G[point], query_pos, euclidean_distance(xq, point_vec, comps));
+                
+            }
+        }
+    }
+
+    free(xq);
+    free(point_vec);
+    free_matrix_fvecs(dist_matrix, vecs);
+    free(per);
+    return G;
+}
+
+Vector* Vamana_random_medoid(float** dataset, int vecs, int comps, int L, int R, int a, int* med) {
+    printf("VAMANA\n");
+
+    printf("vecs: %d\n", vecs);
+    // first we have to initialize G to a random R-regular directed graph
+
+    Vector* G = (Vector*)malloc(vecs * sizeof(Vector));
+   
+    for (int i=0; i<vecs; i++) {
+        G[i] = vec_Create(0);
+    }
+
+    printf("vamana finding neighbours\n");
+    int x;
+    float* vec_x = (float*)malloc(comps * sizeof(float));
+    float* vec_j = (float*)malloc(comps * sizeof(float));
+
+    // for every vector in the dataset
+    for (int j = 0; j < vecs; j++) {
+        for (int i=0; i<comps; i++) {
+            vec_j[i] = dataset[i][j];
+        }
+        printf("vector %d:", j);
+
+        int limit = vecs-1, min = 0;
+        // for every one of its R neighbours
+        for (int i = 0; i < R; i++) {
+
+            int stop = 1;
+            while (stop == 1) {
+                x = rand() % (limit-min+1)+min;    // pick another vector randomly
+                //printf("%d\n", x);
+                stop = 0;
+                // as long as that vector is not a neighbour already and it is not the same as our current vector
+                if (vec_find_node(G[j], x) != VECTOR_EOF || x == j) {   
+                    stop = 1;
+                }
+                if (x == limit) limit--;
+                if (x == min) min++;
+                // for (int z = 0; z < i; z++) {
+                //     // as long as that vector is not a neighbour already and it is not the same as our current vector
+                //     if (vec_find_node(G[j], x) != VECTOR_EOF || x != j) {   
+                //         stop = 1;
+                //         break;
+                //     }
+                // }    
+            }
+            // temporarilly store the vectors j and x to compute their distance
+            for (int i=0; i<comps; i++) {
+                vec_x[i] = dataset[i][x];
+            }
+            vec_insert(G[j], x, euclidean_distance(vec_x, vec_j, comps));
+
+            printf(" %d, %f ", G[j]->array[i].value, G[j]->array[i].dist);
+            
+        }
+        printf("\n");
+    }
+    free(vec_x);
+    free(vec_j);
+
+    // create a 2D distance matrix that will hold the euclidean distances between all vectors of the dataset
+    float** dist_matrix = (float**)malloc(vecs * sizeof(float*));
+    for (int i = 0; i < vecs; i++) {
+        dist_matrix[i] = (float*)malloc(vecs * sizeof(float));
+    }
+
+    for(int i=0; i<vecs; i++) {
+        for(int j=0; j<vecs; j++) {
+            dist_matrix[i][j] = 0;
+        }
+    }
+
+    // now we find the medoid of the dataset that will be our starting point s
+    // and this time we do it by selecting a random point of the dataset
+    srand((unsigned int)time(NULL));
+
+    // we still have to call the medoid function so that the dist_matrix iis computed
+    int s = medoid(dataset, vecs, comps, &dist_matrix);
+    s = rand() % (vecs - 1);
+    printf("vamana found medoid: %d\n", s);
+    *med = s;
+
+    // create a random permutation of 1...vecs (really from 0 to vecs-1) 
+    // and store it in the array per
+    int* per = (int*)malloc(vecs * sizeof(int*));
+    for (int i=0; i<vecs; i++) {
+        per[i] = i;
+    }
+
+    //srand((unsigned int)time(NULL));
+
+    // this is done by swaping the index in the ith position 
+    // with that in the position given by randIdx
+    for(int i=0; i<vecs; ++i){
+        int randIdx = rand() % (vecs - 1);
+        // swap per[i] with per[randIdx]
+        int t = per[i];
+        per[i] = per[randIdx];
+        per[randIdx] = t;
+    }
+
+    printf("random permutation:\n");
+    for (int i=0; i<vecs; i++) {
+        printf("%d ", per[i]);
+    }
+    printf("\n");
+
+    //return;
+
+    float* xq = (float*)malloc(comps * sizeof(float));
+    float* point_vec = (float*)malloc(comps * sizeof(float));
+
+    for (int i=0; i<vecs; i++) {
+        // find and store the query vector xq based on the point in the dataset indexed by per[i]
+        int query_pos = per[i];
+        printf("query vector %d: ", query_pos);
+        for (int i=0; i<comps; i++) {
+            xq[i] = dataset[i][query_pos];
+            printf("%f ", xq[i]);
+        }
+        printf("\n");
+        
+        // call greedysearch for xq
+        Set V;
+        PQueue knn = greedySearch(G, R, comps, vecs, dataset, s, xq, L, 1, &V);
+        // then run robust prune
+        RobustPrune(&G, query_pos, &V, a, R, comps, vecs, dataset, dist_matrix);
+
+        set_destroy(V);
+        pqueue_destroy(knn);
+
+        for (int j=0; j<G[query_pos]->size; j++) {
+            
+            // for each point j that is an outgoing neighbour of the query point
+            int point = vec_get_at(G[query_pos], j);
+            printf("Neighbour %d has %d neighbours\n", point, G[query_pos]->size);
+
+            // check if it has less outgoing neighbours than R 
+            // so that we can also add the query point as a neighbour
+
+            // if we cannot
+            if (G[point]->size == R) {
+
+                // we create a set Nout_j with the outgoing neighbours of j as well as the current query point
+                Set Nout_j = set_Create();
+                for (int n=0; n<G[point]->size; n++) {
+                    set_insert(Nout_j, vec_get_at(G[point], n));
+                }
+                set_insert(Nout_j, query_pos);
+                // and we call robust prune
+                RobustPrune(&G, point, &Nout_j, a, R, comps, vecs, dataset, dist_matrix);
+
+                set_destroy(Nout_j);
+
+            } else {    // if the query point fits and is not already included
+                // add it to the neighbours of j
+                int flag = 1;
+                for (int n=0; n<G[point]->size; n++) {
+                    if (vec_get_at(G[point], n) == query_pos) {flag = 0; break;}
+                }
+
+                for (int i=0; i<comps; i++) {
+                    point_vec[i] = dataset[i][point];
+                }
+
+                if (flag == 1) vec_insert(G[point], query_pos, euclidean_distance(xq, point_vec, comps));
+                
+            }
+        }
+    }
+
+    free(xq);
+    free(point_vec);
+    free_matrix_fvecs(dist_matrix, vecs);
+    free(per);
+    return G;
+}
+
+Vector* Vamana_semirandom_medoid(float** dataset, int vecs, int comps, int L, int R, int a, int* med) {
+    printf("VAMANA\n");
+
+    printf("vecs: %d\n", vecs);
+    // first we have to initialize G to a random R-regular directed graph
+
+    Vector* G = (Vector*)malloc(vecs * sizeof(Vector));
+   
+    for (int i=0; i<vecs; i++) {
+        G[i] = vec_Create(0);
+    }
+
+    printf("vamana finding neighbours\n");
+    int x;
+    float* vec_x = (float*)malloc(comps * sizeof(float));
+    float* vec_j = (float*)malloc(comps * sizeof(float));
+
+    // for every vector in the dataset
+    for (int j = 0; j < vecs; j++) {
+        for (int i=0; i<comps; i++) {
+            vec_j[i] = dataset[i][j];
+        }
+        printf("vector %d:", j);
+
+        int limit = vecs-1, min = 0;
+        // for every one of its R neighbours
+        for (int i = 0; i < R; i++) {
+
+            int stop = 1;
+            while (stop == 1) {
+                x = rand() % (limit-min+1)+min;    // pick another vector randomly
+                //printf("%d\n", x);
+                stop = 0;
+                // as long as that vector is not a neighbour already and it is not the same as our current vector
+                if (vec_find_node(G[j], x) != VECTOR_EOF || x == j) {   
+                    stop = 1;
+                }
+                if (x == limit) limit--;
+                if (x == min) min++;
+                // for (int z = 0; z < i; z++) {
+                //     // as long as that vector is not a neighbour already and it is not the same as our current vector
+                //     if (vec_find_node(G[j], x) != VECTOR_EOF || x != j) {   
+                //         stop = 1;
+                //         break;
+                //     }
+                // }    
+            }
+            // temporarilly store the vectors j and x to compute their distance
+            for (int i=0; i<comps; i++) {
+                vec_x[i] = dataset[i][x];
+            }
+            vec_insert(G[j], x, euclidean_distance(vec_x, vec_j, comps));
+
+            printf(" %d, %f ", G[j]->array[i].value, G[j]->array[i].dist);
+            
+        }
+        printf("\n");
+    }
+    free(vec_x);
+    free(vec_j);
+
+    // create a 2D distance matrix that will hold the euclidean distances between all vectors of the dataset
+    float** dist_matrix = (float**)malloc(vecs * sizeof(float*));
+    for (int i = 0; i < vecs; i++) {
+        dist_matrix[i] = (float*)malloc(vecs * sizeof(float));
+    }
+
+    for(int i=0; i<vecs; i++) {
+        for(int j=0; j<vecs; j++) {
+            dist_matrix[i][j] = 0;
+        }
+    }
+
+    // now we find the medoid of the dataset that will be our starting point s
+    // and this time we do it by selecting a random point of the dataset
+    srand((unsigned int)time(NULL));
+
+    // we still have to call the medoid function so that the dist_matrix iis computed
+    int s = random_medoid(dataset, vecs, comps, &dist_matrix);
+    printf("vamana found medoid: %d\n", s);
+    *med = s;
+
+    // create a random permutation of 1...vecs (really from 0 to vecs-1) 
+    // and store it in the array per
+    int* per = (int*)malloc(vecs * sizeof(int*));
+    for (int i=0; i<vecs; i++) {
+        per[i] = i;
+    }
+
+    //srand((unsigned int)time(NULL));
+
+    // this is done by swaping the index in the ith position 
+    // with that in the position given by randIdx
+    for(int i=0; i<vecs; ++i){
+        int randIdx = rand() % (vecs - 1);
+        // swap per[i] with per[randIdx]
+        int t = per[i];
+        per[i] = per[randIdx];
+        per[randIdx] = t;
+    }
+
+    printf("random permutation:\n");
+    for (int i=0; i<vecs; i++) {
+        printf("%d ", per[i]);
+    }
+    printf("\n");
 
     float* xq = (float*)malloc(comps * sizeof(float));
     float* point_vec = (float*)malloc(comps * sizeof(float));

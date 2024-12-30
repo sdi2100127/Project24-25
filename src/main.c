@@ -10,7 +10,10 @@ int main(int argc, char ** argv) {
 
   time_t start,end;
   start = time(NULL);
+
   int k , L , R , a = 1;
+  char* vamana = NULL;
+  const char* idx_file = NULL;
   for (int i = 0; i< argc; i++){
     if(strcmp(argv[i], "-k") == 0){
       k = atoi(argv[i+1]);
@@ -20,6 +23,12 @@ int main(int argc, char ** argv) {
     }
     if(strcmp(argv[i], "-R") == 0){
       R = atoi(argv[i+1]);
+    }
+    if(strcmp(argv[i], "-vamana") == 0){
+      vamana = argv[i+1];
+    } 
+    if(strcmp(argv[i], "-index_fname") == 0){
+      idx_file = argv[i+1];
     }
   }
   // allocate memory for the graph G produced by the vamana algorithm
@@ -76,17 +85,74 @@ int main(int argc, char ** argv) {
   // return 0;
   int med;
 
-  Vector* G = Vamana_main(vectors, vecs, d_base, L, R, a, &med);
+  // we create and store the vamana index
+  Vector* G;
 
-  printf("G\n");
-  for (int j = 0; j < vecs; j++) {
-    printf("vector %d:", j);
-    for (int i = 0; i < R; i++) {
-      printf(" %d",  vec_get_at(G[j], i));
-        
+  char path[100];
+  sprintf(path, "unfiltered/%s.dat", idx_file);
+  FILE *file = fopen(path, "rb");
+  // if it already exists load it from memory
+  if (file) {
+
+    G = (Vector*)malloc(vecs * sizeof(Vector));
+    // for each vector of groundtruth, deserialize it 
+    for (int i = 0; i < vecs; ++i) {
+      G[i] = vec_Create(0);
+
+      // first we have to read each vector's size
+      fread(&(G[i]->size), sizeof(int), 1, file);
+
+      // then we allocate memory for the array
+      G[i]->array = (VecNode)realloc(G[i]->array, G[i]->size * sizeof(VecNode));
+
+      // and we fill it with the required elements
+      fread(G[i]->array, sizeof(VecNode), G[i]->size, file);
     }
-    printf("\n");
+
+    fclose(file);
+  } else {    // otherwise, compute it and store it
+
+    if (strcmp(vamana, "main") == 0) {
+      G = Vamana_main(vectors, vecs, d_base, L, R, a, &med);
+    }
+
+    if (strcmp(vamana, "random") == 0) {
+      G = Vamana_random_medoid(vectors, vecs, d_base, L, R, a, &med);
+    }
+
+    if (strcmp(vamana, "semi_random") == 0) {
+      G = Vamana_semirandom_medoid(vectors, vecs, d_base, L, R, a, &med);
+    }
+
+    file = fopen(path, "wb");
+    if (file == NULL) {
+      perror("Error opening file for writing");
+      exit(EXIT_FAILURE);         
+    }
+    
+    // for each vector in the dataset, serialize it
+    for (int i = 0; i < vecs; ++i) {
+        // first we have to store each vector's size
+        fwrite(&(G[i]->size), sizeof(int), 1, file);
+
+        // then the elements of the actual array
+        fwrite(G[i]->array, sizeof(VecNode), G[i]->size, file);
+    }
+
+    fclose(file);
   }
+
+  printf("found Vamana index\n");
+
+  // printf("G\n");
+  // for (int j = 0; j < vecs; j++) {
+  //   printf("vector %d:", j);
+  //   for (int i = 0; i < R; i++) {
+  //     printf(" %d",  vec_get_at(G[j], i));
+        
+  //   }
+  //   printf("\n");
+  // }
 
   // randomly select a query vector
   int xq_pos = rand() % (query_vectors - 1);
