@@ -15,6 +15,7 @@ int main(int argc, char ** argv) {
     int k , L , R , a = 1;
     char* filter = NULL;
     const char* idx_file = NULL;
+    const char* rnd = NULL;
     for (int i = 0; i< argc; i++){
         if(strcmp(argv[i], "-k") == 0){
         k = atoi(argv[i+1]);
@@ -30,6 +31,9 @@ int main(int argc, char ** argv) {
         }
         if(strcmp(argv[i], "-index_fname") == 0){
         idx_file = argv[i+1];
+        }
+        if(strcmp(argv[i], "-random") == 0){
+        rnd = argv[i+1];
         }
     }
 
@@ -145,28 +149,41 @@ int main(int argc, char ** argv) {
     char G_path[100];
     sprintf(G_path, "filtered/%s.dat", idx_file);
     FILE *G_file = fopen(G_path, "rb");
+    
     // if it already exists load it from memory
     if (G_file) {
 
         G = (Vector*)malloc(vecs * sizeof(Vector));
-        // for each vector of groundtruth, deserialize it 
+        // for each vector, deserialize it 
         for (int i = 0; i < vecs; ++i) {
-        G[i] = vec_Create(0);
+            G[i] = vec_Create(0);
 
-        // first we have to read each vector's size
-        fread(&(G[i]->size), sizeof(int), 1, G_file);
+            // first we have to read each vector's size
+            fread(&(G[i]->size), sizeof(int), 1, G_file);
 
-        // then we allocate memory for the array
-        G[i]->array = (VecNode)realloc(G[i]->array, G[i]->size * sizeof(VecNode));
+            // then we allocate memory for the array
+            G[i]->array = (VecNode)realloc(G[i]->array, G[i]->size * sizeof(VecNode));
 
-        // and we fill it with the required elements
-        fread(G[i]->array, sizeof(VecNode), G[i]->size, G_file);
+            // and we fill it with the required elements
+            fread(G[i]->array, sizeof(VecNode), G[i]->size, G_file);
         }
 
         fclose(G_file);
+
+        // we also have to calculate the medoids map to be used by greedy search
+        Map filtered_data = map_create(min_f, max_f);
+
+        for (int j=0; j<vecs; j++) {
+            map_insert(filtered_data, (int)dataset[0][j], j);
+        }
+
+        med = FindMedoid(dataset, vecs, min_f, max_f, filtered_data, t);
+        printf("found starting points\n\n");
+
     } else {    // otherwise, compute it and store it
 
-        G = FilteredVamanaIndexing(dataset, min_f, max_f, vecs, data_dim, queries_dim, L, R, a, &med, &medoid, t);
+        if (strcmp(rnd, "no")) G = FilteredVamanaIndexing(dataset, min_f, max_f, vecs, data_dim, queries_dim, L, R, a, &med, &medoid, t);
+        if (strcmp(rnd, "yes")) G = FilteredVamanaIndexing_randomG(dataset, min_f, max_f, vecs, data_dim, queries_dim, L, R, neigh, a, &med, &medoid, t);
 
         G_file = fopen(G_path, "wb");
         if (G_file == NULL) {
@@ -206,8 +223,8 @@ int main(int argc, char ** argv) {
         fflag = 1;
         xq_pos = rand() % (count - 1);
         // make sure its filtered or unfiltered
-        if (strcmp(filter, "no")) if (posible_queries[1][xq_pos] != -1) fflag = 0;
-        if (strcmp(filter, "yes")) if (posible_queries[1][xq_pos] == -1) fflag = 0;
+        if (strcmp(filter, "no")) if (posible_queries[1][xq_pos] == -1) fflag = 0;
+        if (strcmp(filter, "yes")) if (posible_queries[1][xq_pos] != -1) fflag = 0;
     }
     // int xq_pos = rand() % (count - 1);
     int xq_size = queries_dim-4;

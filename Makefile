@@ -65,17 +65,29 @@ run_vamana_semi_random: app
 
 # Run the filtered program
 run_filter_yes: filtered_app
-	./filtered_app -k 100 -L 125  -R 40 -filtered yes -index_fname filtered_vamana_index
+	./filtered_app -k 100 -L 125  -R 40 -filtered yes -index_fname filtered_vamana_index -random no
 
 run_filter_no: filtered_app
-	./filtered_app -k 100 -L 125  -R 40 -filtered no -index_fname filtered_vamana_index
+	./filtered_app -k 100 -L 125  -R 40 -filtered no -index_fname filtered_vamana_index -random no
+
+run_filter_yes_random: filtered_app
+	./filtered_app -k 100 -L 125  -R 40 -filtered yes -index_fname filtered_vamana_index_r -random yes
+
+run_filter_no_random: filtered_app
+	./filtered_app -k 100 -L 125  -R 40 -filtered no -index_fname filtered_vamana_index_r -random yes
 
 # Run the stitched program
 run_stitch: stitched_app
-	./stitched_app -k 100 -L 125  -R 40 -filtered yes -index_fname stitched_vamana_index
+	./stitched_app -k 100 -L 125  -R 40 -filtered yes -index_fname stitched_vamana_index -random no
 
 run_stitch_no_filter: stitched_app
-	./stitched_app -k 100 -L 125  -R 40 -filtered no -index_fname stitched_vamana_index
+	./stitched_app -k 100 -L 125  -R 40 -filtered no -index_fname stitched_vamana_index -random no
+
+run_stitch_random: stitched_app
+	./stitched_app -k 100 -L 125  -R 40 -filtered yes -index_fname stitched_vamana_index_r -random yes
+
+run_stitch_no_filter_random: stitched_app
+	./stitched_app -k 100 -L 125  -R 40 -filtered no -index_fname stitched_vamana_index_r -random yes
 
 # Run the unit tests
 run_test: test

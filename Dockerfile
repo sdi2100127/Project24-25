@@ -24,3 +24,5 @@ RUN make clean && make
 
 # By default, if no argument is passed to `docker run`, `make` will execute
 CMD ["make", "run_vamana_main"]
+
+RUN apt-get update && apt-get install -y valgrind

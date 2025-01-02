@@ -14,6 +14,7 @@ int main(int argc, char ** argv) {
     start = time(NULL);
     int k , L , R , a = 1;
     char* filter = NULL;
+    const char* rnd = NULL;
     const char* idx_file = NULL;
     for (int i = 0; i< argc; i++){
         if(strcmp(argv[i], "-k") == 0){
@@ -30,6 +31,9 @@ int main(int argc, char ** argv) {
         }
         if(strcmp(argv[i], "-index_fname") == 0){
         idx_file = argv[i+1];
+        }
+        if(strcmp(argv[i], "-random") == 0){
+            rnd = argv[i+1];
         }
     }
 
@@ -104,8 +108,84 @@ int main(int argc, char ** argv) {
     int t = 10, medoid, neigh = 5;
     Map med, filtered_data;
     Vector* per;
+
+    // we create and store the vamana index
+    Vector** G;
+
+    char G_path[100];
+    sprintf(G_path, "filtered/%s.dat", idx_file);
+    FILE *G_file = fopen(G_path, "rb");
     
-    Vector** G = StichedVamanaIndexing(dataset, min_f, max_f, filters, vecs, data_dim, L, R, a, &med, &medoid, t, &filtered_data, &per);
+    // if it already exists load it from memory
+    if (G_file) {
+
+        Vector** G_f = (Vector**)malloc(filters->size * sizeof(Vector*));
+
+        // for each vector, deserialize it 
+        for (int f=0; f<filters->size; f++) {
+            // first we have to read each G's size
+            int G_size;
+            fread(&(G_size), sizeof(int), 1, G_file);
+
+            for (int j = 0; j < G_size; j++) {
+                G[f][j] = vec_Create(0);
+
+                // first we have to read each vector's size
+                fread(&(G[f][j]->size), sizeof(int), 1, G_file);
+
+                // then we allocate memory for the array
+                G[f][j]->array = (VecNode)realloc(G[f][j]->array, G[f][j]->size * sizeof(VecNode));
+
+                // and we fill it with the required elements
+                fread(G[f][j]->array, sizeof(VecNode), G[f][j]->size, G_file);
+            }
+        }
+        fclose(G_file);
+
+        // we also have to calculate the medoids map to be used by greedy search
+        Map filtered_data = map_create(min_f, max_f);
+
+        for (int j=0; j<vecs; j++) {
+            map_insert(filtered_data, (int)dataset[0][j], j);
+        }
+
+        med = FindMedoid(dataset, vecs, min_f, max_f, filtered_data, t);
+        printf("found starting points\n\n");
+
+        // FILTERED DATA, PER.....
+
+
+    } else {    // otherwise, compute it and store it
+
+        if (strcmp(rnd, "no")) G = StichedVamanaIndexing(dataset, min_f, max_f, filters, vecs, data_dim, L, R, a, &med, &medoid, t, &filtered_data, &per);
+        if (strcmp(rnd, "yes")) G = StichedVamanaIndexing_randomG(dataset, min_f, max_f, filters, vecs, data_dim, L, R, a, &med, &medoid, t, neigh, &filtered_data, &per);
+
+        G_file = fopen(G_path, "wb");
+        if (G_file == NULL) {
+        perror("Error opening file for writing");
+        exit(EXIT_FAILURE);         
+        }
+        
+        // for each vector in the dataset, serialize it
+        for (int f=0; f<filters->size; f++) {
+            Vector G_f = G[f];
+            int G_size = map_find_values(filtered_data, f)->size;
+            // first we have to store each G's size
+            fwrite(&(G_size), sizeof(int), 1, G_file);
+            for (int j = 0; j < G_size; j++) {
+                Vector df = G[f][j];
+                // first we have to store each vector's size
+                fwrite(&(df->size), sizeof(int), 1, G_file);
+
+                // then the elements of the actual array
+                fwrite(df->array, sizeof(VecNode), df->size, G_file);
+            }
+        }
+
+        fclose(G_file);
+    }
+
+    printf("found Vamana index\n");
 
     // printf("G: \n");
     // for (int f=0; f<filters->size; f++) {
