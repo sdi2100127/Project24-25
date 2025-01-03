@@ -119,7 +119,13 @@ int main(int argc, char ** argv) {
     // if it already exists load it from memory
     if (G_file) {
 
-        Vector** G_f = (Vector**)malloc(filters->size * sizeof(Vector*));
+        G = (Vector**)malloc(filters->size * sizeof(Vector*));
+        for (int i = 0; i < filters->size; i++) {
+            G[i] = (Vector*)malloc(vecs * sizeof(Vector));
+            for (int j=0; j<vecs; j++) {
+                G[i][j] = vec_Create(0);
+            }
+        }
 
         // for each vector, deserialize it 
         for (int f=0; f<filters->size; f++) {
@@ -128,13 +134,18 @@ int main(int argc, char ** argv) {
             fread(&(G_size), sizeof(int), 1, G_file);
 
             for (int j = 0; j < G_size; j++) {
-                G[f][j] = vec_Create(0);
 
                 // first we have to read each vector's size
-                fread(&(G[f][j]->size), sizeof(int), 1, G_file);
+                int vec_size;
+                fread(&vec_size, sizeof(int), 1, G_file);
+                G[f][j]->size = vec_size;
 
                 // then we allocate memory for the array
-                G[f][j]->array = (VecNode)realloc(G[f][j]->array, G[f][j]->size * sizeof(VecNode));
+                if (G[f][j]->size > 0) {
+                    G[f][j]->array = (VecNode)realloc(G[f][j]->array, G[f][j]->size * sizeof(VecNode));
+                } else {
+                    G[f][j]->array = NULL;
+                }
 
                 // and we fill it with the required elements
                 fread(G[f][j]->array, sizeof(VecNode), G[f][j]->size, G_file);
@@ -143,7 +154,7 @@ int main(int argc, char ** argv) {
         fclose(G_file);
 
         // we also have to calculate the medoids map to be used by greedy search
-        Map filtered_data = map_create(min_f, max_f);
+        filtered_data = map_create(min_f, max_f);
 
         for (int j=0; j<vecs; j++) {
             map_insert(filtered_data, (int)dataset[0][j], j);
@@ -152,8 +163,18 @@ int main(int argc, char ** argv) {
         med = FindMedoid(dataset, vecs, min_f, max_f, filtered_data, t);
         printf("found starting points\n\n");
 
-        // FILTERED DATA, PER.....
+        per = (Vector*)malloc(filters->size * sizeof(Vector));
+        for (int i=0; i<filters->size; i++) {
+            per[i] = vec_Create(0);
+        }
 
+        for (int f=0; f<filters->size; f++) {
+            Vector f_values = map_find_values(filtered_data, f);
+
+            for (VecNode s_node = vec_first(f_values); s_node != VECTOR_EOF; s_node = vec_next(f_values, s_node)) {
+                vec_insert(per[f], s_node->value, s_node->dist);
+            }
+        }
 
     } else {    // otherwise, compute it and store it
 
@@ -168,7 +189,6 @@ int main(int argc, char ** argv) {
         
         // for each vector in the dataset, serialize it
         for (int f=0; f<filters->size; f++) {
-            Vector G_f = G[f];
             int G_size = map_find_values(filtered_data, f)->size;
             // first we have to store each G's size
             fwrite(&(G_size), sizeof(int), 1, G_file);
@@ -213,7 +233,8 @@ int main(int argc, char ** argv) {
     while (fflag == 0) {
         fflag = 1;
         xq_pos = rand() % (count - 1);
-        if (posible_queries[1][xq_pos] != 0) fflag = 0;
+        if (strcmp(filter, "no")) if (posible_queries[1][xq_pos] == -1) fflag = 0;
+        if (strcmp(filter, "yes")) if (posible_queries[1][xq_pos] != -1) fflag = 0;
     }
     // int xq_pos = rand() % (count - 1);
     int xq_size = queries_dim-4;

@@ -824,7 +824,7 @@ Vector** StichedVamanaIndexing(float** dataset, float min_f, float max_f, Set fi
     
     // create an array of graphs, a graph for each filter of the dataset
     Vector** G_f = (Vector**)malloc(num_filters * sizeof(Vector*));
-    for (int i = 0; i < num_filters; ++i) {
+    for (int i = 0; i < num_filters; i++) {
         G_f[i] = (Vector*)malloc(vecs * sizeof(Vector));
         for (int j=0; j<vecs; j++) {
             G_f[i][j] = vec_Create(0);
@@ -972,7 +972,7 @@ Vector** StichedVamanaIndexing_randomG(float** dataset, float min_f, float max_f
     
     // create an array of graphs, a graph for each filter of the dataset
     Vector** G_f = (Vector**)malloc(num_filters * sizeof(Vector*));
-    for (int i = 0; i < num_filters; ++i) {
+    for (int i = 0; i < num_filters; i++) {
         G_f[i] = (Vector*)malloc(vecs * sizeof(Vector));
         for (int j=0; j<vecs; j++) {
             G_f[i][j] = vec_Create(0);
