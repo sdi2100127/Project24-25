@@ -1184,7 +1184,7 @@ Vector* Groundtruth(float** dataset, int vecs, int comps, float** queries, int v
 
     // for each vector in the queries dataset
     for (int j=0; j<vecs_q; j++) {
-        //printf("query %d\n", j);
+        printf("query %d\n", j);
 
         PQueue knn = pqueue_create(NULL);
  
@@ -1197,6 +1197,7 @@ Vector* Groundtruth(float** dataset, int vecs, int comps, float** queries, int v
         
         // compute its distance to all other vectors in the dataset
         for (int z=0; z<vecs; z++) {
+            printf("data point %d\n", z);
             count = 0;
             for (int i=2; i<comps; i++) {
                 vec_p2[count] = dataset[i][z];

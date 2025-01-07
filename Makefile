@@ -65,7 +65,7 @@ run_vamana_semi_random: app
 
 # Run the filtered program
 run_filter_yes: filtered_app
-	./filtered_app -k 100 -L 125  -R 40 -filtered yes -index_fname filtered_vamana_index -random no
+	./filtered_app -k 100 -L 125  -R 40 -filtered yes -index_fname filtered_vamana_index -random no -dataset 1m
 
 run_filter_no: filtered_app
 	./filtered_app -k 100 -L 125  -R 40 -filtered no -index_fname filtered_vamana_index -random no

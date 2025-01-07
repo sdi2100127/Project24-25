@@ -16,6 +16,7 @@ int main(int argc, char ** argv) {
     char* filter = NULL;
     const char* idx_file = NULL;
     const char* rnd = NULL;
+    const char* dtset = NULL;
     for (int i = 0; i< argc; i++){
         if(strcmp(argv[i], "-k") == 0){
         k = atoi(argv[i+1]);
@@ -35,20 +36,32 @@ int main(int argc, char ** argv) {
         if(strcmp(argv[i], "-random") == 0){
         rnd = argv[i+1];
         }
+        if(strcmp(argv[i], "-dataset") == 0){
+        dtset = argv[i+1];
+        }
     }
 
-    // open base vectors file using data_open
-    const char* base_file = "dummy-data.bin";
+    const char* base_file;
+    const char* query_file;
+    int vecs;
+    if (strcmp(dtset, "10k") == 0) {
+       base_file = "dummy-data.bin"; 
+       query_file = "dummy-queries.bin";
+       vecs = 10000;
+    } else if (strcmp(dtset, "1m") == 0){
+        base_file = "contest-data-release-1m.bin";
+        query_file = "contest-queries-release-1m.bin";
+        vecs = 1000000;
+    }
+
+    // open base vectors file using data_open   
     int num_vectors, d_base = 100;
     float min_f, max_f;
     Set filters;
     float** dataset = data_open(base_file, &num_vectors, d_base, &min_f, &max_f, &filters);
     int data_dim = d_base+2;
 
-    int vecs = 10000;
-
     // open query vectors file using query_open
-    const char* query_file = "dummy-queries.bin";
     int query_vectors, count, d_queries = 100;
     float** posible_queries = query_open(query_file, &query_vectors, d_queries, &count);
     int queries_dim = d_queries+4;
@@ -57,7 +70,12 @@ int main(int argc, char ** argv) {
 
     // we create and store the groundtruth
     Vector* groundtruth;
-    const char* grtrth_file = "groundtruth.dat";
+    const char* grtrth_file;
+    if (strcmp(dtset, "10k") == 0) {
+        grtrth_file = "groundtruth.dat";
+    } else if (strcmp(dtset, "1m") == 0){
+        grtrth_file = "groundtruth_1m.dat";
+    }
 
     char path[100];
     sprintf(path, "groundtruth/%s", grtrth_file);
