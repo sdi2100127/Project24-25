@@ -7,6 +7,9 @@ open.o: open_functions/open.c open_functions/open.h
 Data_Structs.o: Data_Structs/Data_Structs.c Data_Structs/Data_Structs.h
 	gcc -c Data_Structs/Data_Structs.c -o Data_Structs.o
 
+threads.o: threads/threads.c threads/threads.h 
+	gcc -c threads/threads.c -o threads.o 
+
 algorithms.o: algorithms/algorithms.c algorithms/algorithms.h 
 	gcc -c algorithms/algorithms.c -o algorithms.o 
 
@@ -14,8 +17,8 @@ main.o: src/main.c open_functions/open.h algorithms/algorithms.h
 	gcc -c src/main.c -o main.o 
 
 # Executable
-app: main.o open.o algorithms.o Data_Structs.o
-	gcc main.o open.o algorithms.o Data_Structs.o -g -o app -lm -ggdb
+app: main.o open.o algorithms.o Data_Structs.o threads.o
+	gcc main.o open.o algorithms.o Data_Structs.o threads.o -g -o app -lm -ggdb
 
 # FILTERED MAIN PROGRAM:
 
@@ -27,8 +30,8 @@ filtered_main.o: src/filtered_main.c open_functions/open.h algorithms/filtered_a
 	gcc -c src/filtered_main.c -o filtered_main.o 
 
 # Executable
-filtered_app: filtered_main.o open.o algorithms.o filtered_algorithms.o Data_Structs.o
-	gcc filtered_main.o open.o algorithms.o filtered_algorithms.o Data_Structs.o -g -o filtered_app -lm -ggdb
+filtered_app: filtered_main.o open.o algorithms.o filtered_algorithms.o Data_Structs.o threads.o
+	gcc filtered_main.o open.o algorithms.o filtered_algorithms.o Data_Structs.o threads.o -g -o filtered_app -lm -ggdb
 
 
 # STITCHED MAIN PROGRAM:
@@ -36,8 +39,8 @@ stitched_main.o: src/stitched_main.c open_functions/open.h algorithms/filtered_a
 	gcc -c src/stitched_main.c -o stitched_main.o 
 
 # Executable
-stitched_app: stitched_main.o open.o algorithms.o filtered_algorithms.o Data_Structs.o
-	gcc stitched_main.o open.o algorithms.o filtered_algorithms.o Data_Structs.o -g -o stitched_app -lm -ggdb
+stitched_app: stitched_main.o open.o algorithms.o filtered_algorithms.o Data_Structs.o threads.o
+	gcc stitched_main.o open.o algorithms.o filtered_algorithms.o Data_Structs.o threads.o -g -o stitched_app -lm -ggdb
 
 
 # UNIT TESTS:
@@ -55,39 +58,39 @@ clean:
 
 # Run the program
 run_vamana_main: app
-	./app -k 100 -L 125  -R 40 -vamana main -index_fname vamana_index 
+	./app -k 100 -L 125  -R 40 -vamana main -index_fname vamana_index -threads 5
 
 run_vamana_random: app
-	./app -k 100 -L 125  -R 40 -vamana random -index_fname vamana_index_r
+	./app -k 100 -L 125  -R 40 -vamana random -index_fname vamana_index_r -threads 5
 
 run_vamana_semi_random: app
-	./app -k 100 -L 125  -R 40 -vamana semi_random -index_fname vamana_index_sr
+	./app -k 100 -L 125  -R 40 -vamana semi_random -index_fname vamana_index_sr -threads 5
 
 # Run the filtered program
 run_filter_yes: filtered_app
-	./filtered_app -k 100 -L 125  -R 40 -filtered yes -index_fname filtered_vamana_index -random no -dataset 1m
+	./filtered_app -k 100 -L 125  -R 40 -filtered yes -index_fname filtered_vamana_index -random no -dataset 10k -threads 5
 
 run_filter_no: filtered_app
-	./filtered_app -k 100 -L 125  -R 40 -filtered no -index_fname filtered_vamana_index -random no
+	./filtered_app -k 100 -L 125  -R 40 -filtered no -index_fname filtered_vamana_index -random no -dataset 10k -threads 5
 
 run_filter_yes_random: filtered_app
-	./filtered_app -k 100 -L 125  -R 40 -filtered yes -index_fname filtered_vamana_index_r -random yes
+	./filtered_app -k 100 -L 125  -R 40 -filtered yes -index_fname filtered_vamana_index_r -random yes -dataset 10k -threads 5
 
 run_filter_no_random: filtered_app
-	./filtered_app -k 100 -L 125  -R 40 -filtered no -index_fname filtered_vamana_index_r -random yes
+	./filtered_app -k 100 -L 125  -R 40 -filtered no -index_fname filtered_vamana_index_r -random yes -dataset 10k -threads 5
 
 # Run the stitched program
 run_stitch: stitched_app
-	./stitched_app -k 100 -L 125  -R 40 -filtered yes -index_fname stitched_vamana_index -random no
+	./stitched_app -k 100 -L 125  -R 40 -filtered yes -index_fname stitched_vamana_index -random no -dataset 10k -threads 5 -vamana main
 
 run_stitch_no_filter: stitched_app
-	./stitched_app -k 100 -L 125  -R 40 -filtered no -index_fname stitched_vamana_index -random no
+	./stitched_app -k 100 -L 125  -R 40 -filtered no -index_fname stitched_vamana_index -random no -dataset 10k -threads 5 -vamana main
 
 run_stitch_random: stitched_app
-	./stitched_app -k 100 -L 125  -R 40 -filtered yes -index_fname stitched_vamana_index_r -random yes
+	./stitched_app -k 100 -L 125  -R 40 -filtered yes -index_fname stitched_vamana_index_r -random yes -dataset 10k -threads 5 -vamana main
 
 run_stitch_no_filter_random: stitched_app
-	./stitched_app -k 100 -L 125  -R 40 -filtered no -index_fname stitched_vamana_index_r -random yes
+	./stitched_app -k 100 -L 125  -R 40 -filtered no -index_fname stitched_vamana_index_r -random yes -dataset 10k -threads 5 -vamana main
 
 # Run the unit tests
 run_test: test

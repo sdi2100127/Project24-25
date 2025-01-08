@@ -12,10 +12,12 @@ int main(int argc, char ** argv) {
 
     time_t start,end;
     start = time(NULL);
-    int k , L , R , a = 1;
+    int k , L , R , a = 1, threads;
     char* filter = NULL;
     const char* rnd = NULL;
     const char* idx_file = NULL;
+    const char* dtset = NULL;
+    const char* vmn = NULL;
     for (int i = 0; i< argc; i++){
         if(strcmp(argv[i], "-k") == 0){
         k = atoi(argv[i+1]);
@@ -35,30 +37,52 @@ int main(int argc, char ** argv) {
         if(strcmp(argv[i], "-random") == 0){
             rnd = argv[i+1];
         }
+        if(strcmp(argv[i], "-dataset") == 0){
+        dtset = argv[i+1];
+        }
+        if(strcmp(argv[i], "-threads") == 0){
+        threads = atoi(argv[i+1]);
+        }
+        if(strcmp(argv[i], "-vamana") == 0){
+        vmn = argv[i+1];
+        }
+    }
+
+    const char* base_file;
+    const char* query_file;
+    int vecs;
+    if (strcmp(dtset, "10k") == 0) {
+       base_file = "dummy-data.bin"; 
+       query_file = "dummy-queries.bin";
+       vecs = 10000;
+    } else if (strcmp(dtset, "1m") == 0){
+        base_file = "contest-data-release-1m.bin";
+        query_file = "contest-queries-release-1m.bin";
+        vecs = 1000000;
     }
 
     // open base vectors file using data_open
-    const char* base_file = "dummy-data.bin";
     int num_vectors, d_base = 100;
     float min_f, max_f;
     Set filters;
     float** dataset = data_open(base_file, &num_vectors, d_base, &min_f, &max_f, &filters);
     int data_dim = d_base+2;
 
-    int vecs = 10000;
-
     // open query vectors file using query_open
-    const char* query_file = "dummy-queries.bin";
     int query_vectors, count, d_queries = 100;
     float** posible_queries = query_open(query_file, &query_vectors, d_queries, &count);
     int queries_dim = d_queries+4;
-
 
     printf("\n");
 
     // we create and store the groundtruth
     Vector* groundtruth;
-    const char* grtrth_file = "groundtruth.dat";
+    const char* grtrth_file;
+    if (strcmp(dtset, "10k") == 0) {
+        grtrth_file = "groundtruth.dat";
+    } else if (strcmp(dtset, "1m") == 0){
+        grtrth_file = "groundtruth_1m.dat";
+    }
 
     char path[100];
     sprintf(path, "groundtruth/%s", grtrth_file);
@@ -103,7 +127,7 @@ int main(int argc, char ** argv) {
         fclose(file);
     }
 
-    printf("found Groundtruth\n");
+    printf("Found Groundtruth\n\n");
 
     int t = 10, medoid, neigh = 5;
     Map med, filtered_data;
@@ -161,7 +185,7 @@ int main(int argc, char ** argv) {
         }
 
         med = FindMedoid(dataset, vecs, min_f, max_f, filtered_data, t);
-        printf("found starting points\n\n");
+        printf("found starting points.\n\n");
 
         per = (Vector*)malloc(filters->size * sizeof(Vector));
         for (int i=0; i<filters->size; i++) {
@@ -178,8 +202,8 @@ int main(int argc, char ** argv) {
 
     } else {    // otherwise, compute it and store it
 
-        if (strcmp(rnd, "no")) G = StichedVamanaIndexing(dataset, min_f, max_f, filters, vecs, data_dim, L, R, a, &med, &medoid, t, &filtered_data, &per);
-        if (strcmp(rnd, "yes")) G = StichedVamanaIndexing_randomG(dataset, min_f, max_f, filters, vecs, data_dim, L, R, a, &med, &medoid, t, neigh, &filtered_data, &per);
+        if (strcmp(rnd, "no") == 0) G = StichedVamanaIndexing(dataset, min_f, max_f, filters, vecs, data_dim, L, R, a, &med, &medoid, t, &filtered_data, &per, threads, vmn);
+        if (strcmp(rnd, "yes") == 0) G = StichedVamanaIndexing_randomG(dataset, min_f, max_f, filters, vecs, data_dim, L, R, a, &med, &medoid, t, neigh, &filtered_data, &per, threads, vmn);
 
         G_file = fopen(G_path, "wb");
         if (G_file == NULL) {
@@ -205,7 +229,7 @@ int main(int argc, char ** argv) {
         fclose(G_file);
     }
 
-    printf("found Vamana index\n");
+    printf("Found Vamana index.\n\n");
 
     // printf("G: \n");
     // for (int f=0; f<filters->size; f++) {
@@ -233,8 +257,8 @@ int main(int argc, char ** argv) {
     while (fflag == 0) {
         fflag = 1;
         xq_pos = rand() % (count - 1);
-        if (strcmp(filter, "no")) if (posible_queries[1][xq_pos] == -1) fflag = 0;
-        if (strcmp(filter, "yes")) if (posible_queries[1][xq_pos] != -1) fflag = 0;
+        if (strcmp(filter, "no") == 0) if (posible_queries[1][xq_pos] != -1) fflag = 0;
+        if (strcmp(filter, "yes") == 0) if (posible_queries[1][xq_pos] == -1) fflag = 0;
     }
     // int xq_pos = rand() % (count - 1);
     int xq_size = queries_dim-4;
@@ -277,15 +301,15 @@ int main(int argc, char ** argv) {
         }
 
         int f_med = vec_first(map_find_values(med, xq_f))->value;
-        printf("f_med: %d\n", f_med);
+        //printf("f_med: %d\n", f_med);
         knn = greedySearch(G[xq_f], R, data_dim-2, f_size, data_f, f_med, xq, L, k, &V);
 
-        printf("knn: ");
+        //printf("knn: ");
         for (VecNode vnode = vec_first(knn->vector); vnode != VECTOR_EOF; vnode = vec_next(knn->vector, vnode)) {
             vec_set_at(knn->vector, vec_find_pos(knn->vector, vnode->value), vec_get_at(per[xq_f], vnode->value), vnode->dist);
-            printf("%d ", vnode->value);
+            //printf("%d ", vnode->value);
         }
-        printf("\n");
+        //printf("\n");
 
         free_matrix_fvecs(data_f, c);
     } else {
@@ -293,7 +317,7 @@ int main(int argc, char ** argv) {
         knn_q = pqueue_create(0);
         PQueue knn_g;
         for (MapNode node = map_first(med); node != MAP_EOF; node = map_next(med, node)) {
-            printf("filter %d: \n", node->key);
+            //printf("filter %d: \n", node->key);
             int c = data_dim-2;
             int f_size = map_find_values(filtered_data, node->key)->size;
             float** data_f = (float**)malloc(c * sizeof(float*));
@@ -310,10 +334,10 @@ int main(int argc, char ** argv) {
                 }
             }
 
-            printf("found data_f\n");
+            //printf("found data_f\n");
 
             int f_med = vec_first(map_find_values(med, node->key))->value;
-            printf("f_med: %d\n", f_med);
+            //printf("f_med: %d\n", f_med);
 
             knn_g = greedySearch(G[node->key], R, data_dim-2, f_size, data_f, f_med, xq, L, k, &V);
             
@@ -332,6 +356,8 @@ int main(int argc, char ** argv) {
             }
         }
 
+        // SEGFAULT IS OVER HERE!!!!!!
+
         knn = knn_q;
         
         printf("knn: ");
@@ -349,11 +375,11 @@ int main(int argc, char ** argv) {
     
 
     //Calculation of accuracy  
-    printf("query groundtruth %d with filter %f: ", xq_pos, posible_queries[1][xq_pos]);
-    for (VecNode node = vec_first(groundtruth[xq_pos]); node != VECTOR_EOF; node = vec_next(groundtruth[xq_pos], node)) {
-        printf("%d -> %f  ", node->value , dataset[0][node->value]);
-    }
-    printf("\n");
+    // printf("query groundtruth %d with filter %f: ", xq_pos, posible_queries[1][xq_pos]);
+    // for (VecNode node = vec_first(groundtruth[xq_pos]); node != VECTOR_EOF; node = vec_next(groundtruth[xq_pos], node)) {
+    //     printf("%d -> %f  ", node->value , dataset[0][node->value]);
+    // }
+    // printf("\n");
 
     int found = 0;
     for (int i=0; i<k; i++) {

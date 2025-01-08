@@ -1,5 +1,5 @@
 #include "filtered_algorithms.h"
-#include <float.h>
+#include <string.h>
 
 float euclidean_distance_f(float* vec1, float* vec2, int comps) {
     float res = 0.0f;
@@ -22,7 +22,7 @@ float squared_euclidean_distance_f(float* vec1, float* vec2, int comps) {
 }
 
 PQueue FilteredGreedySearch(Vector* G, int R, int dim, int vecs, float** vectors, float* xq, int fq, Map filter_med, int med, int L, int k, Set* V) {
-    printf("GREEDY SEARCH\n");
+    //printf("GREEDY SEARCH\n");
 
     // initialise knn and visited set as empty
     PQueue knn = pqueue_create(NULL);
@@ -148,19 +148,17 @@ PQueue FilteredGreedySearch(Vector* G, int R, int dim, int vecs, float** vectors
         }
     }
 
-    //if (vec_find_node(knn->vector, s) == VECTOR_EOF) pqueue_insert(knn, s, dist_s);
-
-    printf("knn_set: ");
-    for (VecNode node = vec_first(knn->vector); node != VECTOR_EOF; node = vec_next(knn->vector, node)) { 
-        printf("%d -> %f  ", node->value , vectors[0][node->value]);
-    }
-    printf("\n");
+    // printf("knn_set: ");
+    // for (VecNode node = vec_first(knn->vector); node != VECTOR_EOF; node = vec_next(knn->vector, node)) { 
+    //     printf("%d -> %f  ", node->value , vectors[0][node->value]);
+    // }
+    // printf("\n");
 
     // printf("visited_set: ");
     // for (set_Node node = find_min(visited_nodes->root); node != SET_EOF; node = set_next(visited_nodes, node)) { 
     //     printf("%d ", node->value);
     // }
-    printf("\n");
+    //printf("\n");
 
     *V = visited_nodes;
 
@@ -172,7 +170,7 @@ PQueue FilteredGreedySearch(Vector* G, int R, int dim, int vecs, float** vectors
 }
 
 void FilteredRobustPrune(Vector** G, int p ,Set* V, int a, int R , int dim , int vecs , float** vectors, float** dist_m) {
-    printf("ROBUST PRUNE\n");
+    //printf("ROBUST PRUNE\n");
 
     // we start out by creating some temporary structs to store the visited nodes set, as well as the graph G
     Set temp = *V;
@@ -250,11 +248,11 @@ void FilteredRobustPrune(Vector** G, int p ,Set* V, int a, int R , int dim , int
     // }
     // printf("\n");
 
-    printf("Nout(%d): ", p);
-    for (int i=0; i<temp_G[p]->size; i++) {
-        printf("%d ", vec_get_at(temp_G[p], i));
-    }
-    printf("\n");
+    // printf("Nout(%d): ", p);
+    // for (int i=0; i<temp_G[p]->size; i++) {
+    //     printf("%d ", vec_get_at(temp_G[p], i));
+    // }
+    // printf("\n");
 
     *V = temp;
     *G = temp_G;
@@ -263,6 +261,7 @@ void FilteredRobustPrune(Vector** G, int p ,Set* V, int a, int R , int dim , int
 }
 
 int FilteredMedoid(float** dataset, int vecs, int comps, float*** dist_m) {
+    printf("FilteredMedoid:\nBuilding distance matrix and computing the medoiod.\n");
     float** temp_m =  *dist_m;
 
     float* vec_p1 = (float*)malloc((comps-2) * sizeof(float));
@@ -320,8 +319,43 @@ int FilteredMedoid(float** dataset, int vecs, int comps, float*** dist_m) {
     return min_p;
 }
 
+int FilteredMedoid_threads(float** dataset, int vecs, int comps, float*** dist_m, int threads_count) {
+    printf("FilteredMedoid_threads:\nBuilding distance matrix and computing the medoiod.\n");
+    int num_threads = threads_count;
+    pthread_t threads[num_threads];
+    ThreadData thread_data[num_threads];
+    int chunk_size = vecs / num_threads;
+
+    float min_sum_total = FLT_MAX;
+    int min_p_total = -1;
+
+    for (int t = 0; t < num_threads; t++) {
+        thread_data[t].dataset = dataset;
+        thread_data[t].dist_m = *dist_m;
+        thread_data[t].start = t * chunk_size;
+        thread_data[t].end = (t == num_threads - 1) ? vecs : (t + 1) * chunk_size;
+        thread_data[t].comps = comps;
+        thread_data[t].vecs = vecs;
+        thread_data[t].med = -1;
+        thread_data[t].med_sum = FLT_MAX;
+        pthread_create(&threads[t], NULL, calculate_distances, (void*)&thread_data[t]);
+    }
+
+    // Join threads
+    for (int t = 0; t < num_threads; ++t) {
+        pthread_join(threads[t], NULL);
+        if (thread_data[t].med_sum < min_sum_total) {
+            min_sum_total = thread_data[t].med_sum;
+            min_p_total = thread_data[t].med;
+        }
+    }
+
+    printf("medoid sum: %f\n", min_sum_total);
+    return min_p_total;
+}
+
 Map FindMedoid(float** dataset, int vecs, float min_f, float max_f, Map filtered_data, int t) {   
-    printf("FIND MEDOID\n");
+    printf("FindMedoid:\nCreating a map with each filters starting point.\n");
 
     // initialize M as an empty map
     // M maps filters to start nodes
@@ -397,8 +431,9 @@ Map FindMedoid(float** dataset, int vecs, float min_f, float max_f, Map filtered
     return M;
 }
 
-Vector* FilteredVamanaIndexing(float** dataset, float min_f, float max_f, int vecs, int comps, int q_comps, int L, int R, int a, Map* med, int* medoid, int t) {
-    
+Vector* FilteredVamanaIndexing(float** dataset, float min_f, float max_f, int vecs, int comps, int q_comps, int L, int R, int a, Map* med, int* medoid, int t, int threads) {
+    printf("FilteredVamanaIndexing:\nBuilding the vamana index.\n\n");
+
     // first we initialize G to an empty graph
     Vector* G = (Vector*)malloc(vecs * sizeof(Vector));
    
@@ -420,8 +455,10 @@ Vector* FilteredVamanaIndexing(float** dataset, float min_f, float max_f, int ve
     }
 
     // now we find the medoid of the dataset
-    int fmedoid = FilteredMedoid(dataset, vecs, comps, &dist_matrix);
-    printf("vamana found medoid: %d\n\n", fmedoid);
+    int fmedoid;
+    if (threads != 0) fmedoid = FilteredMedoid_threads(dataset, vecs, comps, &dist_matrix, threads);
+    else if (threads == 0) fmedoid = FilteredMedoid(dataset, vecs, comps, &dist_matrix);
+    printf("Vamana found medoid: %d\n\n", fmedoid);
     *medoid = fmedoid;
 
     // now we will have to map each point of the dataset to each corresponding filter
@@ -444,10 +481,10 @@ Vector* FilteredVamanaIndexing(float** dataset, float min_f, float max_f, int ve
         }
         //printf("\n");
     }
-    printf("vamana filtered data\n\n");
+    printf("Vamana filtered data.\n\n");
 
     Map filter_medoids = FindMedoid(dataset, vecs, min_f, max_f, filtered_data, t);
-    printf("found starting points\n\n");
+    printf("Found starting points.\n\n");
     *med = filter_medoids;
 
     // create a random permutation of 1...vecs (really from 0 to vecs-1) 
@@ -469,9 +506,9 @@ Vector* FilteredVamanaIndexing(float** dataset, float min_f, float max_f, int ve
         per[randIdx] = t;
     }
 
-    printf("random permutation:\n");
+    printf("Found random permutation ");
     for (int i=0; i<vecs; i++) {
-        printf("%d ", per[i]);
+        //printf("%d ", per[i]);
     }
     printf("\n\n");
 
@@ -479,18 +516,19 @@ Vector* FilteredVamanaIndexing(float** dataset, float min_f, float max_f, int ve
     float* xq = (float*)malloc((comps-2) * sizeof(float));
     float* point_vec = (float*)malloc((comps-2) * sizeof(float));
 
+    printf("Going through each point of the dataset and updating the graph.\n\n");
     for (int i=0; i<vecs; i++) {
 
         // find and store the query vector xq based on the point in the dataset indexed by per[i]
         int query_pos = per[i];
-        printf("query vector %d: ", query_pos);
+        //printf("query vector %d: ", query_pos);
         int c = 0;
         for (int i=2; i<comps; i++) {
             xq[c] = dataset[i][query_pos];
             c++;
-            printf("%f ", xq[i]);
+            //printf("%f ", xq[i]);
         }
-        printf("\n");
+        //printf("\n");
 
         // find the filter of the vector with possition per[i]
         int query_fltr = (int)dataset[0][query_pos];
@@ -508,32 +546,7 @@ Vector* FilteredVamanaIndexing(float** dataset, float min_f, float max_f, int ve
             
             // for each point j that is an outgoing neighbour of the query point
             int point = vec_get_at(G[query_pos], j);
-            printf("Neighbour %d has %d neighbours\n", point, G[query_pos]->size);
-
-            // int c_i = 0;
-            // for (int i=2; i<comps; i++) {
-            //     point_vec[c_i] = dataset[i][point];
-            //     c_i++;
-            // }
-
-            // // update Nout of j with the query point
-            // vec_insert(G[point], query_pos, euclidean_distance(xq, point_vec, comps-2));
-
-            // // now check the size of Nout
-            // if (G[point]->size == R) {
-
-            //     // we create a set Nout_j with the outgoing neighbours of j as well as the current query point
-            //     Set Nout_j = set_Create();
-            //     for (int n=0; n<G[point]->size; n++) {
-            //         set_insert(Nout_j, vec_get_at(G[point], n));
-            //     }
-            //     set_insert(Nout_j, query_pos);
-            //     // and we call robust prune
-            //     FilteredRobustPrune(&G, point, &Nout_j, a, R, comps, vecs, dataset, dist_matrix);
-
-            //     set_destroy(Nout_j);
-
-            // } 
+            //printf("Neighbour %d has %d neighbours\n", point, G[query_pos]->size); 
 
             // OLD WAY
             // check if it has less outgoing neighbours than R 
@@ -582,8 +595,9 @@ Vector* FilteredVamanaIndexing(float** dataset, float min_f, float max_f, int ve
     return G;
 }
 
-Vector* FilteredVamanaIndexing_randomG(float** dataset, float min_f, float max_f, int vecs, int comps, int q_comps, int L, int R, int neigh, int a, Map* med, int* medoid, int t) {
-    
+Vector* FilteredVamanaIndexing_randomG(float** dataset, float min_f, float max_f, int vecs, int comps, int q_comps, int L, int R, int neigh, int a, Map* med, int* medoid, int t, int threads) {
+    printf("FilteredVamanaIndexing_randomG:\nBuilding the vamana index.\n");
+
     // first we initialize G to an empty graph
     Vector* G = (Vector*)malloc(vecs * sizeof(Vector));
    
@@ -605,8 +619,10 @@ Vector* FilteredVamanaIndexing_randomG(float** dataset, float min_f, float max_f
     }
 
     // now we find the medoid of the dataset
-    int fmedoid = FilteredMedoid(dataset, vecs, comps, &dist_matrix);
-    printf("vamana found medoid: %d\n\n", fmedoid);
+    int fmedoid;
+    if (threads != 0) fmedoid = FilteredMedoid_threads(dataset, vecs, comps, &dist_matrix, threads);
+    else if (threads == 0) fmedoid = FilteredMedoid(dataset, vecs, comps, &dist_matrix);
+    printf("Vamana found medoid: %d\n\n", fmedoid);
     *medoid = fmedoid;
 
     // now we will have to map each point of the dataset to each corresponding filter
@@ -629,11 +645,11 @@ Vector* FilteredVamanaIndexing_randomG(float** dataset, float min_f, float max_f
         }
         //printf("\n");
     }
-    printf("vamana filtered data\n\n");
+    printf("Vamana filtered data\n\n");
 
     // CODE TO CREATE A RANDOM STARTING GRAPH !!!
 
-    printf("creating random starting graph\n\n");
+    printf("Creating random starting graph\n");
 
     int x;
     //printf("%d");
@@ -681,10 +697,10 @@ Vector* FilteredVamanaIndexing_randomG(float** dataset, float min_f, float max_f
     free(vec_x);
     free(vec_j);
 
-    printf("found random starting graph\n\n");
+    printf("Found random starting graph\n\n");
 
     Map filter_medoids = FindMedoid(dataset, vecs, min_f, max_f, filtered_data, t);
-    printf("found starting points\n\n");
+    printf("Found starting points\n\n");
     *med = filter_medoids;
 
     // create a random permutation of 1...vecs (really from 0 to vecs-1) 
@@ -706,9 +722,9 @@ Vector* FilteredVamanaIndexing_randomG(float** dataset, float min_f, float max_f
         per[randIdx] = t;
     }
 
-    printf("random permutation:\n");
+    printf("Found random permutation: ");
     for (int i=0; i<vecs; i++) {
-        printf("%d ", per[i]);
+        //printf("%d ", per[i]);
     }
     printf("\n\n");
 
@@ -716,18 +732,19 @@ Vector* FilteredVamanaIndexing_randomG(float** dataset, float min_f, float max_f
     float* xq = (float*)malloc((comps-2) * sizeof(float));
     float* point_vec = (float*)malloc((comps-2) * sizeof(float));
 
+    printf("Going through each point of the dataset and updating the graph.\n\n");
     for (int i=0; i<vecs; i++) {
 
         // find and store the query vector xq based on the point in the dataset indexed by per[i]
         int query_pos = per[i];
-        printf("query vector %d: ", query_pos);
+        //printf("query vector %d: ", query_pos);
         int c = 0;
         for (int i=2; i<comps; i++) {
             xq[c] = dataset[i][query_pos];
             c++;
-            printf("%f ", xq[i]);
+            //printf("%f ", xq[i]);
         }
-        printf("\n");
+        //printf("\n");
 
         // find the filter of the vector with possition per[i]
         int query_fltr = (int)dataset[0][query_pos];
@@ -745,32 +762,7 @@ Vector* FilteredVamanaIndexing_randomG(float** dataset, float min_f, float max_f
             
             // for each point j that is an outgoing neighbour of the query point
             int point = vec_get_at(G[query_pos], j);
-            printf("Neighbour %d has %d neighbours\n", point, G[query_pos]->size);
-
-            // int c_i = 0;
-            // for (int i=2; i<comps; i++) {
-            //     point_vec[c_i] = dataset[i][point];
-            //     c_i++;
-            // }
-
-            // // update Nout of j with the query point
-            // vec_insert(G[point], query_pos, euclidean_distance(xq, point_vec, comps-2));
-
-            // // now check the size of Nout
-            // if (G[point]->size == R) {
-
-            //     // we create a set Nout_j with the outgoing neighbours of j as well as the current query point
-            //     Set Nout_j = set_Create();
-            //     for (int n=0; n<G[point]->size; n++) {
-            //         set_insert(Nout_j, vec_get_at(G[point], n));
-            //     }
-            //     set_insert(Nout_j, query_pos);
-            //     // and we call robust prune
-            //     FilteredRobustPrune(&G, point, &Nout_j, a, R, comps, vecs, dataset, dist_matrix);
-
-            //     set_destroy(Nout_j);
-
-            // } 
+            //printf("Neighbour %d has %d neighbours\n", point, G[query_pos]->size);
 
             // OLD WAY
             // check if it has less outgoing neighbours than R 
@@ -819,7 +811,8 @@ Vector* FilteredVamanaIndexing_randomG(float** dataset, float min_f, float max_f
     return G;
 }
 
-Vector** StichedVamanaIndexing(float** dataset, float min_f, float max_f, Set filters, int vecs, int comps, int L, int R_stitched, int a, Map* med, int* medoid, int t, Map* filt_data, Vector** permutation) {
+Vector** StichedVamanaIndexing(float** dataset, float min_f, float max_f, Set filters, int vecs, int comps, int L, int R_stitched, int a, Map* med, int* medoid, int t, Map* filt_data, Vector** permutation, int threads, const char* vmn) {
+    printf("StichedVamanaIndexing:\nBuilding the vamana index.\n\n");
     int num_filters = filters->size;
     
     // create an array of graphs, a graph for each filter of the dataset
@@ -831,7 +824,7 @@ Vector** StichedVamanaIndexing(float** dataset, float min_f, float max_f, Set fi
         }
     }
 
-    printf("initialized random empty graphs\n\n");
+    printf("Initialized random empty graphs.\n\n");
 
     // now we will have to map each point of the dataset to each corresponding filter
     // we will do that by using a hashmap structure(filter --> key) that has an array big enough
@@ -857,13 +850,13 @@ Vector** StichedVamanaIndexing(float** dataset, float min_f, float max_f, Set fi
         //printf("\n");
     }
 
-    printf("vamana filtered data\n\n");
+    printf("Vamana filtered data.\n\n");
     
 
     *filt_data = filtered_data;
 
     Map filter_medoids = FindMedoid(dataset, vecs, min_f, max_f, filtered_data, t);
-    printf("found starting points\n\n");
+    printf("Found starting points.\n\n");
     *med = filter_medoids;
 
     // stores the original permutation of each filter's points in filtered_data
@@ -871,6 +864,8 @@ Vector** StichedVamanaIndexing(float** dataset, float min_f, float max_f, Set fi
     for (int i=0; i<num_filters; i++) {
         per[i] = vec_Create(0);
     }
+
+    printf("Now for each filter we call vamana.\n\n");
 
     //for (set_Node node = find_min(filters->root); node != SET_EOF; node = set_next(filters, node)) { 
     for (int f=0; f<num_filters; f++) {
@@ -896,13 +891,13 @@ Vector** StichedVamanaIndexing(float** dataset, float min_f, float max_f, Set fi
         // }
         // printf("\n");
 
-        printf("filter: %d\n", f);
+        //printf("filter: %d\n", f);
 
-        printf("random stitched permutation:\n");
+        //printf("random stitched permutation: \n");
         for (int j=0; j<f_size; j++) {
-            printf("%d ", vec_get_at(per[f], j));
+            //printf("%d ", vec_get_at(per[f], j));
         }
-        printf("\n");
+        //printf("\n");
 
         // and store them in the new dataset
         int c = comps-2;
@@ -920,13 +915,13 @@ Vector** StichedVamanaIndexing(float** dataset, float min_f, float max_f, Set fi
             }
         }
 
-        for (int j = 0; j < f_size; j++) {
-            printf("vector %d -> %d: ", j, vec_get_at(per[f], j));
-            for (int i = 0; i < c; i++) {
-                printf("%f ", data_f[i][j]);
-            }
-            printf("\n\n");
-        }
+        // for (int j = 0; j < f_size; j++) {
+        //     printf("vector %d -> %d: ", j, vec_get_at(per[f], j));
+        //     for (int i = 0; i < c; i++) {
+        //         printf("%f ", data_f[i][j]);
+        //     }
+        //     printf("\n\n");
+        // }
 
         int Vmedoid;
 
@@ -945,11 +940,17 @@ Vector** StichedVamanaIndexing(float** dataset, float min_f, float max_f, Set fi
             }
         } else {
             if (R_stitched >= f_size) {
-                printf("R: %d\n", f_size);
-                G_f[f] = Vamana_random_medoid(data_f, f_size, comps-2, L, f_size-1, a, &Vmedoid);
+                //printf("R: %d\n", f_size);
+                //printf("vmn, threads: %s, %d\n", vmn, threads);
+                if (strcmp(vmn, "main") == 0) G_f[f] = Vamana_main(data_f, f_size, comps-2, L, f_size-1, a, &Vmedoid, threads);
+                if (strcmp(vmn, "random")==0) G_f[f] = Vamana_random_medoid(data_f, f_size, comps-2, L, f_size-1, a, &Vmedoid, threads);
+                if (strcmp(vmn, "semirandom")==0) G_f[f] = Vamana_semirandom_medoid(data_f, f_size, comps-2, L, f_size-1, a, &Vmedoid, threads);
             } else {
-                printf("R: %d\n", R_stitched);
-                G_f[f] = Vamana_random_medoid(data_f, f_size, comps-2, L, R_stitched, a, &Vmedoid);
+                //printf("R: %d\n", R_stitched);
+                //printf("vmn, threads: %s, %d\n", vmn, threads);
+                if (strcmp(vmn, "main")==0) G_f[f] = Vamana_main(data_f, f_size, comps-2, L, R_stitched, a, &Vmedoid, threads);
+                if (strcmp(vmn, "random")==0) G_f[f] = Vamana_random_medoid(data_f, f_size, comps-2, L, R_stitched, a, &Vmedoid, threads);
+                if (strcmp(vmn, "semirandom")==0) G_f[f] = Vamana_semirandom_medoid(data_f, f_size, comps-2, L, R_stitched, a, &Vmedoid, threads);
             }
         }
 
@@ -967,7 +968,8 @@ Vector** StichedVamanaIndexing(float** dataset, float min_f, float max_f, Set fi
     return G_f;
 }
 
-Vector** StichedVamanaIndexing_randomG(float** dataset, float min_f, float max_f, Set filters, int vecs, int comps, int L, int R_stitched, int a, Map* med, int* medoid, int t, int neigh, Map* filt_data, Vector** permutation) {
+Vector** StichedVamanaIndexing_randomG(float** dataset, float min_f, float max_f, Set filters, int vecs, int comps, int L, int R_stitched, int a, Map* med, int* medoid, int t, int neigh, Map* filt_data, Vector** permutation, int threads, const char* vmn) {
+    printf("StichedVamanaIndexing_randomG:\nBuilding the vamana index.\n\n");
     int num_filters = filters->size;
     
     // create an array of graphs, a graph for each filter of the dataset
@@ -979,7 +981,7 @@ Vector** StichedVamanaIndexing_randomG(float** dataset, float min_f, float max_f
         }
     }
 
-    printf("initialized random empty graphs\n\n");
+    printf("Initialized random empty graphs.\n\n");
 
     // now we will have to map each point of the dataset to each corresponding filter
     // we will do that by using a hashmap structure(filter --> key) that has an array big enough
@@ -1005,13 +1007,13 @@ Vector** StichedVamanaIndexing_randomG(float** dataset, float min_f, float max_f
         //printf("\n");
     }
 
-    printf("vamana filtered data\n\n");
+    printf("Vamana filtered data.\n\n");
     
 
     *filt_data = filtered_data;
 
     Map filter_medoids = FindMedoid(dataset, vecs, min_f, max_f, filtered_data, t);
-    printf("found starting points\n\n");
+    printf("Found starting points.\n\n");
     *med = filter_medoids;
 
     // stores the original permutation of each filter's points in filtered_data
@@ -1019,6 +1021,8 @@ Vector** StichedVamanaIndexing_randomG(float** dataset, float min_f, float max_f
     for (int i=0; i<num_filters; i++) {
         per[i] = vec_Create(0);
     }
+
+    printf("Now for each filter we call vamana.\n\n");
 
     //for (set_Node node = find_min(filters->root); node != SET_EOF; node = set_next(filters, node)) { 
     for (int f=0; f<num_filters; f++) {
@@ -1039,13 +1043,13 @@ Vector** StichedVamanaIndexing_randomG(float** dataset, float min_f, float max_f
         // }
         // printf("\n");
 
-        printf("filter: %d\n", f);
+        //printf("filter: %d\n", f);
 
-        printf("random stitched permutation:\n");
+        //printf("random stitched permutation:\n");
         for (int j=0; j<f_size; j++) {
-            printf("%d ", vec_get_at(per[f], j));
+            //printf("%d ", vec_get_at(per[f], j));
         }
-        printf("\n");
+        //printf("\n");
 
         // and store them in the new dataset
         int c = comps-2;
@@ -1063,17 +1067,17 @@ Vector** StichedVamanaIndexing_randomG(float** dataset, float min_f, float max_f
             }
         }
 
-        for (int j = 0; j < f_size; j++) {
-            printf("vector %d -> %d: ", j, vec_get_at(per[f], j));
-            for (int i = 0; i < c; i++) {
-                printf("%f ", data_f[i][j]);
-            }
-            printf("\n\n");
-        }
+        // for (int j = 0; j < f_size; j++) {
+        //     printf("vector %d -> %d: ", j, vec_get_at(per[f], j));
+        //     for (int i = 0; i < c; i++) {
+        //         printf("%f ", data_f[i][j]);
+        //     }
+        //     printf("\n\n");
+        // }
 
         // CODE TO CREATE A RANDOM STARTING GRAPH !!!
 
-        printf("creating random starting graph\n\n");
+        printf("Creating random starting graph.\n\n");
 
         int x;
         //printf("%d");
@@ -1117,7 +1121,7 @@ Vector** StichedVamanaIndexing_randomG(float** dataset, float min_f, float max_f
         free(vec_x);
         free(vec_j);
 
-        printf("found random starting graph\n\n");
+        printf("Found random starting graph.\n\n");
 
         int Vmedoid;
 
@@ -1136,11 +1140,15 @@ Vector** StichedVamanaIndexing_randomG(float** dataset, float min_f, float max_f
             }
         } else {
             if (R_stitched >= f_size) {
-                printf("R: %d\n", f_size);
-                G_f[f] = Vamana_main(data_f, f_size, comps-2, L, f_size-1, a, &Vmedoid);
+                //printf("R: %d\n", f_size);
+                if (strcmp(vmn, "main")==0) G_f[f] = Vamana_main(data_f, f_size, comps-2, L, f_size-1, a, &Vmedoid, threads);
+                if (strcmp(vmn, "random")==0) G_f[f] = Vamana_random_medoid(data_f, f_size, comps-2, L, f_size-1, a, &Vmedoid, threads);
+                if (strcmp(vmn, "semirandom")==0) G_f[f] = Vamana_semirandom_medoid(data_f, f_size, comps-2, L, f_size-1, a, &Vmedoid, threads);
             } else {
-                printf("R: %d\n", R_stitched);
-                G_f[f] = Vamana_main(data_f, f_size, comps-2, L, R_stitched, a, &Vmedoid);
+                //printf("R: %d\n", R_stitched);
+                if (strcmp(vmn, "main")==0) G_f[f] = Vamana_main(data_f, f_size, comps-2, L, R_stitched, a, &Vmedoid, threads);
+                if (strcmp(vmn, "random")==0) G_f[f] = Vamana_random_medoid(data_f, f_size, comps-2, L, R_stitched, a, &Vmedoid, threads);
+                if (strcmp(vmn, "semirandom")==0) G_f[f] = Vamana_semirandom_medoid(data_f, f_size, comps-2, L, R_stitched, a, &Vmedoid, threads);
             }
         }
 

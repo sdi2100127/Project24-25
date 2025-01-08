@@ -16,12 +16,12 @@ float** fvecs_open(const char* filename, int* num_vectors, int* d) {
     // read the dimention off of the first 4 bytes of the file
     int dim;
     fread(&dim, sizeof(int), 1, fp);
-    printf("dimention: %d ", dim);
+    //printf("dimention: %d ", dim);
     *d = dim;
     
     // the size of the vectors is given by: 4(sizeof(int))+dim*4(sizeof(float))
     int vec_size = sizeof(int) + dim * sizeof(float);
-    printf("vector size: %d ", vec_size);
+    //printf("vector size: %d ", vec_size);
     
     // now we move the pointer to the end of the file
     fseek(fp, 0, SEEK_END);
@@ -31,7 +31,7 @@ float** fvecs_open(const char* filename, int* num_vectors, int* d) {
 
     // now that we know the size of the file we can calculate the number of vectors included
     int vecs = file_size / vec_size;
-    printf("total num of vectors: %d ", vecs);
+    //printf("total num of vectors: %d ", vecs);
     *num_vectors = vecs;
 
     // allocate memory for the matrix of vectors and fill it
@@ -76,12 +76,12 @@ int** ivecs_open(const char* filename, int* num_vectors, int* d) {
     // int this case the dimention is the number k of the nearest neighbours
     int k;
     fread(&k, sizeof(int), 1, fp);
-    printf("k: %d ", k);
+    //printf("k: %d ", k);
     *d = k;
     
     // the size of the vectors is given by: 4(sizeof(int))+dim*4(sizeof(int))
     int vec_size = sizeof(int) + k * sizeof(int);
-    printf("vector size: %d ", vec_size);
+    //printf("vector size: %d ", vec_size);
     
     // now we move the pointer to the end of the file
     fseek(fp, 0, SEEK_END);
@@ -91,7 +91,7 @@ int** ivecs_open(const char* filename, int* num_vectors, int* d) {
 
     // now that we know the size of the file we can calculate the number of query vectors included
     int vecs = file_size / vec_size;
-    printf("total num of vectors: %d ", vecs);
+    //printf("total num of vectors: %d ", vecs);
     *num_vectors = vecs;
 
     // allocate memory for the matrix of vectors and fill it

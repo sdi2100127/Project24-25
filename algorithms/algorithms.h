@@ -2,12 +2,13 @@
 #include <stdlib.h>
 #include <math.h>
 #include <time.h>
-//#include "../Data_Structs/Data_Structs.h"
+
 #include "../open_functions/open.h"
+#include "../threads/threads.h"
 
-float euclidean_distance(float* vec1, float* vec2, int comps);
+// float euclidean_distance(float* vec1, float* vec2, int comps);
 
-float squared_euclidean_distance(float* vec1, float* vec2, int comps);
+// float squared_euclidean_distance(float* vec1, float* vec2, int comps);
 
 // greedysearch is an algorithm that takes as input 
 // G --> the search graph (a random R-regular directed graph)
@@ -33,8 +34,12 @@ void RobustPrune(Vector** G, int p ,Set* V, int a, int R , int dim , int vecs , 
 // function to find the medoid of a dataset
 int medoid(float** dataset, int vecs, int comps, float*** dist_m);
 
+int medoid_threads(float** dataset, int vecs, int comps, float*** dist_m, int threads_count);
+
 // function to find the medoid of a dataset using a random subset 
 int random_medoid(float** dataset, int vecs, int comps, float*** dist_m);
+
+int random_medoid_threads(float** dataset, int vecs, int comps, float*** dist_m, int threads_count);
 
 // We have created two implementation of the vamana algorithm, one for testing and one to use in the main program
 // This was done because in oreder to test vamana we had to have predetermined data, such as the permutation of the
@@ -44,12 +49,12 @@ int random_medoid(float** dataset, int vecs, int comps, float*** dist_m);
 Vector* Vamana(float** dataset, int vecs, int comps, int L, int R, int a);
 
 // Vamana algorithm
-Vector* Vamana_main(float** dataset, int vecs, int comps, int L, int R, int a, int* med);
+Vector* Vamana_main(float** dataset, int vecs, int comps, int L, int R, int a, int* med, int threads);
 
 // Vamana algorithm with randomly selected medoid
-Vector* Vamana_random_medoid(float** dataset, int vecs, int comps, int L, int R, int a, int* med);
+Vector* Vamana_random_medoid(float** dataset, int vecs, int comps, int L, int R, int a, int* med, int threads);
 
 // Vamana algorithm with semi-randomly selected medoid
-Vector* Vamana_semirandom_medoid(float** dataset, int vecs, int comps, int L, int R, int a, int* med);
+Vector* Vamana_semirandom_medoid(float** dataset, int vecs, int comps, int L, int R, int a, int* med, int threads);
 
 void free_G(Vector* G, int v);

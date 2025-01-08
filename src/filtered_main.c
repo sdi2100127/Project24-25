@@ -12,7 +12,7 @@ int main(int argc, char ** argv) {
 
     time_t start,end;
     start = time(NULL);
-    int k , L , R , a = 1;
+    int k , L , R , a = 1, threads;
     char* filter = NULL;
     const char* idx_file = NULL;
     const char* rnd = NULL;
@@ -38,6 +38,9 @@ int main(int argc, char ** argv) {
         }
         if(strcmp(argv[i], "-dataset") == 0){
         dtset = argv[i+1];
+        }
+        if(strcmp(argv[i], "-threads") == 0){
+        threads = atoi(argv[i+1]);
         }
     }
 
@@ -120,7 +123,7 @@ int main(int argc, char ** argv) {
         fclose(file);
     }
 
-    printf("found Groundtruth\n");
+    printf("Found Groundtruth\n\n");
 
     // CODE FOR CROSS REFERENCING GROUNDTRUTH
 
@@ -196,12 +199,12 @@ int main(int argc, char ** argv) {
         }
 
         med = FindMedoid(dataset, vecs, min_f, max_f, filtered_data, t);
-        printf("found starting points\n\n");
+        printf("Found starting points.\n\n");
 
     } else {    // otherwise, compute it and store it
-
-        if (strcmp(rnd, "no")) G = FilteredVamanaIndexing(dataset, min_f, max_f, vecs, data_dim, queries_dim, L, R, a, &med, &medoid, t);
-        if (strcmp(rnd, "yes")) G = FilteredVamanaIndexing_randomG(dataset, min_f, max_f, vecs, data_dim, queries_dim, L, R, neigh, a, &med, &medoid, t);
+        
+        if (strcmp(rnd, "no") == 0){ G = FilteredVamanaIndexing(dataset, min_f, max_f, vecs, data_dim, queries_dim, L, R, a, &med, &medoid, t, threads);}
+        if (strcmp(rnd, "yes") == 0){ G = FilteredVamanaIndexing_randomG(dataset, min_f, max_f, vecs, data_dim, queries_dim, L, R, neigh, a, &med, &medoid, t, threads);}
 
         G_file = fopen(G_path, "wb");
         if (G_file == NULL) {
@@ -221,17 +224,17 @@ int main(int argc, char ** argv) {
         fclose(G_file);
     }
 
-    printf("found Vamana index\n");
+    printf("Found Vamana index\n");
 
-    printf("G\n");
-    for (int j = 0; j < vecs; j++) {
-        printf("vector %d:", j);
-        for (int i = 0; i < G[j]->size; i++) {
-        printf(" %d",  vec_get_at(G[j], i));
+    // printf("G\n");
+    // for (int j = 0; j < vecs; j++) {
+    //     printf("vector %d:", j);
+    //     for (int i = 0; i < G[j]->size; i++) {
+    //     printf(" %d",  vec_get_at(G[j], i));
             
-        }
-        printf("\n");
-    }
+    //     }
+    //     printf("\n");
+    // }
 
     srand((unsigned int)time(NULL));
 
@@ -241,8 +244,8 @@ int main(int argc, char ** argv) {
         fflag = 1;
         xq_pos = rand() % (count - 1);
         // make sure its filtered or unfiltered
-        if (strcmp(filter, "no")) if (posible_queries[1][xq_pos] == -1) fflag = 0;
-        if (strcmp(filter, "yes")) if (posible_queries[1][xq_pos] != -1) fflag = 0;
+        if (strcmp(filter, "no") == 0) if (posible_queries[1][xq_pos] != -1) fflag = 0;
+        if (strcmp(filter, "yes") == 0) if (posible_queries[1][xq_pos] == -1) fflag = 0;
     }
     // int xq_pos = rand() % (count - 1);
     int xq_size = queries_dim-4;
@@ -282,11 +285,11 @@ int main(int argc, char ** argv) {
 
         knn = knn_q;
         
-        printf("knn: ");
-        for (VecNode vnode = vec_first(knn->vector); vnode != VECTOR_EOF; vnode = vec_next(knn->vector, vnode)) {
-            printf("%d ", vnode->value);
-        }
-        printf("\n");
+        // printf("knn: ");
+        // for (VecNode vnode = vec_first(knn->vector); vnode != VECTOR_EOF; vnode = vec_next(knn->vector, vnode)) {
+        //     printf("%d ", vnode->value);
+        // }
+        // printf("\n");
 
     }
 
@@ -295,11 +298,11 @@ int main(int argc, char ** argv) {
     }
 
     //Calculation of accuracy  
-    printf("query groundtruth %d with filter %f: ", xq_pos, posible_queries[1][xq_pos]);
-    for (VecNode node = vec_first(groundtruth[xq_pos]); node != VECTOR_EOF; node = vec_next(groundtruth[xq_pos], node)) {
-        printf("%d -> %f  ", node->value , dataset[0][node->value]);
-    }
-    printf("\n");
+    // printf("query groundtruth %d with filter %f: ", xq_pos, posible_queries[1][xq_pos]);
+    // for (VecNode node = vec_first(groundtruth[xq_pos]); node != VECTOR_EOF; node = vec_next(groundtruth[xq_pos], node)) {
+    //     printf("%d -> %f  ", node->value , dataset[0][node->value]);
+    // }
+    // printf("\n");
 
     int found = 0;
     for (int i=0; i<k; i++) {

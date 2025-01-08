@@ -1,26 +1,6 @@
 #include "algorithms.h"
 #include <float.h>
 
-float euclidean_distance(float* vec1, float* vec2, int comps) {
-    float res = 0.0f;
-    for (int i = 0; i < comps; i++) {
-        float diff = vec1[i] - vec2[i];
-        res += diff*diff;
-    }
-    res = sqrt(res);
-    return res;
-}
-
-float squared_euclidean_distance(float* vec1, float* vec2, int comps) {
-    float res = 0.0f;
-    for (int i = 0; i < comps; i++) {
-        float diff = vec1[i] - vec2[i];
-        res += diff*diff;
-    }
-    
-    return res;
-}
-
 PQueue greedySearch(Vector* G, int R, int dim, int vecs, float** vectors, int s, float* xq, int L, int k, Set* V) {
     //printf("GREEDY SEARCH\n");
 
@@ -127,11 +107,11 @@ PQueue greedySearch(Vector* G, int R, int dim, int vecs, float** vectors, int s,
         }
     }
 
-    printf("knn_set: ");
-    for (VecNode node = vec_first(knn->vector); node != VECTOR_EOF; node = vec_next(knn->vector, node)) { 
-        printf("%d ", node->value);
-    }
-    printf("\n");
+    // printf("knn_set: ");
+    // for (VecNode node = vec_first(knn->vector); node != VECTOR_EOF; node = vec_next(knn->vector, node)) { 
+    //     printf("%d ", node->value);
+    // }
+    // printf("\n");
 
     // printf("visited_set: ");
     // for (set_Node node = find_min(visited_nodes->root); node != SET_EOF; node = set_next(visited_nodes, node)) { 
@@ -151,32 +131,31 @@ PQueue greedySearch(Vector* G, int R, int dim, int vecs, float** vectors, int s,
 
 //Implementation of Robust Prune function
 void RobustPrune(Vector** G, int p ,Set * V, int a, int R, int dim , int vecs , float **vectors, float** dist_m){
-    printf("ROBUST PRUNE\n");
-    printf("p: %d\n", p);
+    // printf("ROBUST PRUNE\n");
+    // printf("p: %d\n", p);
     
     // we start out by creating some temporary structs to store the visited nodes set, as well as the graph G
     Set temp = *V;
     Vector* temp_G = *G;
 
     // then we insert all the outgoing neighbours of p (Nout(p)) to the V set
-    printf("Nout(p)\n");
+    //printf("Nout(p)\n");
     for (int i = 0; i < temp_G[p]->size; i++){           
-        printf("%d ", vec_get_at(temp_G[p], i));
+        //printf("%d ", vec_get_at(temp_G[p], i));
         set_insert(temp, vec_get_at(temp_G[p], i));
     }
-    printf("\n");
+    //printf("\n");
     // And we check if we have inserted our p so that we remove it
     set_remove(temp, p);   
 
-    printf("V: ");
-    for (set_Node node = find_min(temp->root); node != SET_EOF; node = set_next(temp, node)) {
-        printf("%d ", node->value);
-    }
-    printf("\n");                        
+    //printf("V: ");
+    // for (set_Node node = find_min(temp->root); node != SET_EOF; node = set_next(temp, node)) {
+    //     printf("%d ", node->value);
+    // }
+    // printf("\n");                        
 
     // Now we have to empty our Nout(p)
     while(temp_G[p]->size != 0) vec_remove(temp_G[p]);
-    printf("removed\n"); 
 
     int i_count = 0;    // to keep count of the Nout vector index
 
@@ -194,7 +173,7 @@ void RobustPrune(Vector** G, int p ,Set * V, int a, int R, int dim , int vecs , 
             }
         }
 
-        printf("p*: %d\n", p_star);
+        //printf("p*: %d\n", p_star);
         
         // insert p* to the outgoing neighbours of p
         // vec_insert(temp_G[p], p_star, euclidean_distance(vec_of_p_star, vec_of_p, dim));
@@ -219,11 +198,11 @@ void RobustPrune(Vector** G, int p ,Set * V, int a, int R, int dim , int vecs , 
 
     }
 
-    printf("V: ");
-    for (set_Node node = find_min(temp->root); node != SET_EOF; node = set_next(temp, node)) {
-        printf("%d ", node->value);
-    }
-    printf("\n");
+    // printf("V: ");
+    // for (set_Node node = find_min(temp->root); node != SET_EOF; node = set_next(temp, node)) {
+    //     printf("%d ", node->value);
+    // }
+    // printf("\n");
 
     // printf("Nout(%d): ", p);
     // for (int i=0; i<temp_G[p]->size; i++) {
@@ -293,6 +272,41 @@ int medoid(float** dataset, int vecs, int comps, float*** dist_m) {
     return min_p;
 }
 
+int medoid_threads(float** dataset, int vecs, int comps, float*** dist_m, int threads_count) {
+    printf("medoid_threads:\nBuilding distance matrix and computing the medoiod.\n");
+    int num_threads = threads_count;
+    pthread_t threads[num_threads];
+    ThreadData thread_data[num_threads];
+    int chunk_size = vecs / num_threads;
+
+    float min_sum_total = FLT_MAX;
+    int min_p_total = -1;
+
+    for (int t = 0; t < num_threads; t++) {
+        thread_data[t].dataset = dataset;
+        thread_data[t].dist_m = *dist_m;
+        thread_data[t].start = t * chunk_size;
+        thread_data[t].end = (t == num_threads - 1) ? vecs : (t + 1) * chunk_size;
+        thread_data[t].comps = comps;
+        thread_data[t].vecs = vecs;
+        thread_data[t].med = -1;
+        thread_data[t].med_sum = FLT_MAX;
+        pthread_create(&threads[t], NULL, calculate_distances_simple, (void*)&thread_data[t]);
+    }
+
+    // Join threads
+    for (int t = 0; t < num_threads; ++t) {
+        pthread_join(threads[t], NULL);
+        if (thread_data[t].med_sum < min_sum_total) {
+            min_sum_total = thread_data[t].med_sum;
+            min_p_total = thread_data[t].med;
+        }
+    }
+
+    printf("medoid sum: %f\n", min_sum_total);
+    return min_p_total;
+}
+
 int random_medoid(float** dataset, int vecs, int comps, float*** dist_m) {
     srand((unsigned int)time(NULL));
 
@@ -355,10 +369,44 @@ int random_medoid(float** dataset, int vecs, int comps, float*** dist_m) {
     return min_p;
 }
 
-Vector* Vamana_main(float** dataset, int vecs, int comps, int L, int R, int a, int* med) {
-    printf("VAMANA\n");
+int random_medoid_threads(float** dataset, int vecs, int comps, float*** dist_m, int threads_count) {
+    printf("random_medoid_threads:\nBuilding distance matrix and computing the medoiod.\n");
+    int num_threads = threads_count;
+    pthread_t threads[num_threads];
+    ThreadData thread_data[num_threads];
+    int chunk_size = vecs / num_threads;
 
-    printf("vecs: %d\n", vecs);
+    float min_sum_total = FLT_MAX;
+    int min_p_total = -1;
+
+    for (int t = 0; t < num_threads; t++) {
+        thread_data[t].dataset = dataset;
+        thread_data[t].dist_m = *dist_m;
+        thread_data[t].start = t * chunk_size;
+        thread_data[t].end = (t == num_threads - 1) ? vecs : (t + 1) * chunk_size;
+        thread_data[t].comps = comps;
+        thread_data[t].vecs = vecs;
+        thread_data[t].med = -1;
+        thread_data[t].med_sum = FLT_MAX;
+        pthread_create(&threads[t], NULL, calculate_distances_simple, (void*)&thread_data[t]);
+    }
+
+    // Join threads
+    for (int t = 0; t < num_threads; ++t) {
+        pthread_join(threads[t], NULL);
+        if (thread_data[t].med_sum < min_sum_total) {
+            min_sum_total = thread_data[t].med_sum;
+            min_p_total = thread_data[t].med;
+        }
+    }
+
+    printf("medoid sum: %f\n", min_sum_total);
+    return min_p_total;
+}
+
+Vector* Vamana_main(float** dataset, int vecs, int comps, int L, int R, int a, int* med, int threads) {
+    printf("Vamana:\nBuilding the vamana index.\n\n");
+
     // first we have to initialize G to a random R-regular directed graph
 
     Vector* G = (Vector*)malloc(vecs * sizeof(Vector));
@@ -367,7 +415,7 @@ Vector* Vamana_main(float** dataset, int vecs, int comps, int L, int R, int a, i
         G[i] = vec_Create(0);
     }
 
-    printf("vamana finding neighbours\n");
+    printf("Vamana finding neighbours.\n\n");
     int x;
     float* vec_x = (float*)malloc(comps * sizeof(float));
     float* vec_j = (float*)malloc(comps * sizeof(float));
@@ -377,7 +425,7 @@ Vector* Vamana_main(float** dataset, int vecs, int comps, int L, int R, int a, i
         for (int i=0; i<comps; i++) {
             vec_j[i] = dataset[i][j];
         }
-        printf("vector %d:", j);
+        //printf("vector %d:", j);
 
         int limit = vecs-1, min = 0;
         // for every one of its R neighbours
@@ -408,10 +456,10 @@ Vector* Vamana_main(float** dataset, int vecs, int comps, int L, int R, int a, i
             }
             vec_insert(G[j], x, euclidean_distance(vec_x, vec_j, comps));
 
-            printf(" %d, %f ", G[j]->array[i].value, G[j]->array[i].dist);
+            //printf(" %d, %f ", G[j]->array[i].value, G[j]->array[i].dist);
             
         }
-        printf("\n");
+        //printf("\n");
     }
     free(vec_x);
     free(vec_j);
@@ -429,8 +477,10 @@ Vector* Vamana_main(float** dataset, int vecs, int comps, int L, int R, int a, i
     }
 
     // now we find the medoid of the dataset that will be our starting point s
-    int s = medoid(dataset, vecs, comps, &dist_matrix);
-    printf("vamana found medoid: %d\n", s);
+    int s;
+    if (threads != 0) s = medoid_threads(dataset, vecs, comps, &dist_matrix, threads);
+    else if (threads == 0) s = medoid(dataset, vecs, comps, &dist_matrix);
+    printf("Vamana found medoid: %d\n\n", s);
     *med = s;
 
     // create a random permutation of 1...vecs (really from 0 to vecs-1) 
@@ -452,26 +502,25 @@ Vector* Vamana_main(float** dataset, int vecs, int comps, int L, int R, int a, i
         per[randIdx] = t;
     }
 
-    printf("random permutation:\n");
-    for (int i=0; i<vecs; i++) {
-        printf("%d ", per[i]);
-    }
-    printf("\n");
-
-    //return;
+    printf("Found random permutation\n\n");
+    // for (int i=0; i<vecs; i++) {
+    //     printf("%d ", per[i]);
+    // }
+    // printf("\n");
 
     float* xq = (float*)malloc(comps * sizeof(float));
     float* point_vec = (float*)malloc(comps * sizeof(float));
 
+    printf("Going through each point of the dataset and updating the graph.\n\n");
     for (int i=0; i<vecs; i++) {
         // find and store the query vector xq based on the point in the dataset indexed by per[i]
         int query_pos = per[i];
-        printf("query vector %d: ", query_pos);
+        //printf("query vector %d: ", query_pos);
         for (int i=0; i<comps; i++) {
             xq[i] = dataset[i][query_pos];
-            printf("%f ", xq[i]);
+            //printf("%f ", xq[i]);
         }
-        printf("\n");
+        //printf("\n");
         
         // call greedysearch for xq
         Set V;
@@ -486,7 +535,7 @@ Vector* Vamana_main(float** dataset, int vecs, int comps, int L, int R, int a, i
             
             // for each point j that is an outgoing neighbour of the query point
             int point = vec_get_at(G[query_pos], j);
-            printf("Neighbour %d has %d neighbours\n", point, G[query_pos]->size);
+            //printf("Neighbour %d has %d neighbours\n", point, G[query_pos]->size);
 
             // check if it has less outgoing neighbours than R 
             // so that we can also add the query point as a neighbour
@@ -529,10 +578,9 @@ Vector* Vamana_main(float** dataset, int vecs, int comps, int L, int R, int a, i
     return G;
 }
 
-Vector* Vamana_random_medoid(float** dataset, int vecs, int comps, int L, int R, int a, int* med) {
-    printf("VAMANA\n");
+Vector* Vamana_random_medoid(float** dataset, int vecs, int comps, int L, int R, int a, int* med, int threads) {
+    printf("Vamana:\nBuilding the vamana index.\n\n");
 
-    printf("vecs: %d\n", vecs);
     // first we have to initialize G to a random R-regular directed graph
 
     Vector* G = (Vector*)malloc(vecs * sizeof(Vector));
@@ -541,7 +589,7 @@ Vector* Vamana_random_medoid(float** dataset, int vecs, int comps, int L, int R,
         G[i] = vec_Create(0);
     }
 
-    printf("vamana finding neighbours\n");
+    printf("Vamana finding neighbours\n\n");
     int x;
     float* vec_x = (float*)malloc(comps * sizeof(float));
     float* vec_j = (float*)malloc(comps * sizeof(float));
@@ -551,7 +599,7 @@ Vector* Vamana_random_medoid(float** dataset, int vecs, int comps, int L, int R,
         for (int i=0; i<comps; i++) {
             vec_j[i] = dataset[i][j];
         }
-        printf("vector %d:", j);
+        //printf("vector %d:", j);
 
         int limit = vecs-1, min = 0;
         // for every one of its R neighbours
@@ -582,10 +630,10 @@ Vector* Vamana_random_medoid(float** dataset, int vecs, int comps, int L, int R,
             }
             vec_insert(G[j], x, euclidean_distance(vec_x, vec_j, comps));
 
-            printf(" %d, %f ", G[j]->array[i].value, G[j]->array[i].dist);
+            //printf(" %d, %f ", G[j]->array[i].value, G[j]->array[i].dist);
             
         }
-        printf("\n");
+        //printf("\n");
     }
     free(vec_x);
     free(vec_j);
@@ -607,9 +655,11 @@ Vector* Vamana_random_medoid(float** dataset, int vecs, int comps, int L, int R,
     srand((unsigned int)time(NULL));
 
     // we still have to call the medoid function so that the dist_matrix iis computed
-    int s = medoid(dataset, vecs, comps, &dist_matrix);
+    int s;
+    if (threads != 0) s = medoid_threads(dataset, vecs, comps, &dist_matrix, threads);
+    else if (threads == 0) s = medoid(dataset, vecs, comps, &dist_matrix);
     s = rand() % (vecs - 1);
-    printf("vamana found medoid: %d\n", s);
+    printf("Vamana found medoid: %d\n\n", s);
     *med = s;
 
     // create a random permutation of 1...vecs (really from 0 to vecs-1) 
@@ -631,26 +681,25 @@ Vector* Vamana_random_medoid(float** dataset, int vecs, int comps, int L, int R,
         per[randIdx] = t;
     }
 
-    printf("random permutation:\n");
-    for (int i=0; i<vecs; i++) {
-        printf("%d ", per[i]);
-    }
-    printf("\n");
-
-    //return;
+    printf("Found random permutation\n\n");
+    // for (int i=0; i<vecs; i++) {
+    //     printf("%d ", per[i]);
+    // }
+    // printf("\n");
 
     float* xq = (float*)malloc(comps * sizeof(float));
     float* point_vec = (float*)malloc(comps * sizeof(float));
 
+    printf("Going through each point of the dataset and updating the graph.\n\n");
     for (int i=0; i<vecs; i++) {
         // find and store the query vector xq based on the point in the dataset indexed by per[i]
         int query_pos = per[i];
-        printf("query vector %d: ", query_pos);
+        //printf("query vector %d: ", query_pos);
         for (int i=0; i<comps; i++) {
             xq[i] = dataset[i][query_pos];
-            printf("%f ", xq[i]);
+            //printf("%f ", xq[i]);
         }
-        printf("\n");
+        //printf("\n");
         
         // call greedysearch for xq
         Set V;
@@ -665,7 +714,7 @@ Vector* Vamana_random_medoid(float** dataset, int vecs, int comps, int L, int R,
             
             // for each point j that is an outgoing neighbour of the query point
             int point = vec_get_at(G[query_pos], j);
-            printf("Neighbour %d has %d neighbours\n", point, G[query_pos]->size);
+            //printf("Neighbour %d has %d neighbours\n", point, G[query_pos]->size);
 
             // check if it has less outgoing neighbours than R 
             // so that we can also add the query point as a neighbour
@@ -708,10 +757,9 @@ Vector* Vamana_random_medoid(float** dataset, int vecs, int comps, int L, int R,
     return G;
 }
 
-Vector* Vamana_semirandom_medoid(float** dataset, int vecs, int comps, int L, int R, int a, int* med) {
-    printf("VAMANA\n");
+Vector* Vamana_semirandom_medoid(float** dataset, int vecs, int comps, int L, int R, int a, int* med, int threads) {
+    printf("Vamana:\nBuilding the vamana index.\n\n");
 
-    printf("vecs: %d\n", vecs);
     // first we have to initialize G to a random R-regular directed graph
 
     Vector* G = (Vector*)malloc(vecs * sizeof(Vector));
@@ -720,7 +768,7 @@ Vector* Vamana_semirandom_medoid(float** dataset, int vecs, int comps, int L, in
         G[i] = vec_Create(0);
     }
 
-    printf("vamana finding neighbours\n");
+    printf("Vamana finding neighbours\n\n");
     int x;
     float* vec_x = (float*)malloc(comps * sizeof(float));
     float* vec_j = (float*)malloc(comps * sizeof(float));
@@ -730,7 +778,7 @@ Vector* Vamana_semirandom_medoid(float** dataset, int vecs, int comps, int L, in
         for (int i=0; i<comps; i++) {
             vec_j[i] = dataset[i][j];
         }
-        printf("vector %d:", j);
+        //printf("vector %d:", j);
 
         int limit = vecs-1, min = 0;
         // for every one of its R neighbours
@@ -761,10 +809,10 @@ Vector* Vamana_semirandom_medoid(float** dataset, int vecs, int comps, int L, in
             }
             vec_insert(G[j], x, euclidean_distance(vec_x, vec_j, comps));
 
-            printf(" %d, %f ", G[j]->array[i].value, G[j]->array[i].dist);
+            //printf(" %d, %f ", G[j]->array[i].value, G[j]->array[i].dist);
             
         }
-        printf("\n");
+        //printf("\n");
     }
     free(vec_x);
     free(vec_j);
@@ -786,8 +834,10 @@ Vector* Vamana_semirandom_medoid(float** dataset, int vecs, int comps, int L, in
     srand((unsigned int)time(NULL));
 
     // we still have to call the medoid function so that the dist_matrix iis computed
-    int s = random_medoid(dataset, vecs, comps, &dist_matrix);
-    printf("vamana found medoid: %d\n", s);
+    int s;
+    if (threads != 0) s = random_medoid_threads(dataset, vecs, comps, &dist_matrix, threads);
+    else if (threads == 0) s = random_medoid(dataset, vecs, comps, &dist_matrix);
+    printf("Vamana found medoid: %d\n\n", s);
     *med = s;
 
     // create a random permutation of 1...vecs (really from 0 to vecs-1) 
@@ -809,24 +859,25 @@ Vector* Vamana_semirandom_medoid(float** dataset, int vecs, int comps, int L, in
         per[randIdx] = t;
     }
 
-    printf("random permutation:\n");
-    for (int i=0; i<vecs; i++) {
-        printf("%d ", per[i]);
-    }
-    printf("\n");
+    printf("Found random permutation\n\n");
+    // for (int i=0; i<vecs; i++) {
+    //     printf("%d ", per[i]);
+    // }
+    // printf("\n");
 
     float* xq = (float*)malloc(comps * sizeof(float));
     float* point_vec = (float*)malloc(comps * sizeof(float));
 
+    printf("Going through each point of the dataset and updating the graph.\n\n");
     for (int i=0; i<vecs; i++) {
         // find and store the query vector xq based on the point in the dataset indexed by per[i]
         int query_pos = per[i];
-        printf("query vector %d: ", query_pos);
+        //printf("query vector %d: ", query_pos);
         for (int i=0; i<comps; i++) {
             xq[i] = dataset[i][query_pos];
-            printf("%f ", xq[i]);
+            //printf("%f ", xq[i]);
         }
-        printf("\n");
+        //printf("\n");
         
         // call greedysearch for xq
         Set V;
@@ -841,7 +892,7 @@ Vector* Vamana_semirandom_medoid(float** dataset, int vecs, int comps, int L, in
             
             // for each point j that is an outgoing neighbour of the query point
             int point = vec_get_at(G[query_pos], j);
-            printf("Neighbour %d has %d neighbours\n", point, G[query_pos]->size);
+            //printf("Neighbour %d has %d neighbours\n", point, G[query_pos]->size);
 
             // check if it has less outgoing neighbours than R 
             // so that we can also add the query point as a neighbour

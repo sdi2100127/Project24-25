@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <string.h>
 
 #include "../algorithms/algorithms.h"
 //#include "../open_functions/open.h"
@@ -11,7 +12,7 @@ int main(int argc, char ** argv) {
   time_t start,end;
   start = time(NULL);
 
-  int k , L , R , a = 1;
+  int k , L , R , a = 1, threads;
   char* vamana = NULL;
   const char* idx_file = NULL;
   for (int i = 0; i< argc; i++){
@@ -29,6 +30,9 @@ int main(int argc, char ** argv) {
     } 
     if(strcmp(argv[i], "-index_fname") == 0){
       idx_file = argv[i+1];
+    }
+    if(strcmp(argv[i], "-threads") == 0){
+    threads = atoi(argv[i+1]);
     }
   }
   // allocate memory for the graph G produced by the vamana algorithm
@@ -113,15 +117,15 @@ int main(int argc, char ** argv) {
   } else {    // otherwise, compute it and store it
 
     if (strcmp(vamana, "main") == 0) {
-      G = Vamana_main(vectors, vecs, d_base, L, R, a, &med);
+      G = Vamana_main(vectors, vecs, d_base, L, R, a, &med, threads);
     }
 
     if (strcmp(vamana, "random") == 0) {
-      G = Vamana_random_medoid(vectors, vecs, d_base, L, R, a, &med);
+      G = Vamana_random_medoid(vectors, vecs, d_base, L, R, a, &med, threads);
     }
 
     if (strcmp(vamana, "semi_random") == 0) {
-      G = Vamana_semirandom_medoid(vectors, vecs, d_base, L, R, a, &med);
+      G = Vamana_semirandom_medoid(vectors, vecs, d_base, L, R, a, &med, threads);
     }
 
     file = fopen(path, "wb");
@@ -142,7 +146,7 @@ int main(int argc, char ** argv) {
     fclose(file);
   }
 
-  printf("found Vamana index\n");
+  printf("Found Vamana index.\n\n");
 
   // printf("G\n");
   // for (int j = 0; j < vecs; j++) {
@@ -160,7 +164,7 @@ int main(int argc, char ** argv) {
   for (int i=0; i<d_queries; i++) {
     xq[i] = posible_queries[i][xq_pos];
   }
-  printf("%d\n", xq_pos);
+  printf("query: %d\n", xq_pos);
 
 
   // run the greedysearch algorithm to find its k nearest neighbours based on G
