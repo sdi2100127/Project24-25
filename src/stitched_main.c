@@ -12,7 +12,7 @@ int main(int argc, char ** argv) {
 
     time_t start,end;
     start = time(NULL);
-    int k , L , R , a = 1, threads;
+    int k , L , R , a = 1, threads, st_threads;
     char* filter = NULL;
     const char* rnd = NULL;
     const char* idx_file = NULL;
@@ -40,11 +40,14 @@ int main(int argc, char ** argv) {
         if(strcmp(argv[i], "-dataset") == 0){
         dtset = argv[i+1];
         }
-        if(strcmp(argv[i], "-threads") == 0){
+        if(strcmp(argv[i], "-vmn_threads") == 0){
         threads = atoi(argv[i+1]);
         }
         if(strcmp(argv[i], "-vamana") == 0){
         vmn = argv[i+1];
+        }
+        if(strcmp(argv[i], "-stitch_threads") == 0){
+        st_threads = atoi(argv[i+1]);
         }
     }
 
@@ -202,7 +205,7 @@ int main(int argc, char ** argv) {
 
     } else {    // otherwise, compute it and store it
 
-        if (strcmp(rnd, "no") == 0) G = StichedVamanaIndexing(dataset, min_f, max_f, filters, vecs, data_dim, L, R, a, &med, &medoid, t, &filtered_data, &per, threads, vmn);
+        if (strcmp(rnd, "no") == 0) G = StichedVamanaIndexing(dataset, min_f, max_f, filters, vecs, data_dim, L, R, a, &med, &medoid, t, &filtered_data, &per, threads, vmn, st_threads);
         if (strcmp(rnd, "yes") == 0) G = StichedVamanaIndexing_randomG(dataset, min_f, max_f, filters, vecs, data_dim, L, R, a, &med, &medoid, t, neigh, &filtered_data, &per, threads, vmn);
 
         G_file = fopen(G_path, "wb");

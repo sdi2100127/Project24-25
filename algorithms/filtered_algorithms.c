@@ -811,7 +811,7 @@ Vector* FilteredVamanaIndexing_randomG(float** dataset, float min_f, float max_f
     return G;
 }
 
-Vector** StichedVamanaIndexing(float** dataset, float min_f, float max_f, Set filters, int vecs, int comps, int L, int R_stitched, int a, Map* med, int* medoid, int t, Map* filt_data, Vector** permutation, int threads, const char* vmn) {
+Vector** StichedVamanaIndexing(float** dataset, float min_f, float max_f, Set filters, int vecs, int comps, int L, int R_stitched, int a, Map* med, int* medoid, int t, Map* filt_data, Vector** permutation, int threads, const char* vmn, int threads_count) {
     printf("StichedVamanaIndexing:\nBuilding the vamana index.\n\n");
     int num_filters = filters->size;
     
@@ -867,95 +867,123 @@ Vector** StichedVamanaIndexing(float** dataset, float min_f, float max_f, Set fi
 
     printf("Now for each filter we call vamana.\n\n");
 
-    //for (set_Node node = find_min(filters->root); node != SET_EOF; node = set_next(filters, node)) { 
-    for (int f=0; f<num_filters; f++) {
-        // keep the current filter, the values associated with it, and how many there are
-        // int f = node->value; 
-        int f_size = map_find_values(filtered_data, f)->size;
-        if (f_size == 1) continue;
+    if (threads_count != 0) {
+        int num_threads = threads_count;
+        pthread_t threads_arr[num_threads];
+        ThreadData_stitch thread_data[num_threads];
+        int chunk_size = num_filters / num_threads;
+        printf("chunck size: %d\n", chunk_size);
 
-        Vector f_values = map_find_values(filtered_data, f);
-
-        // next keep the permutation of the original indices of the points vs the indices in the filtered dataset
-        // for (int j=0; j<f_size; j++) {
-        //     vec_insert(per[f], vec_get_at(f_values, j), vec_get_dist(f_values, j));
-        // }
-
-        for (VecNode s_node = vec_first(f_values); s_node != VECTOR_EOF; s_node = vec_next(f_values, s_node)) {
-            vec_insert(per[f], s_node->value, s_node->dist);
+        for (int t = 0; t < num_threads; t++) {
+            if (t == 1) break;
+            thread_data[t].dataset = dataset;
+            thread_data[t].G_f = G_f;
+            thread_data[t].f_start = t * chunk_size;
+            thread_data[t].f_end = (t == num_threads - 1) ? num_filters : (t + 1) * chunk_size;
+            thread_data[t].comps = comps;
+            thread_data[t].vecs = vecs;
+            thread_data[t].filtered_data = filtered_data;
+            thread_data[t].per = per;
+            thread_data[t].R_stitched = R_stitched;
+            thread_data[t].L = L;
+            thread_data[t].a = a;
+            thread_data[t].vmn = vmn;
+            pthread_create(&threads_arr[t], NULL, build_vamana_index, (void*)&thread_data[t]);
         }
 
-        // printf("per: ");
-        // for (VecNode s_node = vec_first(per[f]); s_node != VECTOR_EOF; s_node = vec_next(per[f], s_node)) {
-        //     printf("%d ", s_node->value);
-        // }
-        // printf("\n");
+        return NULL;
 
-        //printf("filter: %d\n", f);
-
-        //printf("random stitched permutation: \n");
-        for (int j=0; j<f_size; j++) {
-            //printf("%d ", vec_get_at(per[f], j));
-        }
-        //printf("\n");
-
-        // and store them in the new dataset
-        int c = comps-2;
-        float** data_f = (float**)malloc(c * sizeof(float*));
-        for (int i = 0; i < c; i++) {
-            data_f[i] = (float*)malloc(f_size * sizeof(float));
+        // Join threads
+        for (int t = 0; t < num_threads; ++t) {
+            pthread_join(threads_arr[t], NULL);
         }
 
-        for (int j = 0; j < f_size; j++) {
-            int count = 0;
-            for (int i = 2; i < comps; i++) {
-                //printf("%f \n", dataset[i][vec_get_at(per[f], j)]);
-                data_f[count][j] = dataset[i][vec_get_at(per[f], j)];
-                count++;
+    } else if (threads_count == 0) {
+        //for (set_Node node = find_min(filters->root); node != SET_EOF; node = set_next(filters, node)) { 
+        for (int f=0; f<num_filters; f++) {
+            // keep the current filter, the values associated with it, and how many there are
+            // int f = node->value; 
+            int f_size = map_find_values(filtered_data, f)->size;
+            if (f_size == 1) continue;
+
+            Vector f_values = map_find_values(filtered_data, f);
+
+            for (VecNode s_node = vec_first(f_values); s_node != VECTOR_EOF; s_node = vec_next(f_values, s_node)) {
+                vec_insert(per[f], s_node->value, s_node->dist);
             }
-        }
 
-        // for (int j = 0; j < f_size; j++) {
-        //     printf("vector %d -> %d: ", j, vec_get_at(per[f], j));
-        //     for (int i = 0; i < c; i++) {
-        //         printf("%f ", data_f[i][j]);
-        //     }
-        //     printf("\n\n");
-        // }
+            // printf("per: ");
+            // for (VecNode s_node = vec_first(per[f]); s_node != VECTOR_EOF; s_node = vec_next(per[f], s_node)) {
+            //     printf("%d ", s_node->value);
+            // }
+            // printf("\n");
 
-        int Vmedoid;
+            //printf("filter: %d\n", f);
 
-        if (f_size == 2) {
-            int pos = 1;
+            //printf("random stitched permutation: \n");
+            for (int j=0; j<f_size; j++) {
+                //printf("%d ", vec_get_at(per[f], j));
+            }
+            //printf("\n");
+
+            // and store them in the new dataset
+            int c = comps-2;
+            float** data_f = (float**)malloc(c * sizeof(float*));
+            for (int i = 0; i < c; i++) {
+                data_f[i] = (float*)malloc(f_size * sizeof(float));
+            }
+
             for (int j = 0; j < f_size; j++) {
-                float* vec_x = (float*)malloc(c * sizeof(float));
-                float* vec_j = (float*)malloc(c * sizeof(float));
-                for (int i=0; i<c; i++) {
-                    vec_x[i] = data_f[i][j];
-                    vec_j[i] = data_f[i][pos];
+                int count = 0;
+                for (int i = 2; i < comps; i++) {
+                    //printf("%f \n", dataset[i][vec_get_at(per[f], j)]);
+                    data_f[count][j] = dataset[i][vec_get_at(per[f], j)];
+                    count++;
                 }
-                
-                vec_insert(G_f[f][j], vec_get_at(per[f], j), euclidean_distance(vec_x, vec_j, c));
-                pos--;
             }
-        } else {
-            if (R_stitched >= f_size) {
-                //printf("R: %d\n", f_size);
-                //printf("vmn, threads: %s, %d\n", vmn, threads);
-                if (strcmp(vmn, "main") == 0) G_f[f] = Vamana_main(data_f, f_size, comps-2, L, f_size-1, a, &Vmedoid, threads);
-                if (strcmp(vmn, "random")==0) G_f[f] = Vamana_random_medoid(data_f, f_size, comps-2, L, f_size-1, a, &Vmedoid, threads);
-                if (strcmp(vmn, "semirandom")==0) G_f[f] = Vamana_semirandom_medoid(data_f, f_size, comps-2, L, f_size-1, a, &Vmedoid, threads);
+
+            // for (int j = 0; j < f_size; j++) {
+            //     printf("vector %d -> %d: ", j, vec_get_at(per[f], j));
+            //     for (int i = 0; i < c; i++) {
+            //         printf("%f ", data_f[i][j]);
+            //     }
+            //     printf("\n\n");
+            // }
+
+            int Vmedoid;
+
+            if (f_size == 2) {
+                int pos = 1;
+                for (int j = 0; j < f_size; j++) {
+                    float* vec_x = (float*)malloc(c * sizeof(float));
+                    float* vec_j = (float*)malloc(c * sizeof(float));
+                    for (int i=0; i<c; i++) {
+                        vec_x[i] = data_f[i][j];
+                        vec_j[i] = data_f[i][pos];
+                    }
+                    
+                    vec_insert(G_f[f][j], vec_get_at(per[f], j), euclidean_distance(vec_x, vec_j, c));
+                    pos--;
+                }
             } else {
-                //printf("R: %d\n", R_stitched);
-                //printf("vmn, threads: %s, %d\n", vmn, threads);
-                if (strcmp(vmn, "main")==0) G_f[f] = Vamana_main(data_f, f_size, comps-2, L, R_stitched, a, &Vmedoid, threads);
-                if (strcmp(vmn, "random")==0) G_f[f] = Vamana_random_medoid(data_f, f_size, comps-2, L, R_stitched, a, &Vmedoid, threads);
-                if (strcmp(vmn, "semirandom")==0) G_f[f] = Vamana_semirandom_medoid(data_f, f_size, comps-2, L, R_stitched, a, &Vmedoid, threads);
+                if (R_stitched >= f_size) {
+                    //printf("R: %d\n", f_size);
+                    //printf("vmn, threads: %s, %d\n", vmn, threads);
+                    if (strcmp(vmn, "main") == 0) G_f[f] = Vamana_main(data_f, f_size, comps-2, L, f_size-1, a, &Vmedoid, threads);
+                    if (strcmp(vmn, "random")==0) G_f[f] = Vamana_random_medoid(data_f, f_size, comps-2, L, f_size-1, a, &Vmedoid, threads);
+                    if (strcmp(vmn, "semirandom")==0) G_f[f] = Vamana_semirandom_medoid(data_f, f_size, comps-2, L, f_size-1, a, &Vmedoid, threads);
+                } else {
+                    //printf("R: %d\n", R_stitched);
+                    //printf("vmn, threads: %s, %d\n", vmn, threads);
+                    if (strcmp(vmn, "main")==0) G_f[f] = Vamana_main(data_f, f_size, comps-2, L, R_stitched, a, &Vmedoid, threads);
+                    if (strcmp(vmn, "random")==0) G_f[f] = Vamana_random_medoid(data_f, f_size, comps-2, L, R_stitched, a, &Vmedoid, threads);
+                    if (strcmp(vmn, "semirandom")==0) G_f[f] = Vamana_semirandom_medoid(data_f, f_size, comps-2, L, R_stitched, a, &Vmedoid, threads);
+                }
             }
+
+            free_matrix_fvecs(data_f, comps-2);
+
         }
-
-        free_matrix_fvecs(data_f, comps-2);
-
     }
 
     // for (int j=0; j<vecs; j++) {
@@ -1192,7 +1220,7 @@ Vector* Groundtruth(float** dataset, int vecs, int comps, float** queries, int v
 
     // for each vector in the queries dataset
     for (int j=0; j<vecs_q; j++) {
-        //printf("query %d\n", j);
+        printf("query %d\n", j);
 
         PQueue knn = pqueue_create(NULL);
  

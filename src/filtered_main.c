@@ -51,10 +51,14 @@ int main(int argc, char ** argv) {
        base_file = "dummy-data.bin"; 
        query_file = "dummy-queries.bin";
        vecs = 10000;
-    } else if (strcmp(dtset, "1m") == 0){
+    } else if (strcmp(dtset, "50k") == 0){
         base_file = "contest-data-release-1m.bin";
         query_file = "contest-queries-release-1m.bin";
-        vecs = 1000000;
+        vecs = 50000;   //out of the total 1000000 points of the dataset we will use 50000
+    } else if (strcmp(dtset, "20k") == 0){
+        base_file = "contest-data-release-1m.bin";
+        query_file = "contest-queries-release-1m.bin";
+        vecs = 20000;   //out of the total 1000000 points of the dataset we will use 50000
     }
 
     // open base vectors file using data_open   
@@ -284,14 +288,14 @@ int main(int argc, char ** argv) {
         }
 
         knn = knn_q;
-        
-        // printf("knn: ");
-        // for (VecNode vnode = vec_first(knn->vector); vnode != VECTOR_EOF; vnode = vec_next(knn->vector, vnode)) {
-        //     printf("%d ", vnode->value);
-        // }
-        // printf("\n");
 
     }
+
+    // printf("knn: ");
+    // for (VecNode vnode = vec_first(knn->vector); vnode != VECTOR_EOF; vnode = vec_next(knn->vector, vnode)) {
+    //     printf("%d ", vnode->value);
+    // }
+    // printf("\n");
 
     if (knn == NULL) {
         printf("there are no other vectors with filter %d in the dataset\n NO NEIGHBOURS WHERE FOUND\n", xq_f);

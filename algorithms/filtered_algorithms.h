@@ -2,8 +2,8 @@
 #include <stdlib.h>
 #include <math.h>
 #include <time.h>
-#include "algorithms.h"
-//#include "../threads/threads.h"
+//#include "algorithms.h"
+#include "../threads_filtered/threads_filt.h"
 
 // greedysearch is an algorithm that takes as input 
 // G --> the search graph (a random R-regular directed graph)
@@ -44,7 +44,7 @@ Vector* FilteredVamanaIndexing(float** dataset, float min_f, float max_f, int ve
 Vector* FilteredVamanaIndexing_randomG(float** dataset, float min_f, float max_f, int vecs, int comps, int q_comps, int L, int R, int neigh, int a, Map* med, int* medoid, int t, int thread_flag);
 
 // Stiched Vamana algorithm
-Vector** StichedVamanaIndexing(float** dataset, float min_f, float max_f, Set filters, int vecs, int comps, int L, int R, int a, Map* med, int* medoid, int t, Map* filt_data, Vector** permutation, int threads, const char* vmn);
+Vector** StichedVamanaIndexing(float** dataset, float min_f, float max_f, Set filters, int vecs, int comps, int L, int R, int a, Map* med, int* medoid, int t, Map* filt_data, Vector** permutation, int threads, const char* vmn, int threads_count);
 
 // Stiched Vamana algorithm with random graph
 Vector** StichedVamanaIndexing_randomG(float** dataset, float min_f, float max_f, Set filters, int vecs, int comps, int L, int R, int a, Map* med, int* medoid, int t, int neigh, Map* filt_data, Vector** permutation, int threads, const char* vmn);
