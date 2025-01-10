@@ -867,15 +867,17 @@ Vector** StichedVamanaIndexing(float** dataset, float min_f, float max_f, Set fi
 
     printf("Now for each filter we call vamana.\n\n");
 
+    printf("filters: %d\n", num_filters);
+
     if (threads_count != 0) {
         int num_threads = threads_count;
-        pthread_t threads_arr[num_threads];
-        ThreadData_stitch thread_data[num_threads];
-        int chunk_size = num_filters / num_threads;
+        pthread_t* threads_arr = (pthread_t*)malloc(num_threads * sizeof(pthread_t));
+        ThreadData_stitch* thread_data = (ThreadData_stitch*)malloc(num_threads * sizeof(ThreadData_stitch));
+        int chunk_size = (num_filters-1) / num_threads;
         printf("chunck size: %d\n", chunk_size);
 
         for (int t = 0; t < num_threads; t++) {
-            if (t == 1) break;
+            //if (t == 1) break;
             thread_data[t].dataset = dataset;
             thread_data[t].G_f = G_f;
             thread_data[t].f_start = t * chunk_size;
@@ -891,12 +893,15 @@ Vector** StichedVamanaIndexing(float** dataset, float min_f, float max_f, Set fi
             pthread_create(&threads_arr[t], NULL, build_vamana_index, (void*)&thread_data[t]);
         }
 
-        return NULL;
+        //return NULL;
 
         // Join threads
         for (int t = 0; t < num_threads; ++t) {
             pthread_join(threads_arr[t], NULL);
         }
+
+        free(threads_arr);
+        free(thread_data);
 
     } else if (threads_count == 0) {
         //for (set_Node node = find_min(filters->root); node != SET_EOF; node = set_next(filters, node)) { 
