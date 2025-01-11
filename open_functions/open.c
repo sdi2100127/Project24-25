@@ -139,6 +139,7 @@ void free_matrix_ivecs(int** matrix, int d) {
 }
 
 float** data_open(const char* filename, int* num_vectors, int vec_num_d, float* min_f, float* max_f, Set* filters) {
+    printf("Data open:\n");
     // first we have to open the file in binary read mode using the correct file path
     FILE *fp = NULL;
     char path[100];
@@ -196,11 +197,11 @@ float** data_open(const char* filename, int* num_vectors, int vec_num_d, float* 
     printf("min: %f , max: %f\n", min_filter, max_filter);
 
     *filters = filt;
-    printf("filters: ");
-    for (set_Node node = find_min(filt->root); node != SET_EOF; node = set_next(filt, node)) { 
-        printf("%d ", node->value);
-    }
-    printf("\n");
+    // printf("filters: ");
+    // for (set_Node node = find_min(filt->root); node != SET_EOF; node = set_next(filt, node)) { 
+    //     printf("%d ", node->value);
+    // }
+    // printf("\n");
 
     fclose(fp);
     return vectors;

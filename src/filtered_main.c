@@ -60,7 +60,7 @@ int main(int argc, char ** argv) {
         query_file = "contest-queries-release-1m.bin";
         vecs = 20000;   //out of the total 1000000 points of the dataset we will use 50000
     }
-
+    
     // open base vectors file using data_open   
     int num_vectors, d_base = 100;
     float min_f, max_f;
@@ -82,6 +82,12 @@ int main(int argc, char ** argv) {
         grtrth_file = "groundtruth.dat";
     } else if (strcmp(dtset, "1m") == 0){
         grtrth_file = "groundtruth_1m.dat";
+    }
+    else if (strcmp(dtset, "20k") == 0){
+        grtrth_file = "groundtruth_20k.dat";
+    }
+    else if (strcmp(dtset, "50k") == 0){
+        grtrth_file = "groundtruth_50k.dat";
     }
 
     char path[100];

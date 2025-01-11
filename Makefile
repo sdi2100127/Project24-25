@@ -33,8 +33,8 @@ filtered_main.o: src/filtered_main.c open_functions/open.h algorithms/filtered_a
 	gcc -c src/filtered_main.c -o filtered_main.o 
 
 # Executable
-filtered_app: filtered_main.o open.o algorithms.o filtered_algorithms.o Data_Structs.o threads.o
-	gcc filtered_main.o open.o algorithms.o filtered_algorithms.o Data_Structs.o threads.o -g -o filtered_app -lm -ggdb
+filtered_app: filtered_main.o open.o algorithms.o filtered_algorithms.o Data_Structs.o threads.o threads_filt.o
+	gcc filtered_main.o open.o algorithms.o filtered_algorithms.o Data_Structs.o threads.o threads_filt.o -g -o filtered_app -lm -ggdb
 
 
 # STITCHED MAIN PROGRAM:
@@ -71,7 +71,7 @@ run_vamana_semi_random: app
 
 # Run the filtered program
 run_filter_yes: filtered_app
-	./filtered_app -k 100 -L 125  -R 40 -filtered yes -index_fname filtered_vamana_index -random no -dataset 10k -threads 5
+	./filtered_app -k 100 -L 125  -R 40 -filtered yes -index_fname filtered_vamana_index_50k -random no -dataset 50k -threads 5
 
 run_filter_no: filtered_app
 	./filtered_app -k 100 -L 125  -R 40 -filtered no -index_fname filtered_vamana_index -random no -dataset 10k -threads 5
