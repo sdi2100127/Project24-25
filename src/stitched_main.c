@@ -86,6 +86,12 @@ int main(int argc, char ** argv) {
     } else if (strcmp(dtset, "1m") == 0){
         grtrth_file = "groundtruth_1m.dat";
     }
+    else if (strcmp(dtset, "20k") == 0){
+        grtrth_file = "groundtruth_20k.dat";
+    }
+    else if (strcmp(dtset, "50k") == 0){
+        grtrth_file = "groundtruth_50k.dat";
+    }
 
     char path[100];
     sprintf(path, "groundtruth/%s", grtrth_file);
@@ -236,6 +242,7 @@ int main(int argc, char ** argv) {
 
     // printf("G: \n");
     // for (int f=0; f<filters->size; f++) {
+    //     printf("filter: %d\n", f);
     //     Vector G_f = G[f];
     //     int G_size = map_find_values(filtered_data, f)->size;
 
@@ -249,7 +256,6 @@ int main(int argc, char ** argv) {
     //         }
     //         printf("\n");
     //     }
-    //     printf("done with filter %d\n", f);
     // }
 
 
@@ -287,6 +293,8 @@ int main(int argc, char ** argv) {
     PQueue knn_q;
     // if the query has a filter, run greedysearch as normal
     if (xq_f != -1) {
+
+        printf("has filter\n");
         int c = data_dim-2;
         int f_size = map_find_values(filtered_data, xq_f)->size;
         float** data_f = (float**)malloc(c * sizeof(float*));
@@ -307,12 +315,12 @@ int main(int argc, char ** argv) {
         //printf("f_med: %d\n", f_med);
         knn = greedySearch(G[xq_f], R, data_dim-2, f_size, data_f, f_med, xq, L, k, &V);
 
-        //printf("knn: ");
+        printf("knn: ");
         for (VecNode vnode = vec_first(knn->vector); vnode != VECTOR_EOF; vnode = vec_next(knn->vector, vnode)) {
             vec_set_at(knn->vector, vec_find_pos(knn->vector, vnode->value), vec_get_at(per[xq_f], vnode->value), vnode->dist);
-            //printf("%d ", vnode->value);
+            printf("%d ", vnode->value);
         }
-        //printf("\n");
+        printf("\n");
 
         free_matrix_fvecs(data_f, c);
     } else {
@@ -320,7 +328,7 @@ int main(int argc, char ** argv) {
         knn_q = pqueue_create(0);
         PQueue knn_g;
         for (MapNode node = map_first(med); node != MAP_EOF; node = map_next(med, node)) {
-            //printf("filter %d: \n", node->key);
+            printf("filter %d: \n", node->key);
             int c = data_dim-2;
             int f_size = map_find_values(filtered_data, node->key)->size;
             float** data_f = (float**)malloc(c * sizeof(float*));
@@ -342,7 +350,7 @@ int main(int argc, char ** argv) {
             int f_med = vec_first(map_find_values(med, node->key))->value;
             //printf("f_med: %d\n", f_med);
 
-            knn_g = greedySearch(G[node->key], R, data_dim-2, f_size, data_f, f_med, xq, L, k, &V);
+            knn_g = greedySearch(G[node->key], R, c, f_size, data_f, f_med, xq, L, k, &V);
             
             for (VecNode vnode = vec_first(knn_g->vector); vnode != VECTOR_EOF; vnode = vec_next(knn_g->vector, vnode)) {
                 pqueue_insert(knn_q, vnode->value, vnode->dist);    // add them to a priority queue

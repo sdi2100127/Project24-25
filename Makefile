@@ -74,26 +74,26 @@ run_filter_yes: filtered_app
 	./filtered_app -k 100 -L 125  -R 40 -filtered yes -index_fname filtered_vamana_index_50k -random no -dataset 50k -threads 5
 
 run_filter_no: filtered_app
-	./filtered_app -k 100 -L 125  -R 40 -filtered no -index_fname filtered_vamana_index -random no -dataset 10k -threads 5
+	./filtered_app -k 100 -L 125  -R 40 -filtered no -index_fname filtered_vamana_index_10k -random no -dataset 10k -threads 5
 
 run_filter_yes_random: filtered_app
-	./filtered_app -k 100 -L 125  -R 40 -filtered yes -index_fname filtered_vamana_index_r -random yes -dataset 10k -threads 5
+	./filtered_app -k 100 -L 125  -R 40 -filtered yes -index_fname filtered_vamana_index_r_10k -random yes -dataset 10k -threads 5
 
 run_filter_no_random: filtered_app
-	./filtered_app -k 100 -L 125  -R 40 -filtered no -index_fname filtered_vamana_index_r -random yes -dataset 10k -threads 5
+	./filtered_app -k 100 -L 125  -R 40 -filtered no -index_fname filtered_vamana_index_r_10k -random yes -dataset 10k -threads 5
 
 # Run the stitched program
 run_stitch: stitched_app
-	./stitched_app -k 100 -L 125  -R 40 -filtered yes -index_fname stitched_vamana_index -random no -dataset 10k -vmn_threads 0 -vamana main -stitch_threads 8
+	./stitched_app -k 100 -L 125  -R 40 -filtered yes -index_fname stitched_vamana_index_10k -random no -dataset 10k -vmn_threads 8 -vamana main -stitch_threads 0
 
 run_stitch_no_filter: stitched_app
-	./stitched_app -k 100 -L 125  -R 40 -filtered no -index_fname stitched_vamana_index -random no -dataset 10k -threads 5 -vamana main
+	valgrind ./stitched_app -k 100 -L 125  -R 40 -filtered no -index_fname stitched_vamana_index_10k -random no -dataset 10k -vmn_threads 0 -vamana main -stitch_threads 8
 
 run_stitch_random: stitched_app
-	./stitched_app -k 100 -L 125  -R 40 -filtered yes -index_fname stitched_vamana_index_r -random yes -dataset 10k -threads 5 -vamana main
+	./stitched_app -k 100 -L 125  -R 40 -filtered yes -index_fname stitched_vamana_index_r_10k -random yes -dataset 10k -vmn_threads 0 -vamana main -stitch_threads 8
 
 run_stitch_no_filter_random: stitched_app
-	./stitched_app -k 100 -L 125  -R 40 -filtered no -index_fname stitched_vamana_index_r -random yes -dataset 10k -threads 5 -vamana main
+	./stitched_app -k 100 -L 125  -R 40 -filtered no -index_fname stitched_vamana_index_r_10k -random yes -dataset 10k -vmn_threads 0 -vamana main -stitch_threads 8
 
 # Run the unit tests
 run_test: test
