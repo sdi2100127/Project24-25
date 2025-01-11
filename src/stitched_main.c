@@ -327,10 +327,10 @@ int main(int argc, char ** argv) {
         // otherwise, run greedysearch to find its nearest neighbours from every filter
         knn_q = pqueue_create(0);
         PQueue knn_g;
-        for (MapNode node = map_first(med); node != MAP_EOF; node = map_next(med, node)) {
-            printf("filter %d: \n", node->key);
+        for (int f=0; f<filters->size; f++)  {
+            printf("filter %d: \n", f);
             int c = data_dim-2;
-            int f_size = map_find_values(filtered_data, node->key)->size;
+            int f_size = map_find_values(filtered_data, f)->size;
             float** data_f = (float**)malloc(c * sizeof(float*));
             for (int i = 0; i < c; i++) {
                 data_f[i] = (float*)malloc(f_size * sizeof(float));
@@ -339,18 +339,19 @@ int main(int argc, char ** argv) {
             for (int j = 0; j < f_size; j++) {
                 int count = 0;
                 for (int i = 2; i < data_dim; i++) {
-                    //printf("%f \n", dataset[i][vec_get_at(per[f], j)]);
-                    data_f[count][j] = dataset[i][vec_get_at(per[node->key], j)];
+                    //printf("%f \n", dataset[i][vec_get_at(per[node->key], j)]);
+                    data_f[count][j] = dataset[i][vec_get_at(per[f], j)];
                     count++;
                 }
             }
 
+
             //printf("found data_f\n");
 
-            int f_med = vec_first(map_find_values(med, node->key))->value;
+            int f_med = vec_first(map_find_values(med, f))->value;
             //printf("f_med: %d\n", f_med);
 
-            knn_g = greedySearch(G[node->key], R, c, f_size, data_f, f_med, xq, L, k, &V);
+            knn_g = greedySearch(G[f], R, c, f_size, data_f, f_med, xq, L, k, &V);
             
             for (VecNode vnode = vec_first(knn_g->vector); vnode != VECTOR_EOF; vnode = vec_next(knn_g->vector, vnode)) {
                 pqueue_insert(knn_q, vnode->value, vnode->dist);    // add them to a priority queue
@@ -371,12 +372,12 @@ int main(int argc, char ** argv) {
 
         knn = knn_q;
         
-        printf("knn: ");
-        for (VecNode vnode = vec_first(knn->vector); vnode != VECTOR_EOF; vnode = vec_next(knn->vector, vnode)) {
-            vec_set_at(knn->vector, vec_find_pos(knn->vector, vnode->value), vec_get_at(per[xq_f], vnode->value), vnode->dist);
-            printf("%d ", vnode->value);
-        }
-        printf("\n");
+        // printf("knn: ");
+        // for (VecNode vnode = vec_first(knn->vector); vnode != VECTOR_EOF; vnode = vec_next(knn->vector, vnode)) {
+        //     vec_set_at(knn->vector, vec_find_pos(knn->vector, vnode->value), vec_get_at(per[xq_f], vnode->value), vnode->dist);
+        //     printf("%d ", vnode->value);
+        // }
+        // printf("\n");
 
     }
 
