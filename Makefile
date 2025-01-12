@@ -52,8 +52,8 @@ stitched_app: stitched_main.o open.o algorithms.o filtered_algorithms.o Data_Str
 testing.o: unit_tests/testing.c unit_tests/acutest.h open_functions/open.h algorithms/algorithms.h algorithms/filtered_algorithms.h
 	gcc -c unit_tests/testing.c -o testing.o
 # Executable
-test: testing.o open.o algorithms.o filtered_algorithms.o Data_Structs.o
-	gcc testing.o open.o algorithms.o filtered_algorithms.o Data_Structs.o -g -o test -lm
+test: testing.o open.o algorithms.o filtered_algorithms.o Data_Structs.o threads.o threads_filt.o
+	gcc testing.o open.o algorithms.o filtered_algorithms.o Data_Structs.o threads.o threads_filt.o -g -o test -lm
 
 # Clean target
 clean:
@@ -71,7 +71,7 @@ run_vamana_semi_random: app
 
 # Run the filtered program
 run_filter_yes: filtered_app
-	./filtered_app -k 100 -L 125  -R 40 -filtered yes -index_fname filtered_vamana_index_50k -random no -dataset 50k -threads 5
+	./filtered_app -k 100 -L 125  -R 40 -filtered yes -index_fname filtered_vamana_index_10k -random no -dataset 10k -threads 5
 
 run_filter_no: filtered_app
 	./filtered_app -k 100 -L 125  -R 40 -filtered no -index_fname filtered_vamana_index_10k -random no -dataset 10k -threads 5
@@ -84,7 +84,7 @@ run_filter_no_random: filtered_app
 
 # Run the stitched program
 run_stitch: stitched_app
-	./stitched_app -k 100 -L 125  -R 40 -filtered yes -index_fname stitched_vamana_index_10k -random no -dataset 10k -vmn_threads 0 -vamana main -stitch_threads 8
+	./stitched_app -k 100 -L 125  -R 40 -filtered yes -index_fname stitched_vamana_index_10k -random no -dataset 10k -vmn_threads 0 -vamana main -stitch_threads 5
 
 run_stitch_no_filter: stitched_app
 	./stitched_app -k 100 -L 125  -R 40 -filtered no -index_fname stitched_vamana_index_10k -random no -dataset 10k -vmn_threads 0 -vamana main -stitch_threads 8

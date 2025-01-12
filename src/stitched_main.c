@@ -267,8 +267,8 @@ int main(int argc, char ** argv) {
     while (fflag == 0) {
         fflag = 1;
         xq_pos = rand() % (count - 1);
-        if (strcmp(filter, "no") == 0) if (posible_queries[1][xq_pos] != -1) fflag = 0;
-        if (strcmp(filter, "yes") == 0) if (posible_queries[1][xq_pos] == -1) fflag = 0;
+        if (strcmp(filter, "no") == 0){ if (posible_queries[1][xq_pos] != -1) fflag = 0;}
+        if (strcmp(filter, "yes") == 0){ if (posible_queries[1][xq_pos] == -1) fflag = 0;}
     }
     int xq_size = queries_dim-4;
     float* xq = (float*)malloc(xq_size * sizeof(float));
@@ -278,6 +278,11 @@ int main(int argc, char ** argv) {
         z++;
     }
     printf("query: %d with filter: %d\n", xq_pos, xq_f);
+
+
+
+    end = time(NULL);
+    printf("The programm has taken %.f seconds \n", difftime(end,start));
 
     // run the greedysearch algorithm to find its k nearest neighbours based on G
     Set V;
@@ -388,26 +393,14 @@ int main(int argc, char ** argv) {
     if (knn == NULL) {
         printf("there are no other vectors with filter %d in the dataset\n NO NEIGHBOURS WHERE FOUND\n", xq_f);
     }
-    
-
-    //Calculation of accuracy  
-    // printf("query groundtruth %d with filter %f: ", xq_pos, posible_queries[1][xq_pos]);
-    // for (VecNode node = vec_first(groundtruth[xq_pos]); node != VECTOR_EOF; node = vec_next(groundtruth[xq_pos], node)) {
-    //     printf("%d -> %f  ", node->value , dataset[0][node->value]);
-    // }
-    // printf("\n");
 
     int found = 0;
     for (int i=0; i<k; i++) {
         if (i >= groundtruth[xq_pos]->size) break;
         int n_point = vec_get_at(groundtruth[xq_pos], i);
-        //printf("n_point: %d ", n_point);
         if (vec_find_node(knn->vector,n_point) != VECTOR_EOF) {
-            //printf("exists");
-            printf("n_point: %d -> %f exists\n", n_point, dataset[0][n_point]);
             found++;
         }
-        //printf("\n");
     }
     float accuracy = found* 100 / groundtruth[xq_pos]->size;
     printf("Our program calculates the data with an accuracy of : %f \n",accuracy); 
@@ -425,9 +418,6 @@ int main(int argc, char ** argv) {
     free_matrix_fvecs(posible_queries, queries_dim);
     free(xq);
     map_destroy(med);
-
-    end = time(NULL);
-    printf("The programm has taken %.f seconds \n", difftime(end,start));
 
     return 0;
 
