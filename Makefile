@@ -90,7 +90,7 @@ run_stitch_no_filter: stitched_app
 	./stitched_app -k 100 -L 125  -R 40 -filtered no -index_fname stitched_vamana_index_10k -random no -dataset 10k -vmn_threads 0 -vamana main -stitch_threads 8
 
 run_stitch_random: stitched_app
-	./stitched_app -k 100 -L 125  -R 40 -filtered yes -index_fname stitched_vamana_index_r_10k -random yes -dataset 10k -vmn_threads 0 -vamana main -stitch_threads 0
+	./stitched_app -k 100 -L 125  -R 40 -filtered yes -index_fname stitched_vamana_index_r_10k -random yes -dataset 10k -vmn_threads 0 -vamana main -stitch_threads 8
 
 run_stitch_no_filter_random: stitched_app
 	./stitched_app -k 100 -L 125  -R 40 -filtered no -index_fname stitched_vamana_index_r_10k -random yes -dataset 10k -vmn_threads 0 -vamana main -stitch_threads 8

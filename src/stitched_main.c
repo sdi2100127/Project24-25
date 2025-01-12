@@ -213,8 +213,7 @@ int main(int argc, char ** argv) {
     } else {    // otherwise, compute it and store it
 
         if (strcmp(rnd, "no") == 0) G = StichedVamanaIndexing(dataset, min_f, max_f, filters, vecs, data_dim, L, R, a, &med, &medoid, t, &filtered_data, &per, threads, vmn, st_threads);
-        //if (strcmp(rnd, "no") == 0) G = StichedVamanaIndexing1(dataset, min_f, max_f, filters, vecs, data_dim, L, R, a, &med, &medoid, t, &filtered_data, &per);
-        if (strcmp(rnd, "yes") == 0) G = StichedVamanaIndexing_randomG(dataset, min_f, max_f, filters, vecs, data_dim, L, R, a, &med, &medoid, t, neigh, &filtered_data, &per, threads, vmn);
+        if (strcmp(rnd, "yes") == 0) G = StichedVamanaIndexing_randomG(dataset, min_f, max_f, filters, vecs, data_dim, L, R, a, &med, &medoid, t, neigh, &filtered_data, &per, threads, vmn, st_threads);
 
         G_file = fopen(G_path, "wb");
         if (G_file == NULL) {

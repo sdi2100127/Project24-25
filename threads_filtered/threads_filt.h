@@ -24,6 +24,9 @@ typedef struct {
     int L;
     int a;
     const char* vmn;
+    int neigh;
 } ThreadData_stitch;
 
 void* build_vamana_index(void* arg);
+
+void* build_vamana_index_random(void* arg);

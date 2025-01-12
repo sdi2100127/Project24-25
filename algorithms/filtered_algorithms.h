@@ -47,7 +47,7 @@ Vector* FilteredVamanaIndexing_randomG(float** dataset, float min_f, float max_f
 Vector** StichedVamanaIndexing(float** dataset, float min_f, float max_f, Set filters, int vecs, int comps, int L, int R, int a, Map* med, int* medoid, int t, Map* filt_data, Vector** permutation, int threads, const char* vmn, int threads_count);
 
 // Stiched Vamana algorithm with random graph
-Vector** StichedVamanaIndexing_randomG(float** dataset, float min_f, float max_f, Set filters, int vecs, int comps, int L, int R, int a, Map* med, int* medoid, int t, int neigh, Map* filt_data, Vector** permutation, int threads, const char* vmn);
+Vector** StichedVamanaIndexing_randomG(float** dataset, float min_f, float max_f, Set filters, int vecs, int comps, int L, int R, int a, Map* med, int* medoid, int t, int neigh, Map* filt_data, Vector** permutation, int threads, const char* vmn, int threads_count);
 
 // function to compute the groundtruth on which the results will be based 
 Vector* Groundtruth(float** dataset, int vecs, int comps, float** queries, int vecs_q, int comps_q, int k);
