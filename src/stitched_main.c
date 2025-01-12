@@ -156,7 +156,7 @@ int main(int argc, char ** argv) {
         for (int i = 0; i < filters->size; i++) {
             G[i] = (Vector*)malloc(vecs * sizeof(Vector));
             for (int j=0; j<vecs; j++) {
-                G[i][j] = vec_Create(0);
+                G[i][j] = vec_Create(0); 
             }
         }
 
@@ -209,9 +209,11 @@ int main(int argc, char ** argv) {
             }
         }
 
+
     } else {    // otherwise, compute it and store it
 
         if (strcmp(rnd, "no") == 0) G = StichedVamanaIndexing(dataset, min_f, max_f, filters, vecs, data_dim, L, R, a, &med, &medoid, t, &filtered_data, &per, threads, vmn, st_threads);
+        //if (strcmp(rnd, "no") == 0) G = StichedVamanaIndexing1(dataset, min_f, max_f, filters, vecs, data_dim, L, R, a, &med, &medoid, t, &filtered_data, &per);
         if (strcmp(rnd, "yes") == 0) G = StichedVamanaIndexing_randomG(dataset, min_f, max_f, filters, vecs, data_dim, L, R, a, &med, &medoid, t, neigh, &filtered_data, &per, threads, vmn);
 
         G_file = fopen(G_path, "wb");
@@ -269,7 +271,6 @@ int main(int argc, char ** argv) {
         if (strcmp(filter, "no") == 0) if (posible_queries[1][xq_pos] != -1) fflag = 0;
         if (strcmp(filter, "yes") == 0) if (posible_queries[1][xq_pos] == -1) fflag = 0;
     }
-    // int xq_pos = rand() % (count - 1);
     int xq_size = queries_dim-4;
     float* xq = (float*)malloc(xq_size * sizeof(float));
     int z = 4, xq_f = (int)posible_queries[1][xq_pos];
@@ -278,14 +279,6 @@ int main(int argc, char ** argv) {
         z++;
     }
     printf("query: %d with filter: %d\n", xq_pos, xq_f);
-
-    // for (int j = 0; j < f_size; j++) {
-    //     printf("vector %d -> %d: ", j, vec_get_at(per[xq_f], j));
-    //     for (int i = 0; i < c; i++) {
-    //         printf("%f ", data_f[i][j]);
-    //     }
-    //     printf("\n\n");
-    // }
 
     // run the greedysearch algorithm to find its k nearest neighbours based on G
     Set V;
@@ -312,8 +305,23 @@ int main(int argc, char ** argv) {
         }
 
         int f_med = vec_first(map_find_values(med, xq_f))->value;
-        //printf("f_med: %d\n", f_med);
-        knn = greedySearch(G[xq_f], R, data_dim-2, f_size, data_f, f_med, xq, L, k, &V);
+        printf("f_med: %d, size: %d\n", f_med, G[xq_f][f_med]->size);
+        // int sz = G[xq_f][f_med]->size;
+        // while (G[xq_f][f_med]->size == 0) {
+        //     fflag = 0;
+        //     while (fflag == 0) {
+        //         fflag = 1;
+        //         xq_pos = rand() % (count - 1);
+        //         if (strcmp(filter, "yes") == 0) if (posible_queries[1][xq_pos] == -1) fflag = 0;
+        //     }
+        //     xq_f = (int)posible_queries[1][xq_pos];
+        //     printf("query: %d with filter: %d\n", xq_pos, xq_f);
+        //     f_med = vec_first(map_find_values(med, xq_f))->value;
+        //     sz = G[xq_f][f_med]->size;
+        //     printf("f_med: %d, size: %d\n", f_med, sz);
+        // }
+
+        knn = greedySearch(G[xq_f], R, c, f_size, data_f, f_med, xq, L, k, &V);
 
         printf("knn: ");
         for (VecNode vnode = vec_first(knn->vector); vnode != VECTOR_EOF; vnode = vec_next(knn->vector, vnode)) {
@@ -328,7 +336,7 @@ int main(int argc, char ** argv) {
         knn_q = pqueue_create(0);
         PQueue knn_g;
         for (int f=0; f<filters->size; f++)  {
-            printf("filter %d: \n", f);
+            //printf("filter %d: \n", f);
             int c = data_dim-2;
             int f_size = map_find_values(filtered_data, f)->size;
             float** data_f = (float**)malloc(c * sizeof(float*));
@@ -345,7 +353,6 @@ int main(int argc, char ** argv) {
                 }
             }
 
-
             //printf("found data_f\n");
 
             int f_med = vec_first(map_find_values(med, f))->value;
@@ -354,6 +361,7 @@ int main(int argc, char ** argv) {
             knn_g = greedySearch(G[f], R, c, f_size, data_f, f_med, xq, L, k, &V);
             
             for (VecNode vnode = vec_first(knn_g->vector); vnode != VECTOR_EOF; vnode = vec_next(knn_g->vector, vnode)) {
+                vec_set_at(knn_g->vector, vec_find_pos(knn_g->vector, vnode->value), vec_get_at(per[f], vnode->value), vnode->dist);
                 pqueue_insert(knn_q, vnode->value, vnode->dist);    // add them to a priority queue
             }
 
@@ -368,16 +376,13 @@ int main(int argc, char ** argv) {
             }
         }
 
-        // SEGFAULT IS OVER HERE!!!!!!
-
         knn = knn_q;
         
-        // printf("knn: ");
-        // for (VecNode vnode = vec_first(knn->vector); vnode != VECTOR_EOF; vnode = vec_next(knn->vector, vnode)) {
-        //     vec_set_at(knn->vector, vec_find_pos(knn->vector, vnode->value), vec_get_at(per[xq_f], vnode->value), vnode->dist);
-        //     printf("%d ", vnode->value);
-        // }
-        // printf("\n");
+        printf("knn: ");
+        for (VecNode vnode = vec_first(knn->vector); vnode != VECTOR_EOF; vnode = vec_next(knn->vector, vnode)) {
+            printf("%d ", vnode->value);
+        }
+        printf("\n");
 
     }
 

@@ -58,3 +58,5 @@ Vector* Vamana_random_medoid(float** dataset, int vecs, int comps, int L, int R,
 Vector* Vamana_semirandom_medoid(float** dataset, int vecs, int comps, int L, int R, int a, int* med, int threads);
 
 void free_G(Vector* G, int v);
+
+Vector** StichedVamanaIndexing1(float** dataset, float min_f, float max_f, Set filters, int vecs, int comps, int L, int R_stitched, int a, Map* med, int* medoid, int t, Map* filt_data, Vector** permutation);
