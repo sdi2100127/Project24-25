@@ -8,6 +8,4 @@ docker: docker run --rm -it -v /Users/nefelioikonomou/Documents/Project24-25-1:/
 Κυριακάκος Μιχαήλ - 1115202100074 - sdi2100074@di.uoa.gr
 
 --> Makefile
-Το project περιέχει makefile και τρέχει με την εκτέλεση των εντολών: 
-make 
-make run
+Το project περιέχει makefile
